@@ -11,7 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Order_Product {
+public class OderDetail {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
