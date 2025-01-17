@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết khuyến mãi</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            padding-top: 30px;
+        }
+        .card {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: none;
+            margin-bottom: 30px;
+        }
+        .btn-dark {
+            background-color: #343a40;
+            border: none;
+        }
+        .form-control {
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="container" layout:fragment="content">
+    <div class="card">
+        <div class="card-body">
+            <h5>Chi tiết khuyến mãi</h5>
+            <p><strong>Mã khuyến mãi:</strong> <span th:text="${promotion.code}"></span></p>
+            <p><strong>Tên khuyến mãi:</strong> <span th:text="${promotion.name}"></span></p>
+            <p><strong>Giá trị:</strong> <span th:text="${promotion.price}"></span></p>
+<!--            <p><strong>Số lượng:</strong> <span th:text="${promotion.quantity}"></span></p>-->
+            <p><strong>Ngày bắt đầu:</strong> <span th:text="${promotion.dateStart}"></span></p>
+            <p><strong>Ngày kết thúc:</strong> <span th:text="${promotion.dateEnd}"></span></p>
+            <p><strong>Trạng thái:</strong> <span th:text="${promotion.status}"></span></p>
+
+            <h5>Sản phẩm liên quan</h5>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Mã sản phẩm</th>
+                    <th>Sản phẩm</th>
+                    <th>Giá</th>
+                    <th>Giá mới</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="productDetaill : ${productDetails}">
+                    <td th:text="${productDetaill.productDetail.productCode}"></td>
+                    <td th:text="${productDetaill.productDetail.product.name + ' [ ' + productDetaill.productDetail.color.name + ' - ' + productDetaill.productDetail.size.name + ' ]'}" ></td>
+                    <td th:text="${productDetaill.giaCu}"></td>
+                    <td th:text="${productDetaill.giaMoi}"></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <a th:href="@{/promotions}" class="btn btn-primary">Quay lại</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

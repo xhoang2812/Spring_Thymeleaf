@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{admin/index}"
+      xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Quản lý sản phẩm chi tiết</title>
+    <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet"/>
+</head>
+
+<body onload="checkUser()">
+<div layout:fragment="content">
+    <main class="content px-3 py-4">
+        <div class="container-fluid">
+            <div class="mb-3">
+                <h3 class="fw-bold fs-4 mb-3">Danh sách sản phẩm chi tiết</h3>
+                <div class="row">
+                    <div class="col-6 mb-2" style="text-align:start">
+                        <a class="btn btn-secondary" th:href="@{/san-pham/hien-thi}">
+                            Danh sách sản phẩm
+                        </a>
+                    </div>
+                    <div class="col-12">
+                        <button aria-controls="collapseExample" aria-expanded="false" class="btn btn-primary"
+                                data-bs-target="#collapseExample" data-bs-toggle="collapse" type="button">
+                            Lọc theo thuộc tính  <i class="fa-solid fa-filter"></i>
+                        </button>
+                        <div class="collapse" id="collapseExample">
+                            <div class="card card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <label for="filterSize">Kích cỡ :</label>
+                                        <select class="form-select" id="filterSize">
+                                            <option value="">Tất cả</option>
+                                            <option th:each="size : ${sizes}" th:text="${size.name}"
+                                                    th:value="${size.name}"></option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="filterColor">Màu sắc:</label>
+                                        <select class="form-select" id="filterColor">
+                                            <option value="">Tất cả</option>
+                                            <option th:each="color : ${colors}" th:text="${color.name}"
+                                                    th:value="${color.name}"></option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <table class="table table-striped table-hover" id="example">
+                            <thead class="table-dark">
+                            <tr>
+                                <th scope="col">Ảnh</th>
+                                <th scope="col">Tên</th>
+                                <th scope="col">Số lượng</th>
+                                <th scope="col">Giá</th>
+                                <th scope="col">Trọng lượng</th>
+                                <th scope="col">Trạng thái</th>
+                                <th scope="col">Chức Năng</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="list : ${listProductVariant}">
+                                <td class="image-container">
+                                    <div class="carousel slide carousel-fade" data-bs-ride="carousel"
+                                         id="carouselExampleFade">
+                                        <div class="carousel-inner">
+                                            <div class="carousel-item active">
+                                                <img style="width: 90px; height: 90px; object-fit: cover; border-radius: 5px; border: 1px solid #ccc;"
+                                                     th:src="@{'/hinh-anh/test/' + ${list.image.url1}}">
+                                            </div>
+                                            <div class="carousel-item">
+                                                <img style="width: 90px; height: 90px; object-fit: cover; border-radius: 5px; border: 1px solid #ccc;"
+                                                     th:src="@{'/hinh-anh/test/' + ${list.image.url2}}">
+                                            </div>
+                                            <div class="carousel-item">
+                                                <img style="width: 90px; height: 90px; object-fit: cover; border-radius: 5px; border: 1px solid #ccc;"
+                                                     th:src="@{'/hinh-anh/test/' + ${list.image.url3}}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:utext="${list.product.name +  ' [ ' + list.size.name + ' + ' + list.color.name +' ]'}"
+                                    th:data-size="${list.size.name}"
+                                    th:data-color="${list.color.name}">
+                                </td>
+                                <td th:utext="${#numbers.formatDecimal(list.quantity, 0, 'DEFAULT', 0, 'DEFAULT') + ' chiếc'}"></td>
+                                <td th:utext="${#numbers.formatDecimal(list.price, 0, 'POINT', 0, 'POINT') + ' VND'}"></td>
+                                <td th:utext="${#numbers.formatDecimal(list.weight, 0, 'POINT', 0, 'POINT') + ' gram'}"></td>
+                                <td>
+                                    <span
+                                            class="badge bg-success"
+                                            th:id="'trangThaiUpdate_'+${list.id}"
+                                            th:if="${list.status == 1}">Hoạt Động
+                                    </span>
+                                    <span
+                                            class="badge bg-danger"
+                                            th:id="'trangThaiUpdate_'+${list.id}"
+                                            th:if="${list.status == 0}">Ngừng Hoạt Động
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex">
+                                        <div style="display: flex;align-items: center;justify-content: center;">
+                                            <a id="i-1" th:href="@{/san-pham-chi-tiet/update/{id}(id=${list.id})}">
+                                                <i class="fa-solid fa-wrench -pulse"></i>
+                                            </a>
+                                        </div>
+                                        <div style="display: flex;align-items: center;justify-content: center; margin-left:17px; margin-right: 17px">
+                                            <a id="i-2" class="form-switch">
+                                                <input class="form-check-input" onchange="capNhatLaiDuLieu(this)"
+                                                       onclick="capNhatTrangThai(this.getAttribute('data-ma'))"
+                                                       role="switch"
+                                                       th:checked="${list.status == 1}"
+                                                       th:data-ma="${list.id}"
+                                                       type="checkbox">
+                                                <input style="display: none" th:id="'btnDoiTrangThai_' + ${list.id}"
+                                                       th:value="${list.status}">
+                                            </a>
+                                        </div>
+                                        <div style="display: flex;align-items: center;justify-content: center;">
+                                            <a th:href="@{/san-pham-chi-tiet/detail/{idProduct}(idProduct=${list.id})}">
+                                                <i class="fa-solid fa-eye -pulse"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <script>
+        $('#example').DataTable({
+            order: [],
+            layout: {
+                topStart: {
+                    buttons: ['copy', 'excel', 'pdf', 'colvis']
+                }
+            }
+        });
+        $(document).ready(function () {
+            var table = $('#example').DataTable();
+
+            function removeDiacritics(str) {
+                return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            }
+
+            // Custom filtering function
+            $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+                let selectedSize = removeDiacritics($('#filterSize').val());
+                let selectedColor = removeDiacritics($('#filterColor').val());
+
+                console.log("selectedSize " +selectedSize)
+                console.log("selectedColor "+selectedColor)
+
+                var rowSize = data[1].split('[')[1].split('+')[0].trim();   // Lấy giá trị size từ cột tên sản phẩm
+                var rowColor = data[1].split('+')[1].split(']')[0].trim();
+                console.log("rowSize " + selectedSize)
+                console.log("rowColor " + selectedColor)
+
+                if ((selectedSize === '' || rowSize === selectedSize) &&
+                    (selectedColor === '' || rowColor === selectedColor)) {
+                    return true;
+                }
+                return false;
+            });
+
+            // Khi thay đổi giá trị của dropdown, áp dụng lại filter
+            $('#filterSize, #filterColor').on('change', function () {
+                table.draw();
+            });
+        });
+    </script>
+    <script>
+        function showErrors(messsages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messsages
+            });
+        }
+
+        function showSuccesss(messages) {
+            Swal.fire({
+                title: messages,
+                icon: "success"
+            });
+        }
+
+        [[${maTonTai} == true]] ? showErrors('Mã sản phẩm chi tiết đã tồn tại!') : '';
+        [[${createSuccess} == true]] ? showSuccesss("Thêm thành công") : '';
+        [[${updateSuccess} == true]] ? showSuccesss("Sửa thành công") : '';
+    </script>
+    <script>
+        function checkUser(){
+            $.ajax({
+                url: "/api/vouchers/userData",
+                method: "GET",
+                success: function (data) {
+                    console.log(data)
+                    if (data === "") {
+                        document.querySelectorAll("#i-1").forEach(i => i.remove());
+                        document.querySelectorAll("#i-2").forEach(i => i.remove());
+                    }
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            })
+        }
+        function capNhatTrangThai(id) {
+            idMau = id;
+            let trangThai = document.getElementById("btnDoiTrangThai_" + id).value;
+            var formData = new FormData();
+            formData.append("trangThai", trangThai);
+            $.ajax({
+                type: "PUT",
+                url: "/san-pham-chi-tiet/change-status/" + id,
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    console.log("Success: " + response);
+                    Swal.fire({
+                        title: "Cập nhật trạng thái thành công!",
+                        icon: "success"
+                    })
+                },
+                error: function (error) {
+                    console.log("Error1: " + JSON.stringify(error));
+                }
+            });
+        }
+
+        function capNhatLaiDuLieu(checkbox) {
+            let trangThai = checkbox.checked;
+            let tThai = document.getElementById("trangThaiUpdate_" + idMau);
+            if (trangThai) {
+                tThai.innerText = "Hoạt Động";
+                tThai.style.color = "white";
+                tThai.classList.remove("badge", "bg-danger");
+                tThai.classList.add("badge", "bg-success");
+            } else {
+                tThai.innerText = "Không Hoạt Động";
+                tThai.style.color = "white";
+                tThai.classList.remove("badge", "bg-success");
+                tThai.classList.add("badge", "bg-danger");
+            }
+        }
+    </script>
+</div>
+</body>
+</html>

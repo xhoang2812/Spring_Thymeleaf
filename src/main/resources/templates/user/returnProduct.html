@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorate="~{user/index}"
+      xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <style>
+    a{
+      text-decoration: none;
+    }
+    h3,
+    h4 {
+      font-weight: 400;
+    }
+
+    p {
+      font-size: 16px;
+    }
+
+    .reduce-spacing p {
+      margin-bottom: 1px;
+      /* Điều chỉnh khoảng cách tùy ý */
+    }
+
+    .select {
+      height: 30px;
+      cursor: pointer;
+    }
+
+    input:focus {
+      outline: none;
+      box-shadow: none;
+    }
+
+
+    .upload-box,
+    .new-upload-box {
+      width: 120px;
+      height: 120px;
+      border: 2px dashed #ccc;
+      border-radius: 10px;
+      margin: 0 auto;
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .upload-box:hover,
+    .new-upload-box:hover {
+      border-color: #888;
+    }
+
+    .upload-box input[type="file"],
+    .new-upload-box input[type="file"] {
+      opacity: 0;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .upload-box .plus-sign {
+      font-size: 40px;
+      color: #ccc;
+      display: block;
+    }
+
+    .new-upload-box .new-plus-sign {
+      font-size: 40px;
+      color: #ccc;
+      display: block;
+    }
+
+    .spinner,
+    .new-spinner {
+      display: none;
+      width: 40px;
+      height: 40px;
+      border: 4px solid #ccc;
+      border-top: 4px solid #4CAF50;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #status {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .videoContainer,
+    #imageContainer {
+      margin-top: 20px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .videoContainer video,
+    #imageContainer img {
+      width: 100%;
+      max-width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+
+    .new-delete-icon {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 24px;
+      height: 24px;
+      background-color: #f44336;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .delete-icon {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 24px;
+      height: 24px;
+      background-color: #f44336;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .delete-icon:hover {
+      background-color: #d32f2f;
+    }
+
+    .payment-info input {
+      border: none;
+      border-bottom: 1px solid;
+      margin-left: 20px;
+      margin-top: 20px;
+    }
+    .modal-body input, select{
+        border: none;
+        border-bottom: 1px solid;
+    }
+  </style>
+  <script defer>
+    const cloudName = 'dbe1h6ajz';
+    const uploadPreset = 'hws3gmku';
+    const GHN_TOKEN = 'e72e960b-9e77-11ef-a35f-3e447ea83dcd'; // Thay YOUR_GHN_TOKEN bằng token thật của bạn
+    const SHOP_ID = 5445966; // Thay bằng shop_id của bạn
+    const idBill = 3;
+    const api = "/home/customer-bill-management/api/returnOnline";
+    let bill = {};
+    function chooseReason(rs, number) {
+      const reason = document.getElementById("reason-" + number);
+      reason.value = rs;
+    }
+
+    function loading() {
+      $.ajax({
+        url: api + "/tradeDetail/" + idBill,
+        method: "GET",
+        success: function (data) {
+            bill = data[0].billDetail.bill;
+          const listDetail = document.getElementById("listDetail");
+          listDetail.innerHTML = "";
+          data.forEach(item => {
+            const row = renderTradeDetail(item);
+            listDetail.append(row);
+          })
+            const address = document.getElementById("address");
+          address.innerHTML = ``;
+          address.append(renderAddress(bill.address));
+        },
+        error: function (error) {
+          console.log(error)
+        }
+      })
+    }
+
+    function renderAddress(address){
+        let shipMoney = bill.shipPrice.toLocaleString();
+        const row = document.createElement("div");
+        row.innerHTML = `<div class="d-flex justify-content-between">
+                    <p>Thông tin nơi lấy hàng:</p>
+                    <div class="">
+                        <button class="btn btn-dark" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop1" onclick="loadProvinces()">Sửa</button>
+                        <button class="btn btn-dark" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop1">Khác</button>
+                    </div>
+                </div>
+                <p>Họ tên người nhận: ${address.nameRecipient}</p>
+                <p>Số điện thoại: ${address.phone}</p>
+                <p>Địa chỉ lấy hàng: ${address.addreseDetail}, ${address.district}, ${address.ward}, ${address.province}</p>
+                <p>Tiền ship: <span id="ship-money">${shipMoney}</span> <sup>đ</sup></p>`;
+        return row;
+    }
+
+    function renderTradeDetail(item){
+      const row = document.createElement("div");
+      row.classList.add('row', 'p-3', 'mt-3');
+      row.setAttribute("id", item.billDetail.id);
+      item.totalMoney = item.totalMoney.toLocaleString();
+      row.innerHTML = `
+            <div class="col-8">
+              <div class="d-flex">
+                <div class="">
+                  <img src="/hinh-anh/test/${item.billDetail.productDetail.image.url1}"
+                       height="70px" alt="">
+                </div>
+                <div class="ms-2">
+                  <p style="margin-top: -3px;">${item.billDetail.productDetail.product.name} </p>
+                  <div class="">
+                    <div class="d-flex justify-content-between">
+                      <p>${item.billDetail.productDetail.color.name}, ${item.billDetail.productDetail.size.name}</p>
+                      <p>x${item.quantity}</p>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                      <p>Thành công</p>
+                      <p class="ms-4">${item.totalMoney}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4">
+                <h4>Nguyên nhân trả hàng</h4>
+                <div class="col-9 d-flex justify-content-between ">
+                  <div class="input-group">
+                    <input type="text" id="reason-${item.billDetail.id}" placeholder="Lý do"
+                           style="border: none; border-bottom: 1px solid; width: 75%;"
+                           aria-label="Text with dropdown button" readonly>
+                    <button class="btn btn-outline-secondary"
+                            style="border-top-right-radius: 2px;border-bottom-right-radius: 2px;" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">Chọn lý do
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li><a class="dropdown-item" onclick="chooseReason('Gửi sai hàng', ${item.billDetail.id})">Gửi sai hàng</a>
+                      </li>
+                      <li><a class="dropdown-item" onclick="chooseReason('Lỗi của nhà sản xuất', ${item.billDetail.id})">Lỗi của
+                        nhà sản xuất</a></li>
+                      <li><a class="dropdown-item" onclick="chooseReason('Khác với mô tả', ${item.billDetail.id})">Khác với mô
+                        tả</a></li>
+                      <li><a class="dropdown-item"
+                             onclick="chooseReason('Hàng nguyên vẹn nhưng không còn nhu cầu', ${item.billDetail.id})">Hàng
+                        nguyên vẹn nhưng không còn nhu cầu</a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-3">
+              <div id="upload-div-${item.billDetail.id}">
+                <h4 class="text-center">Thêm video</h4>
+                <div class="upload-box">
+                  <input type="file" id="videoUpload-${item.billDetail.id}" accept="video/*" onchange="uploadVideo(${item.billDetail.id})">
+                  <span class="plus-sign" id="plus-sign-${item.billDetail.id}">+</span>
+                  <div class="spinner" id="spinner-${item.billDetail.id}"></div>
+                </div>
+              </div>
+              <p id="status"></p>
+              <div id="videoContainer-${item.billDetail.id}" class="videoContainer"></div>
+            </div>`;
+      return row;
+    }
+
+    function uploadVideo(number) {
+      const videoFile = document.getElementById("videoUpload-" + number).files[0];
+      const status = document.getElementById("status");
+      const videoContainer = document.getElementById("videoContainer-" + number);
+      const spinner = document.getElementById("spinner-" + number);
+      const plusSign = document.getElementById("plus-sign-" + number);
+      const uploadDiv = document.getElementById("upload-div-" + number);
+
+      if (!videoFile) {
+        status.textContent = "Vui lòng chọn một video để tải lên!";
+        return;
+      }
+
+      spinner.style.display = "block";
+      plusSign.style.display = "none";
+      videoContainer.innerHTML = "";
+
+      const formData = new FormData();
+      formData.append("file", videoFile);
+      formData.append("upload_preset", uploadPreset);
+
+      axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, formData, {
+        headers: {"Content-Type": "multipart/form-data"}
+      })
+              .then(response => {
+                const url = response.data.secure_url;
+                status.textContent = "";
+                spinner.style.display = "none";
+                plusSign.style.display = "block";
+                uploadDiv.style.display = "none";
+
+                videoContainer.innerHTML = `
+      <video src="${url}" id="vidieo-${number}" type="button" onclick="openVideoModal('${url}')" height="150px" style="cursor: pointer; border: 1px solid #ccc; border-radius: 5px;"></video>
+      <button class="delete-icon-${number}" onclick="deleteVideo(${number})">×</button>
+    `;
+
+                const deleteIcon = document.querySelector(".delete-icon-" + number);
+                deleteIcon.classList.add('delete-icon');
+
+                const videoElement = videoContainer.querySelector("video");
+                videoElement.controls = false;
+              })
+              .catch(error => {
+                console.error("Lỗi khi tải lên:", error);
+                status.textContent = "Tải lên thất bại!";
+                spinner.style.display = "none";
+                plusSign.style.display = "block";
+              });
+    }
+
+    function openVideoModal(videoUrl) {
+      const modalVideo = document.getElementById("modalVideo");
+      modalVideo.src = videoUrl;
+
+      // Hiển thị modal theo cách của Bootstrap 4
+      $('#videoModal').modal('show');
+    }
+
+    // function openVideoModal(videoUrl) {
+    //   const modalVideo = document.getElementById("modalVideo");
+    //   modalVideo.src = videoUrl;
+    //
+    //   const videoModal = new bootstrap.Modal(document.getElementById("videoModal"));
+    //   videoModal.show();
+    // }
+
+    function exitVideo(){
+      const modalVideo = document.getElementById("modalVideo");
+      if (modalVideo) {
+        modalVideo.pause();
+        modalVideo.currentTime = 0;
+      }
+    }
+
+    function deleteVideo(number) {
+      const videoContainer = document.getElementById("videoContainer-" + number);
+      const uploadDiv = document.getElementById("upload-div-" + number);
+
+
+      videoContainer.innerHTML = "";
+      uploadDiv.style.display = "block";
+    }
+
+    function uploadImage() {
+      const imageFile = document.getElementById("imageUpload").files[0];
+      const status = document.getElementById("status");
+      const imageContainer = document.getElementById("imageContainer");
+      const spinner = document.getElementById("new-spinner");
+      const plusSign = document.querySelector(".new-plus-sign");
+      const uploadDiv = document.getElementById("new-upload-div");
+
+      spinner.style.display = "block";
+      plusSign.style.display = "none";
+      imageContainer.innerHTML = "";
+
+      const formData = new FormData();
+      formData.append("file", imageFile);
+      formData.append("upload_preset", uploadPreset);
+
+      axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, formData, {
+        headers: {"Content-Type": "multipart/form-data"}
+      })
+              .then(response => {
+                const url = response.data.secure_url;
+                status.textContent = "";
+                spinner.style.display = "none";
+                plusSign.style.display = "block";
+                uploadDiv.style.display = "none";
+
+                imageContainer.innerHTML = `
+                        <img src="${url}" id="img-bank" alt="Uploaded Image" onclick="openImageModal('${url}')" style="cursor: pointer; border: 1px solid #ccc; border-radius: 5px;" />
+                        <button class="new-delete-icon" onclick="deleteImage()">×</button>
+                    `;
+              })
+              .catch(error => {
+                console.error("Lỗi khi tải lên:", error);
+                status.textContent = "Tải lên thất bại!";
+                spinner.style.display = "none";
+                plusSign.style.display = "block";
+              });
+    }
+
+    function deleteImage() {
+      const imageContainer = document.getElementById("imageContainer");
+      const uploadDiv = document.getElementById("new-upload-div");
+
+      // Xóa nội dung ảnh
+      imageContainer.innerHTML = "";
+
+      // Hiển thị lại ô upload
+      uploadDiv.style.display = "block";
+    }
+
+    function getTradeDetails() {
+        let isValid = true; // Biến kiểm tra trạng thái hợp lệ
+
+        // *** 1. Validate và lấy thông tin ngân hàng ***
+        const bank = document.getElementById("bank");
+        const accountNumber = document.getElementById("accountNumber");
+        const receiverName = document.getElementById("receiverName");
+        const qrFile = document.getElementById("imageUpload");
+        let imgUrl = "";
+        // Reset border của tất cả input
+        [bank, accountNumber, receiverName].forEach(input => {
+            input.style.border = "none";
+            input.style.borderBottom = "1px solid";
+        });
+        qrFile.style.border = "none";
+
+        // Kiểm tra từng trường
+        if (!bank.value.trim()) {
+            isValid = false;
+            bank.style.border = "2px solid red";
+        }
+        if (!accountNumber.value.trim()) {
+            isValid = false;
+            accountNumber.style.border = "2px solid red";
+        }
+        if (!receiverName.value.trim()) {
+            isValid = false;
+            receiverName.style.border = "2px solid red";
+        }
+        if (qrFile.value === "") {
+            isValid = false;
+            const imgDiv = document.getElementById("img-div");
+            imgDiv.style.border = "2px dashed red";
+        }else {
+            imgUrl = document.getElementById("img-bank").src;
+        }
+
+        const bankDetails = {
+            nameBank: bank.value.trim(),
+            bankInfo: accountNumber.value.trim(),
+            userInfo: receiverName.value.trim(),
+            qrInfo: qrFile.files[0] ? imgUrl : null,
+        };
+
+        // *** 2. Validate và lấy thông tin hóa đơn (bill details) ***
+        const rows = document.querySelectorAll(".row.p-3.mt-3"); // Chọn tất cả các hàng
+        const details = []; // Mảng chứa thông tin hóa đơn
+
+        rows.forEach(row => {
+            const id = row.getAttribute("id"); // Lấy ID của billDetail
+            const reasonInput = document.getElementById(`reason-${id}`); // Input lý do
+            const reason = reasonInput ? reasonInput.value.trim() : ""; // Lấy giá trị lý do và xóa khoảng trắng
+            const videoInput = document.getElementById(`videoUpload-${id}`); // Input video
+            let videoUrl = document.getElementById("vidieo-" + id); // Lấy link tạm thời
+            let url = "";
+            if(videoUrl !== null){
+                url = document.getElementById("vidieo-" + id).src;
+            }
+            // Kiểm tra xem lý do và video có đầy đủ không
+            if (!reason || videoUrl === null) {
+                isValid = false;
+
+                if (!reason) {
+                    reasonInput.style.border = "2px solid red";
+                    reasonInput.focus();
+                } else {
+                    reasonInput.style.border = "none";
+                    reasonInput.style.borderBottom = "1px solid";
+                }
+
+                if (videoUrl === null) {
+                    const uploadDiv = document.getElementById(`upload-div-${id}`);
+                    uploadDiv.style.border = "2px dashed red"; // Đánh dấu ô upload video
+                } else {
+                    const uploadDiv = document.getElementById(`upload-div-${id}`);
+                    uploadDiv.style.border = "none"; // Xóa lỗi nếu nhập đủ
+                }
+            }
+            // Thêm vào mảng nếu hợp lệ
+            details.push({
+                billDetail: id,
+                reason: reason,
+                videoUrl: url,
+            });
+        });
+
+        // *** 3. Hiển thị lỗi nếu không hợp lệ ***
+        if (!isValid) {
+            showToast("Vui lòng nhập đầy đủ thông tin ngân hàng, lý do và tải lên video cho tất cả sản phẩm.", "info")
+            return null; // Dừng lại nếu có lỗi
+        }
+
+        // *** 4. Nếu hợp lệ, kết hợp tất cả thông tin ***
+        const allData = {
+            tradeRequest: bankDetails,
+            tradeProductRequests: details,
+        };
+        $.ajax({
+            url: "/home/customer-bill-management/api/returnOnline/createTrade/" + idBill, // Thay bằng URL API của bạn
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(allData), // Chuyển đổi dữ liệu thành JSON
+            success: function (response) {
+                console.log("Phản hồi từ server:", response);
+            },
+            error: function (error) {
+                console.error("Lỗi khi gửi dữ liệu:", error);
+            },
+        });
+
+        console.log("Dữ liệu hợp lệ:", allData);
+        return allData; // Trả về dữ liệu nếu cần gửi đi
+    }
+
+    function nextToPayment() {
+        let api1 = "http://localhost:8080/paymentMomo/1?money=15000";
+      $.ajax({
+        url: api1,
+        method: "GET",
+        success: function (data) {
+          window.location.href = data.payUrl;
+        },
+        error: function (error) {
+          console.log(error)
+        }
+      })
+    }
+
+
+
+    function loadProvinces() {
+        document.getElementById("nameRecipientUpdate").value = bill.address.nameRecipient;
+        document.getElementById("phoneUpdate").value = bill.address.phone;
+        document.getElementById("addreseDetailUpdate").value = bill.address.addreseDetail;
+        if (document.getElementById('province').options.length === 1) {
+            return fetch('https://online-gateway.ghn.vn/shiip/public-api/master-data/province', {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Token': GHN_TOKEN
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    let provinceSelect = document.getElementById('province');
+                    provinceSelect.innerHTML = '<option value="">Chọn tỉnh/thành phố</option>';
+                    data.data.forEach(province => {
+                        let option = document.createElement('option');
+                        option.value = province.ProvinceID;
+                        option.text = province.ProvinceName;
+                        provinceSelect.add(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching provinces:', error));
+        }
+    }
+
+    function loadDistricts() {
+        let provinceId = document.getElementById('province').value;
+        let districtSelect = document.getElementById('district');
+
+        if (provinceId) {
+            return fetch('https://online-gateway.ghn.vn/shiip/public-api/master-data/district', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Token': GHN_TOKEN
+                },
+                body: JSON.stringify({"province_id": parseInt(provinceId)})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    data.data.forEach(district => {
+                        let option = document.createElement('option');
+                        option.value = district.DistrictID;
+                        option.text = district.DistrictName;
+                        districtSelect.add(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching districts:', error));
+        } else {
+            return Promise.resolve();
+        }
+    }
+
+    function loadWards() {
+        let districtId = document.getElementById('district').value;
+        let wardSelect = document.getElementById('ward');
+
+        if (districtId) {
+            return fetch('https://online-gateway.ghn.vn/shiip/public-api/master-data/ward', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Token': GHN_TOKEN
+                },
+                body: JSON.stringify({"district_id": parseInt(districtId)})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    data.data.forEach(ward => {
+                        let option = document.createElement('option');
+                        option.value = ward.WardCode;
+                        option.text = ward.WardName;
+                        wardSelect.add(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching wards:', error));
+        } else {
+            return Promise.resolve();
+        }
+    }
+    function calculateShippingFee() {
+        const fromDistrictId = 3440; // ID quận/huyện gửi hàng
+        const weight = 500;
+
+        // Sử dụng setInterval để kiểm tra mỗi 500ms xem người dùng đã chọn quận/huyện hay chưa
+        const intervalId = setInterval(() => {
+            const toDistrictId = document.getElementById('district').value; // ID quận/huyện nhận hàng
+
+            // Nếu người dùng đã chọn quận/huyện, tiếp tục tính phí và dừng vòng lặp
+            if (toDistrictId) {
+                clearInterval(intervalId); // Dừng vòng lặp
+
+                getServiceId(parseInt(fromDistrictId), parseInt(toDistrictId), weight)
+                    .then(serviceId => {
+                        if (!serviceId) {
+                            console.warn('Không tìm thấy mã dịch vụ phù hợp.');
+                            return;
+                        }
+                        return fetch('https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Token': GHN_TOKEN
+                            },
+                            body: JSON.stringify({
+                                "from_district_id": parseInt(fromDistrictId),
+                                "service_id": serviceId,
+
+                                "to_district_id": parseInt(toDistrictId),
+                                "weight": 1000,
+                                "length": 20,
+                                "width": 15,
+                                "height": 5
+                            })
+                        });
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.code === 200) {
+                            // shipPrice = data.data.total;
+                            console.log(data.data.total)
+                            const shipMoney = document.getElementById("ship-money");
+                            shipMoney.innerText = data.data.total.toLocaleString();
+                        } else {
+                            console.error('Lỗi tính phí ship:', data.message);
+                        }
+                    })
+                    .catch(error => console.error('Lỗi tính phí ship:', error));
+            } else {
+                console.warn('Vui lòng chọn quận/huyện nhận hàng.');
+            }
+        }, 200); // Kiểm tra mỗi 500ms
+    }
+    function getServiceId(fromDistrictId, toDistrictId, weight) {
+        return fetch('https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/available-services', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Token': GHN_TOKEN
+            },
+            body: JSON.stringify({
+                "shop_id": SHOP_ID,
+                "from_district": fromDistrictId,
+                "to_district": toDistrictId
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 200 && data.data.length > 0) {
+                    // Kiểm tra trọng lượng để chọn `service_id`
+                    const service = data.data.find(s => (weight < 5000 && s.short_name === "Hàng nhẹ") || (weight >= 5000 && s.short_name === "Hàng nặng"));
+                    return service ? service.service_id : null;
+                } else {
+                    throw new Error('Không có dịch vụ nào khả dụng hoặc lỗi khi lấy service_id');
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi lấy service_id:', error);
+            });
+    }
+    function reloadBill(){
+        let data1 = {};
+        $.ajax({
+            url: api + "/reloadBill/" + idBill,
+            method: "GET",
+            success: function (data) {
+                console.log(data)
+                data1 = data;
+            },
+            error: function (error) {
+                console.log(error)
+            }
+        })
+        return data1;
+    }
+
+    function updateAddress() {
+        let nameRecipient = $('#nameRecipientUpdate').val();
+        let phone = $('#phoneUpdate').val();
+        let provinceName = $('#province option:selected').text();
+        let districtName = $('#district option:selected').text();
+        let wardName = $('#ward option:selected').text();
+        let addressDetail = $('#addreseDetailUpdate').val();
+        let idAddress = bill.address.id;
+        console.log("Recipient Name:", nameRecipient);
+        console.log("Phone:", phone);
+        console.log("Province Name:", provinceName);
+        console.log("District Name:", districtName);
+        console.log("Ward Name:", wardName);
+        console.log("Address Detail:", addressDetail);
+        $.ajax({
+            url: "/home/api/update-address",
+            type: "PUT",
+            data: {
+                id: idAddress,
+                nameRecipient: nameRecipient,
+                phone: phone,
+                provinceName: provinceName,
+                districtName: districtName,
+                wardName: wardName,
+                addressDetail: addressDetail,
+            },
+            success: function (data) {
+                const address = document.getElementById("address");
+                address.innerHTML = ``;
+                const row = renderAddress(data);
+                address.append(row);
+            },
+            error: function (e) {
+                console.log(e);
+            },
+            complete : function (){
+                calculateShippingFee();
+                bill = reloadBill();
+                console.log(bill);
+            }
+        });
+    }
+    function showToast(message, status) {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+            }
+        });
+        Toast.fire({
+            icon: status,
+            title: message
+        });
+    }
+  </script>
+</head>
+
+<body onload="loading()">
+<div layout:fragment="content" class="container-fluid">
+  <section class="breadcrumb-option">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="breadcrumb__text">
+            <h4>Trả hàng</h4>
+            <div class="breadcrumb__links">
+              <a th:href="@{/home}">Trang chủ</a>
+              <span>Trả hàng</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+    <div class=" p-3 reduce-spacing card border-0 shadow">
+        <h4>Sản phẩm đã chọn</h4>
+        <div class="" id="listDetail">
+
+
+
+        </div>
+    </div>
+    <div class="p-3 reduce-spacing card border-0 shadow mt-4">
+        <h4>Thông tin hoàn tiền</h4>
+        <p>Số tiền hoàn lại : 200.000 <sup>đ</sup></p>
+        <div class="payment-info d-flex">
+            <p>Hoàn tiền vào :</p>
+            <input type="text" id="bank" style="width: 25%;" placeholder="Ngân hàng">
+            <input type="text" id="accountNumber" style="width: 25%;" placeholder="Số tài khoản">
+            <input type="text" id="receiverName" style="width: 25%;" placeholder="Tên người nhận">
+        </div>
+        <div class="mt-3 row">
+            <div class="col-6" id="img-div">
+                <p>Hoặc ảnh QR code:</p>
+                <div id="new-upload-div" style="float: left;">
+                    <div class="new-upload-box">
+                        <input type="file" id="imageUpload" accept="image/*" onchange="uploadImage()">
+                        <span class="new-plus-sign">+</span>
+                        <div class="new-spinner" id="new-spinner"></div>
+                    </div>
+                </div>
+                <div id="imageContainer" class="new-image-container"></div>
+            </div>
+            <div class="col-6" id="address">
+                <div class="d-flex justify-content-between">
+                    <p>Thông tin nơi lấy hàng:</p>
+                    <div class="">
+                        <button class="btn btn-dark" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop1" onclick="loadProvinces()">Sửa</button>
+                        <button class="btn btn-dark" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop1">Khác</button>
+                    </div>
+                </div>
+                <p>Họ tên người nhận: Nguyễn Văn Quang</p>
+                <p>Số điện thoại: 0909666622</p>
+                <p>Địa chỉ lấy hàng: Ngõ 111 số nhà 4, Thanh Xuân, Triều Khúc, Hà Nội</p>
+                <p>Tiền ship: <span>50.000</span> <sup>đ</sup></p>
+            </div>
+            <hr class="mt-3" style="width: 98%">
+            <div class="text-end">
+                <button class="btn col-2 btn-dark p-3" onclick="getTradeDetails()">Xác nhận</button>
+            </div>
+            <!-- Modal -->
+            <div class="modal fade" id="staticBackdrop1" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="staticBackdropLabel">Địa chỉ</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <div class="d-flex">
+                                <div class="col-6">
+                                    <input type="text" class="w-100" id="nameRecipientUpdate" placeholder="Tên người nhận">
+                                </div>
+                                <div class="col-6">
+                                    <input type="text" class="w-100" id="phoneUpdate" placeholder="Số điện thoại">
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-4">
+                                <div class="col-4">
+                                    <select name="" class="w-100" onchange="loadDistricts()" id="province">
+                                        <option value="" disabled selected >Chọn thành phố</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <select name="" class="w-100" onchange="loadWards()"  id="district">
+                                        <option value="" disabled selected>Chọn Quận/Huyện</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <select name="" class="w-100" id="ward">
+                                        <option value="" disabled selected>Chọn Phường/Xã</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12 mt-4">
+                                <input type="text" class="w-100" id="addreseDetailUpdate" placeholder="Địa chỉ chi tiết">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Huỷ</button>
+                            <button type="button" class="btn btn-dark" onclick="updateAddress()">Xác nhận</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+  <div class="modal fade" id="videoModal" data-bs-backdrop="static" data-bs-keyboard="false"  tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg ">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="videoModalLabel">Xem Video</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="exitVideo()"></button>
+        </div>
+        <div class="modal-body text-center">
+          <video id="modalVideo" controls style="width: 100%;"></video>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- <p>Thanh toán tiền ship:</p>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1"
+                        value="option1" checked>
+                    <label class="form-check-label" for="exampleRadios1">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTp1v7T287-ikP1m7dEUbs2n1SbbLEqkMd1ZA&s"
+                            width="30px" alt=""> VN Pay
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios2"
+                        value="option2">
+                    <label class="form-check-label" for="exampleRadios2">
+                        <img src="https://cdn.prod.website-files.com/64199d190fc7afa82666d89c/6491bee997eba92836f95d0c_momo_wallet.png"
+                            width="30px" alt=""> Momo
+                    </label>
+                </div> -->
+</div>
+
+</body>
+
+</html>

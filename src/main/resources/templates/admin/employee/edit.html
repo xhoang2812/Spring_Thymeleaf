@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Sửa thông tin nhân viên</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        body.show {
+            opacity: 1;
+        }
+    </style>
+    <script>
+        function showErrors(messages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messages
+            });
+        }
+
+        function collectAddressNames() {
+            const provinceSelect = document.querySelector("#province");
+            const districtSelect = document.querySelector("#district");
+            const wardSelect = document.querySelector("#ward");
+
+            const provinceName = provinceSelect.options[provinceSelect.selectedIndex].text;
+            const districtName = districtSelect.options[districtSelect.selectedIndex].text;
+            const wardName = wardSelect.options[wardSelect.selectedIndex].text;
+
+            document.querySelector("#provinceName").value = provinceName;
+            document.querySelector("#districtName").value = districtName;
+            document.querySelector("#wardName").value = wardName;
+
+            return true; // Cho phép gửi form
+        }
+
+        // Hàm kiểm tra và gửi form
+        function vali(e) {
+            e.preventDefault(); // Ngăn chặn gửi form ngay lập tức
+
+            // Hiển thị hộp thoại xác nhận trước khi thực hiện lưu
+            Swal.fire({
+                title: 'Bạn có chắc muốn sửa nhân viên này?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#5ac155',
+                cancelButtonColor: '#47434c',
+                confirmButtonText: 'Có, sửa ngay!',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    collectAddressNames(); // Gọi hàm để thu thập tên tỉnh, huyện, xã
+
+                    // Lấy giá trị từ các trường trong form
+                    let name = document.getElementById('name') ? document.getElementById('name').value : '';
+                    let dateOfBirth = document.getElementById('dateOfBirth') ? document.getElementById('dateOfBirth').value : '';
+                    let province = document.getElementById('province') ? document.getElementById('province').value : '';
+                    let district = document.getElementById('district') ? document.getElementById('district').value : '';
+                    let ward = document.getElementById('ward') ? document.getElementById('ward').value : '';
+                    let email = document.getElementById('email') ? document.getElementById('email').value : '';
+                    let phone = document.getElementById('phone') ? document.getElementById('phone').value : '';
+                    // Lấy giá trị email và số điện thoại cũ từ các trường ẩn
+                    let oldEmail = document.getElementById('oldEmail').value;
+                    let oldPhone = document.getElementById('oldPhone').value;
+
+
+                    // Kiểm tra các trường bắt buộc
+                    if (name === "") {
+                        showErrors("Tên không được để trống");
+                        return;
+                    }
+                    if (dateOfBirth === "") {
+                        showErrors("Ngày sinh không được để trống");
+                        return;
+                    }
+                    if (province === "") {
+                        showErrors("Tỉnh/Thành phố không được để trống");
+                        return;
+                    }
+                    if (district === "") {
+                        showErrors("Quận/Huyện không được để trống");
+                        return;
+                    }
+                    if (ward === "") {
+                        showErrors("Phường/Xã không được để trống");
+                        return;
+                    }
+                    if (email === "") {
+                        showErrors("Email không được để trống");
+                        return;
+                    }
+                    if (phone === "") {
+                        showErrors("Số điện thoại không được để trống");
+                        return;
+                    }
+                    if (!/^\d{10}$/.test(phone)) {
+                        showErrors("Số điện thoại phải có đúng 10 chữ số");
+                        return;
+                    }
+
+                    // Kiểm tra định dạng email: phải có '@' và ít nhất 1 dấu '.' sau '@'
+                    const emailRegex = /.+@.+\..+/;
+                    if (!emailRegex.test(email)) {
+                        showErrors("Vui lòng nhập đúng định dạng email");
+                        return;
+                    }
+
+                    // Kiểm tra tuổi lớn hơn 15
+                    const birthDate = new Date(dateOfBirth);
+                    const age = new Date().getFullYear() - birthDate.getFullYear();
+                    if (age < 15) {
+                        showErrors("Tuổi phải lớn hơn hoặc bằng 15");
+                        return;
+                    }
+
+                    // Kiểm tra trùng lặp chỉ nếu giá trị mới khác với giá trị cũ
+                    let checkEmail = (email !== oldEmail) ? axios.get(`/employee/api/employee/check-email?email=${email}`) : Promise.resolve(false);
+                    let checkPhone = (phone !== oldPhone) ? axios.get(`/employee/api/employee/check-phone?phone=${phone}`) : Promise.resolve(false);
+
+                    Promise.all([checkEmail, checkPhone])
+                        .then(([emailResponse, phoneResponse]) => {
+                            if (phoneResponse && phoneResponse.data) {
+                                showErrors("Số điện thoại đã tồn tại!");
+                                return; // Ngăn không gửi form
+                            }
+                            if (emailResponse && emailResponse.data) {
+                                showErrors("Email đã tồn tại!");
+                                return; // Ngăn không gửi form
+                            }
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Sửa thành công!',
+                                text: 'Thông tin mới của nhân viên đã được cập nhật.',
+                                timer: 2500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                document.getElementById('form').submit(); // Gửi form ở đây
+                            });
+                        })
+                        .catch(error => {
+                            console.error("Lỗi kiểm tra trùng lặp:", error);
+                        });
+                }
+            });
+        }
+
+
+        function loadProvinces() {
+            if (document.getElementById('province').options.length === 1) { // Chỉ gọi API khi tỉnh chưa được tải
+                fetch('https://online-gateway.ghn.vn/shiip/public-api/master-data/province', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Token': 'e72e960b-9e77-11ef-a35f-3e447ea83dcd' // Thêm token trực tiếp ở đây
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        let provinceSelect = document.getElementById('province');
+                        provinceSelect.innerHTML = '<option value="">Chọn tỉnh</option>';
+                        data.data.forEach(province => {
+                            let option = document.createElement('option');
+                            option.value = province.ProvinceID;
+                            option.text = province.ProvinceName;
+                            provinceSelect.add(option);
+                        });
+
+                        const provinceName = document.getElementById("provinceName").value;
+                        if (provinceName) {
+                            selectOptionByText(provinceSelect, provinceName);
+                            loadDistricts(); // Gọi tải huyện ngay sau khi tỉnh được chọn
+                        }
+                    })
+                    .catch(error => console.error('Error fetching provinces:', error));
+            }
+        }
+
+        function loadingg() {
+                setTimeout(() => {
+                    $.ajax({
+                        url: "/api/vouchers/userData",
+                        method: "GET",
+                        success: function (data) {
+                            console.log(data)
+                            if (data === "") {
+                                sessionStorage.setItem("notificationForMap", "Bạn không phải là Admin");
+                                window.location.href = "/";
+                            } else {
+                                document.body.classList.add('show');
+                            }
+                        },
+                        error: function (error) {
+                            console.log(error)
+                        }
+                    })
+                }, 300);
+    loadProvinces();
+    }
+
+    function loadDistricts() {
+        const provinceId = document.getElementById('province').value;
+        const districtSelect = document.getElementById('district');
+        const wardSelect = document.getElementById('ward');
+
+        // Reset nội dung của dropdown huyện và xã
+        districtSelect.innerHTML = '<option value="">Chọn huyện</option>';
+        wardSelect.innerHTML = '<option value="">Chọn xã</option>';
+    if (provinceId) {
+    fetch(`https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=${provinceId}`, {
+    headers: {
+    'Content-Type': 'application/json',
+    'Token': 'e72e960b-9e77-11ef-a35f-3e447ea83dcd' // Thêm token trực tiếp ở đây
+    }
+    })
+    .then(response => response.json())
+    .then(data => {
+                        data.data.forEach(district => {
+                            let option = document.createElement('option');
+                            option.value = district.DistrictID;
+                            option.text = district.DistrictName;
+                            districtSelect.add(option);
+                        });
+
+                        const districtName = document.getElementById("districtName").value;
+                        if (districtName) {
+                            selectOptionByText(districtSelect, districtName);
+                            loadWards(); // Gọi tải xã ngay sau khi huyện được chọn
+                        }
+                    })
+                    .catch(error => console.error('Error fetching districts:', error));
+            }
+        }
+
+        function loadWards() {
+            let districtId = document.getElementById('district').value;
+            let wardSelect = document.getElementById('ward');
+            wardSelect.innerHTML = '<option value="">Chọn xã</option>';
+
+            if (districtId) {
+                fetch(`https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=${districtId}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Token': 'e72e960b-9e77-11ef-a35f-3e447ea83dcd' // Thêm token trực tiếp ở đây
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        data.data.forEach(ward => {
+                            let option = document.createElement('option');
+                            option.value = ward.WardCode;
+                            option.text = ward.WardName;
+                            wardSelect.add(option);
+                        });
+
+                        const wardName = document.getElementById("wardName").value;
+                        if (wardName) {
+                            selectOptionByText(wardSelect, wardName);
+                        }
+                    })
+                    .catch(error => console.error('Error fetching wards:', error));
+            }
+        }
+
+        function selectOptionByText(select, text) {
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].text === text) {
+                    select.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('province').addEventListener('change', loadDistricts);
+            document.getElementById('district').addEventListener('change', loadWards);
+            loadingg(); // Gọi hàm để nạp dữ liệu ban đầu
+        });
+    </script>
+</head>
+<body onload="loadingg()">
+<div layout:fragment="content">
+    <main class="container px-3 py-4">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="fw-bold fs-4 mb-3">Sửa thông tin nhân viên</h3>
+                <form th:action="@{/employee/update/{id}(id=${employee.id})}" method="post"
+                      enctype="multipart/form-data" onsubmit="vali(event)" id="form">
+                    <input type="hidden" th:name="id" th:value="${employee.id}"/>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Thông tin cơ bản</h5>
+                                    <div class="mb-3">
+                                        <label for="employeeCode" class="form-label">Mã nhân viên</label>
+                                        <input type="text" id="employeeCode" name="employeeCode" class="form-control"
+                                               th:value="${employee.employeeCode}" required readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="photo" class="form-label">Ảnh</label>
+                                        <input type="file" id="photo" name="photo" class="form-control"
+                                               accept="image/*">
+                                        <img th:src="@{'/employee/flim-image/'+${employee.photo}}" alt="Ảnh nhân viên"
+                                             style="width: 80px; height: 70px;" class="mt-2"/>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">Tên nhân viên</label>
+                                        <input type="text" id="name" name="name" class="form-control"
+                                               th:value="${employee.name}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="gender" class="form-label">Giới tính</label>
+                                        <select id="gender" name="gender" class="form-select">
+                                            <option th:value="Nam" th:selected="${employee.gender == 'Nam'}">Nam
+                                            </option>
+                                            <option th:value="Nữ" th:selected="${employee.gender == 'Nữ'}">Nữ</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="position" class="form-label">Chức vụ</label>
+                                        <input type="text" id="position" name="position" class="form-control"
+                                               th:value="${employee.position}" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="dateOfBirth" class="form-label">Ngày sinh</label>
+                                        <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control"
+                                               th:value="${employee.dateOfBirth}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Thông tin liên lạc</h5>
+                                    <div class="mb-3">
+                                        <label for="phone" class="form-label">Số điện thoại</label>
+                                        <input type="text" id="phone" name="phone" class="form-control"
+                                               th:value="${employee.phone}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" id="email" name="email" class="form-control"
+                                               th:value="${employee.email}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="province" class="form-label">Tỉnh/ Thành phố</label>
+                                        <select id="province" name="province" class="form-select">
+                                            <option value="">Chọn tỉnh</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="district" class="form-label">Quận/ Huyện</label>
+                                        <select id="district" name="district" class="form-select">
+                                            <option value="">Chọn huyện</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="ward" class="form-label">Phường/ Xã</label>
+                                        <select id="ward" name="ward" class="form-select">
+                                            <option value="">Chọn xã</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Các trường ẩn để lưu tên tỉnh, huyện, xã -->
+                        <input type="hidden" id="provinceName" name="provinceName" th:value="${employee.province}">
+                        <input type="hidden" id="districtName" name="districtName" th:value="${employee.district}">
+                        <input type="hidden" id="wardName" name="wardName" th:value="${employee.ward}">
+
+                        <input type="hidden" id="oldEmail" th:value="${employee.email}">
+                        <input type="hidden" id="oldPhone" th:value="${employee.phone}">
+                    </div>
+                    <button type="submit" class="btn btn-success">Cập nhật</button>
+                    <a href="/employee/display" class="btn btn-secondary">Hủy</a>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

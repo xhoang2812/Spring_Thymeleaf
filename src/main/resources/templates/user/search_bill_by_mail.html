@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en"
+      layout:decorate="~{user/index}"
+      xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Trang chủ</title>
+</head>
+<body layout:fragment="content">
+<div class="card container">
+    <div class="card-header">
+        <h4 class="card-title">Hóa đơn chi tiết</h4>
+    </div>
+    <div class="card-body">
+        <div class="modal-body">
+            <h4>Trạng thái đơn hàng</h4>
+            <div class="breadcrumb__text">
+                <div class="breadcrumb__links" th:id="statusCart">
+
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-6">
+                    <h4>Địa chỉ nhận hàng</h4>
+                    <div>
+                        <h5>Người nhận: <span id="name"></span></h5>
+                        <h5>Số điện thoại: <span id="phone"></span></h5>
+                        <h5>Địa chỉ: <span id="address"></span></h5>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <h4>Lịch sử đơn hàng</h4>
+                    <div th:id="historyBillCard">
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <h4>Sản phẩm</h4>
+            <div>
+                <div th:id="listSP" >
+
+                </div>
+            </div>
+            <hr>
+            <h4>Tổng</h4>
+            <div>
+                <table class="table table-bordered">
+                    <tr>
+                        <td>Tổng tiền hàng</td>
+                        <td id="subTotalBill"></td>
+                    </tr>
+                    <tr>
+                        <td>Phí vận chuyển</td>
+                        <td id="shippingPrice"></td>
+                    </tr>
+                    <tr>
+                        <td>Voucher</td>
+                        <td id="voucher"></td>
+                    </tr>
+                    <tr>
+                        <td>Thành tiền</td>
+                        <td id="totalBill"></td>
+                    </tr>
+                    <tr>
+                        <td>Phương thức thanh toán</td>
+                        <td id="paymentType"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        const path = window.location.pathname; // Lấy path từ URL
+        const segments = path.split('/'); // Tách path thành mảng các phần
+        const id = segments[segments.length - 1]; // Lấy phần cuối (id trong URL)
+        console.log(id); // Kết quả: 2
+        getBillOnline(id);
+    });
+
+    function getBillOnline(id) {
+        $.ajax({
+            url: '/home/api/get-bill-online-no-login',
+            data: {
+                idBill: id
+            },
+            type: 'GET',
+            success: function (data) {
+                console.log(data);
+                let soLuongGiamGia;
+                let subtotal;
+                if (data.discount == null) {
+                    soLuongGiamGia = data.maxGiam + ' VND';
+                    subtotal = (data.total).toLocaleString('vi-VN') + ' VND';
+                } else {
+                    soLuongGiamGia = '- ' + data.maxGiam.toLocaleString('vi-VN') + ' VND';
+                    subtotal = (data.total).toLocaleString('vi-VN') + ' VND';
+                }
+
+                let idStatus;
+                $('#statusCart').empty();
+                if (data.billStatus === 0) {
+                    idStatus = `<span style="color: red">Chờ xác nhận</span>`;
+                } else if (data.billStatus === 1) {
+                    idStatus = ` <a>Chờ xác nhận</a><span style="color: red">Chờ đóng gói</span>`;
+                } else if (data.billStatus === 2) {
+                    idStatus = ` <a>Chờ xác nhận</a><a>Chờ đóng gói</a><span style="color: red">Chờ vận chuyển</span>`;
+                } else if (data.billStatus === 3) {
+                    idStatus = ` <a>Chờ xác nhận</a><a>Chờ đóng gói</a><a>Chờ vận chuyển</a><span style="color: red">Đang vận chuyển</span>`;
+                } else if (data.billStatus === 4) {
+                    idStatus = ` <a>Chờ xác nhận</a><a>Chờ đóng gói</a><a>Chờ vận chuyển</a><a>Đang vận chuyển</a><span style="color: red">Đã nhận hàng</span>`;
+                } else if (data.billStatus === 5) {
+                    idStatus = ` <a>Chờ xác nhận</a><a>Chờ đóng gói</a><a>Chờ vận chuyển</a><a>Đang vận chuyển</a><a>Đã nhận hàng</a><span style="color: red">Hoàn tất</span>`;
+                } else if (data.billStatus === 7) {
+                    idStatus = ` <a>Chờ xác nhận</a><a>Chờ đóng gói</a><a>Chờ vận chuyển</a><a>Đang vận chuyển</a><a>Đã nhận hàng</a><a>Hoàn tất</a><span style="color: red">Chờ hoàn tiền</span>`;
+                } else if (data.billStatus === 14) {
+                    idStatus = ` <a>Chờ xác nhận</a><a>Chờ đóng gói</a><a>Chờ vận chuyển</a><a>Đang vận chuyển</a><a>Đã nhận hàng</a><a>Hoàn tất</a><a>Chờ hoàn tiền</a><span style="color: red">Đã trả hàng</span>`;
+                } else if (data.billStatus === -1) {
+                    idStatus = `<span style="color: red">Đã hủy</span>`;
+                }
+
+                console.log(data);
+                getBillDetailOnline(id);
+                getBillHistory(id);
+                $('#statusCart').append(idStatus);
+                $('#name').text(data.name);
+                $('#phone').text(data.phone);
+                $('#address').text(data.address);
+                $('#shippingPrice').text('+ ' + data.shippingPrice.toLocaleString('vi-VN') + ' VND');
+                $('#voucher').text(soLuongGiamGia);
+                $('#subTotalBill').text(subtotal);
+                $('#paymentType').text(data.paymentType);
+                $('#totalBill').text((data.total + data.shippingPrice - data.maxGiam).toLocaleString('vi-VN') + ' VND');
+            }
+        })
+    }
+
+    function getBillDetailOnline(id) {
+        $.ajax({
+            url: '/home/api/get-bill-detail-online',
+            data: {
+                idBill: id
+            },
+            type: 'GET',
+            success: function (data) {
+                $('#listSP').empty();
+                $.each(data, function (index, data) {
+                    let priceDisplay;
+
+                    if (data.discount === data.price) {
+                        // Không có giá giảm
+                        priceDisplay = `
+                        <h5>${'Giá: ' + data.price.toLocaleString('vi-VN') + ' VND'}</h5>
+                    `;
+                    } else {
+                        // Có giá giảm
+                        priceDisplay = `
+                        <h5 style="text-decoration: line-through; color: red">
+                            ${'Giá cũ: ' + data.discount.toLocaleString('vi-VN') + ' VND'}
+                        </h5>
+                        <h5>${'Giá mới: ' + data.price.toLocaleString('vi-VN') + ' VND'}</h5>
+                    `;
+                    }
+                    $('#listSP').append(`
+                        <div class="row mt-2">
+                            <div class="col-1">
+                                <img src="/home/flim-image/${data.productImage}" style="width: 120px; height: 90px">
+                            </div>
+                            <div class="col-8">
+                                <div class="mt-2">
+                                    <h5>${data.productName}</h5>
+                                </div>
+                                <div class="mt-2">
+                                    <h5>${data.variant}</h5>
+                                </div>
+                                <div class="mt-2">
+                                    <h5>${'Số lượng mua: ' + data.quantity}</h5>
+                                </div>
+                            </div>
+                            <div class="col-3" style="align-content: center; text-align: end">
+                                 ${priceDisplay}
+                            </div>
+                        </div>
+                        <br/>
+                    `);
+                })
+                console.log(data);
+            }
+        })
+    }
+
+    function getBillHistory(id) {
+        $.ajax({
+            url: '/home/api/get-bill-history',
+            data: {
+                idBill: id
+            },
+            type: 'GET',
+            success: function (data) {
+                $('#historyBillCard').empty();
+                $.each(data, function (index, item) {
+                    if (item.dateUpdate) {
+                        const date = new Date(item.dateUpdate);
+                        const formattedDateTime = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}
+                        ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
+                        $('#historyBillCard').append(`
+                        <div>
+                            <h5>${formattedDateTime} - ${item.description}</h5>
+                        </div>
+                        <hr>
+                    `);
+                    } else {
+                        $('#historyBillCard').append(`
+                        <div>
+                            <h5>${item.description}</h5>
+                        </div>
+                        <hr>
+                    `);
+                    }
+                });
+            }
+        });
+    }
+</script>
+</body>
+</html>

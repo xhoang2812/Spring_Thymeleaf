@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông báo đơn hàng</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f7f9fc;">
+<div style="width: 100%; max-width: 800px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); overflow: hidden;">
+    <!-- Header section -->
+    <div style="background-color: #ff6f61; color: white; padding: 20px; text-align: center;">
+        <table style="width: 100%; text-align: center;">
+            <tr>
+                <td>
+                    <div style="display: inline-block; text-align: center;">
+                        <img src="https://res.cloudinary.com/dbe1h6ajz/image/upload/v1734018841/a6xvjpu09ly1i9lytzrl.jpg"
+                             alt="" style="width: 30px; height: 30px; vertical-align: middle;">
+                        <h1 style="display: inline-block; font-size: 26px; margin: 0; vertical-align: middle;">F6
+                            Store</h1>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Content section -->
+    <div style="padding: 20px; color: #333;">
+        <p>Xin chào <strong th:text="${name}"></strong>,</p>
+        <p>Đơn hàng <strong th:text="'#'+ ${bill.id}"></strong> của bạn đã được đặt thành công ngày</p> <strong
+            th:text="${#dates.format(bill.getDateCreate(), 'dd MMM yyyy, HH:mm:ss')}"> </strong>
+        <p>Chúng tôi sẽ giao hàng đến địa chỉ của bạn trong thời gian sớm nhất.
+            Vui lòng kiểm tra thông tin đơn hàng tại đây: <a th:href="${url}">Xem đơn hàng</a></p>
+        <div style="background-color: #f2f2f2; border-left: 5px solid #ff6f61; padding: 15px; margin: 20px 0; border-radius: 5px;">
+            <h2 style="margin-top: 0;">THÔNG TIN ĐƠN HÀNG - DÀNH CHO NGƯỜI MUA</h2>
+            <hr>
+            <div>
+                <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif;">
+                    <thead>
+                    <tr style="background-color: #f4f4f4; text-align: left;">
+                        <th style="padding: 12px; border: 1px solid #ddd;">Tên sản phẩm</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Kích cỡ + Màu sắc</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Số lượng</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Giá</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="list : ${billDetails}" style="background-color: #ffffff;">
+                        <td style="padding: 10px; border: 1px solid #ddd;"
+                            th:text="${list.productDetail.product.name}"></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;"
+                            th:text="${list.productDetail.size.name + ' + ' + list.productDetail.color.name}"></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;"
+                            th:utext="${#numbers.formatDecimal(list.quantity, 0, 'POINT', 0, 'POINT')}"></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;"
+                            th:utext="${#numbers.formatDecimal(list.price, 0, 'POINT', 0, 'POINT') + ' VND'}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <hr>
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                <div style="flex: 1; margin-right: 20px;">
+                    <input type="hidden" th:id="idBill" th:value="${bill.id}">
+                    <p><strong>Người nhận:</strong> <span
+                            th:text="${bill.address.getNameRecipient() + ' | ' + bill.address.getPhone()}"></span></p>
+                    <p><strong>Địa chỉ:</strong> <span
+                            th:utext="${bill.address.getAddreseDetail() + ', ' + bill.address.getDistrict() + ', ' + bill.address.getProvince() + ', ' + bill.address.getWard()}"></span>
+                    </p>
+                </div>
+                <div style="flex: 1;">
+                    <p><strong>Tổng tiền:</strong> <span
+                            th:utext="${#numbers.formatDecimal(bill.totalPrice, 0, 'POINT', 0, 'POINT') + ' VND'}"></span>
+                    </p>
+                    <p><strong>Voucher từ Shop:</strong> <span
+                            th:utext="${#numbers.formatDecimal(bill.tienGiam, 0, 'POINT', 0, 'POINT') + ' VND'}"></span>
+                    </p>
+                    <p><strong>Phí vận chuyển:</strong> <span
+                            th:utext="${#numbers.formatDecimal(bill.shipPrice, 0, 'POINT', 0, 'POINT') + ' VND'}"></span>
+                    </p>
+                    <p><strong>Tổng thanh toán:</strong> <span
+                            th:utext="${#numbers.formatDecimal(bill.totalPrice  + bill.shipPrice - bill.tienGiam, 0, 'POINT', 0, 'POINT') + ' VND'}"></span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <p>Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của chúng tôi. Nếu bạn có bất kỳ câu hỏi nào hoặc cần thêm thông
+            tin, xin vui lòng liên hệ với chúng tôi qua email <strong>supportf6store@gmail.com</strong> hoặc số điện
+            thoại <strong>0909666622</strong>.</p>
+    </div>
+
+    <!-- Footer section -->
+    <div style="margin-top: 20px; padding: 10px; text-align: center; font-size: 0.9em; color: #777;">
+        <p>Trân trọng,<br>
+            <strong>Công Ty F6Store</strong><br>
+            <strong>supportf6store@gmail.com</strong></p>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+
+
+       function viewBill() {
+           $.ajax({
+               url: '/home/search-bill-online/1' ,
+               type: 'GET',
+               headers: {
+                   'Content-Type': 'application/json',
+                   'Authorization': 'tpvim9lvtcBzouM5Vxmh2O0fhqggVWq1Q049DYVsylqblzsO57sPfHOJCvOo7akS'
+               },
+               success: function (result) {
+                   console.log(result);
+               }
+           });
+       }
+    </script>
+</div>
+</body>
+</html>
+

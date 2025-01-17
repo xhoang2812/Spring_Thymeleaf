@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo khuyến mãi</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css">
+
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+    <style>
+        body {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        body.show {
+            opacity: 1;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            visibility: hidden;
+            max-width: 300px;
+            background-color: #333;
+            color: #fff;
+            border-radius: 5px;
+            padding: 16px;
+            position: relative;
+            font-size: 17px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeInOut 5s ease forwards;
+        }
+
+        .toast .close {
+            cursor: pointer;
+            font-size: 20px;
+            margin-left: 10px;
+            color: #fff;
+        }
+
+        #countdown {
+            margin-left: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #4caf50;
+        }
+
+        .progress {
+            width: 100%;
+            height: 4px;
+            background-color: #4caf50;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            animation: progressBar 5s linear;
+        }
+
+        @keyframes progressBar {
+            from {
+                width: 100%;
+            }
+            to {
+                width: 0%;
+            }
+        }
+
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .toast.show {
+            visibility: visible;
+        }
+    </style>
+    <script defer>
+
+        const checkboxStates = {};
+
+        function loading() {
+            setTimeout(() => {
+                $.ajax({
+                    url: "/api/vouchers/userData",
+                    method: "GET",
+                    success: function (data) {
+                        console.log(data)
+                        if (data === "") {
+                            sessionStorage.setItem("notificationForMap", "Bạn không phải là Admin");
+                            window.location.href = "/";
+                        } else {
+                            document.body.classList.add('show');
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error)
+                    }
+                })
+            }, 300);
+
+            $("#multi-filter-select").DataTable({
+                pageLength: 4
+            });
+        }
+
+        function showProductDetails(e, id) {
+            e.preventDefault();
+            console.log(id)
+            $.ajax({
+                url: "http://localhost:8080/khuyenmai/productDetailToAdd/" + id,
+                type: "GET",
+                success: function (data) {
+                    console.log(data)
+                    const details = data;
+                    const detailsTbody = document.getElementById("productDetailBody");
+                    detailsTbody.innerHTML = '';
+                    details.forEach(detail => {
+                        const price = detail.price.toLocaleString('vi-VN') + " VND";
+                        const isChecked = checkboxStates[id] && checkboxStates[id][detail.id];
+                        const row = `
+                    <tr>
+                        <td>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" oninput="checkPrice()" name="selectedDetails" value="${detail.id}" id="${detail.id}" ${isChecked ? 'checked' : ''} onclick="saveCheckboxState(${id}, '${detail.id}')">
+                                <label class="form-check-label" for="${detail.id}"></label>
+                            </div>
+                        </td>
+                        <td><img style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; border: 1px solid #ccc;"
+                                             src="/hinh-anh/test/${detail.image.url1}"></td>
+                         <td>${detail.product.name} [ ${detail.color.name} - ${detail.size.name} ]</td>
+                         <td>${detail.quantity}</td>
+                         <td>${price}</td>
+                    </tr>
+                `;
+                        detailsTbody.insertAdjacentHTML('beforeend', row);
+                    });
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            })
+        }
+
+        function saveCheckboxState(id, checkboxId) {
+            const checkbox = document.getElementById(checkboxId);
+            if (!checkboxStates[id]) {
+                checkboxStates[id] = {};
+            }
+            checkboxStates[id][checkboxId] = checkbox.checked;
+            updateSelectedProducts();
+        }
+
+        function updateSelectedProducts() {
+            const selectedProductsInput = document.getElementById('selectedProducts');
+            const selectedIds = [];
+
+            for (const id in checkboxStates) {
+                for (const checkboxId in checkboxStates[id]) {
+                    if (checkboxStates[id][checkboxId]) {
+                        selectedIds.push(checkboxId);
+                    }
+                }
+            }
+
+            selectedProductsInput.value = selectedIds.join(',');
+        }
+
+        function submit(e) {
+            e.preventDefault();
+            let form = document.getElementById("promotionForm");
+            let name = document.getElementById("name").value;
+            let price = document.getElementById("price").value;
+            // let quantity = document.getElementById("quantity").value;
+            let dateStart = document.getElementById("dateStart").value;
+            let dateEnd = document.getElementById("dateEnd").value;
+            let selectedProduct = document.getElementById("selectedProducts").value;
+            let radioPercent = document.getElementById("radioPercent");
+            let radioVND = document.getElementById("radioVND");
+            let currentDate = new Date();
+
+            // Chuyển đổi dateStart và dateEnd thành đối tượng Date
+            let startDate = new Date(dateStart);
+            let endDate = new Date(dateEnd);
+            if (name.trim() === "") {
+                showToast("Tên không được để trống", "error")
+            } else if (radioPercent.checked && (price.trim() === "" || price < 1 || price > 99)) {
+                showToast("Giá trị giảm phải từ 1-99%", "error")
+            } else if (radioPercent.checked && (!Number.isInteger(+price.trim()))) {
+                showToast("Giá trị giảm phải là số nguyên dương", "error");
+            } else if (radioVND.checked && (price.trim() === "" || price < 1000)) {
+                showToast("Giá trị giảm phải lớn hơn 1.000 VND", "error")
+                // } else if (quantity.trim() === "" || quantity < 1) {
+                //     showToast("Số lượng phải lớn hơn 0", "error")
+            } else if (dateStart.trim() === "" || startDate < currentDate) {
+                showToast("Ngày bắt đầu phải lớn hơn ngày hiện tại", "error")
+            } else if (dateEnd.trim() === "" || startDate > endDate) {
+                showToast("Ngày bắt đầu lớn hơn ngày kết thúc", "error");
+            } else if (selectedProduct.trim() === "") {
+                showToast("Vui lòng chọn sản phẩm", "error");
+            } else {
+                Swal.fire({
+                    title: 'Xác nhận thêm đợt giảm giá',
+                    html: 'Bạn có chắc chắn muốn huỷ đợt giảm giá không?<br><strong>Lưu ý</strong> : Mỗi sản phẩm chỉ có thể có <strong>một đợt giảm giá</strong>.',
+                    icon: 'success',
+                    showCancelButton: true,       // Hiển thị nút "Hủy"
+                    confirmButtonText: 'Xác nhận', // Nút xác nhận đăng xuất
+                    cancelButtonText: 'Hủy'        // Nút hủy
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        sessionStorage.setItem("statusCheck", "Thêm thành công");
+                        form.submit();
+                    }
+                });
+            }
+        }
+
+        async function checkPrice() {
+            const idProductDetails = document.getElementById("selectedProducts").value;
+            const price = document.getElementById("price").value;
+            const radioVND = document.getElementById("radioVND");
+            const btnSubmit = document.getElementById("btnSubmit");
+            if (radioVND.checked) {
+                const arr = idProductDetails.split(",").map(Number);
+                for (const int of arr) {
+                    try {
+                        const message = await $.ajax({
+                            url: `http://localhost:8080/khuyenmai/checkPrice/${int}?price=${price}`,
+                            type: "GET"
+                        });
+                        console.log(message);
+                        if (message !== "") {
+                            showToast(`Đang có sản phẩm chi tiết của sản phẩm ${message} có giá nhỏ hơn giá giảm của đợt giảm giá`, "error")
+                            btnSubmit.classList.add("disabled");
+                            break;
+                        } else {
+                            btnSubmit.classList.remove("disabled");
+                        }
+                    } catch (error) {
+                        console.log(error);
+                        break; // Dừng vòng lặp nếu có lỗi từ server
+                    }
+                }
+            }
+        }
+
+        function showToast(message, status) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: status,
+                title: message
+            });
+        }
+    </script>
+</head>
+<body onload="loading()">
+<div class="container-fluid" layout:fragment="content">
+    <div id="toastContainer" class="toast-container"></div>
+    <form th:action="@{/promotions/add}" th:object="${promotion}" method="post" id="promotionForm">
+        <div class="form-container row">
+            <div class="form-section col-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Tạo đợt khuyến mãi</h5>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Tên đợt khuyến mãi</label>
+                            <input type="text" class="form-control" id="name" th:field="*{name}" maxlength="255"
+                            >
+                        </div>
+
+                        <label for="price" class="form-label">Giá trị</label>
+                        <div class="d-flex">
+                            <div class="mb-3 col-11">
+                                <input type="number" class="form-control" oninput="checkPrice()" id="price"
+                                       th:field="*{price}">
+                            </div>
+                            <div class="ms-1">
+                                <div class="">
+                                    <input type="radio" id="radioPercent" name="valueType" value="percent" checked>%
+                                </div>
+                                <div class="mt-1">
+                                    <input type="radio" id="radioVND" name="valueType" value="vnd">VND
+                                </div>
+                            </div>
+                        </div>
+
+                        <!--                        <div class="mb-3">-->
+                        <!--                            <label for="quantity" class="form-label">Số lượng</label>-->
+                        <!--                            <input type="number" class="form-control" id="quantity" th:field="*{quantity}" min="1"-->
+                        <!--                            >-->
+                        <!--                        </div>-->
+
+                        <div class="mb-3">
+                            <label for="dateStart" class="form-label">Ngày bắt đầu</label>
+                            <input type="datetime-local" class="form-control" id="dateStart" th:field="*{dateStart}"
+                            >
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="dateEnd" class="form-label">Ngày kết thúc</label>
+                            <input type="datetime-local" class="form-control" id="dateEnd" th:field="*{dateEnd}"
+                            >
+                        </div>
+                        <input type="hidden" name="selectedProducts" id="selectedProducts">
+                        <!--                        <input type="hidden" name="selectedProducts" id="selectedProducts">-->
+                        <span th:attr="onclick='submit(event)'" id="btnSubmit" class="btn btn-dark">Lưu</span>
+                        <a th:href="@{/promotions}" class="btn btn-primary">Hủy</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-section col-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Danh sách sản phẩm</h5>
+                        <table class="table table-striped" id="multi-filter-select">
+                            <thead>
+                            <tr>
+                                <th>Mã sản phẩm</th>
+                                <th>Tên sản phẩm</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="product : ${products}">
+                                <td th:text="${product.code}"></td>
+                                <td th:text="${product.name}"></td>
+                                <td>
+                                    <button class="btn btn-dark"
+                                            th:attr="onclick='showProductDetails(event,' + ${product.id} + ')'">Chọn
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class=" card product-detail-table
+                                    " id="productDetailTable">
+            <div class="card-body">
+                <h5>Chi tiết sản phẩm</h5>
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Chọn</th>
+                        <th>Hình ảnh</th>
+                        <th>Sản phẩm chi tiết</th>
+                        <th>Số lượng</th>
+                        <th>Giá</th>
+                    </tr>
+                    </thead>
+                    <tbody id="productDetailBody">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

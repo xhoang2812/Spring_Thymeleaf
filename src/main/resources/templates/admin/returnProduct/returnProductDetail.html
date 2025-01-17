@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Trả hàng</title>
+
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+  <link href="/css/returnProduct.css" rel="stylesheet" />
+  <script src="/js/billReturn.js" defer></script>
+</head>
+
+<body onload="loading()">
+<div layout:fragment="content" class="container-fluid" id="">
+  <div id="toastContainer" class="toast-container"></div>
+  <h1>Trả hàng <sup id="statusBill"></sup> </h1>
+  <div class="mt-5">
+    <div class="row justify-content-center mt-5">
+      <div class="col-12">
+        <div class="card border-0 shadow customer-infor">
+          <div class="card-body">
+            <h5><i class="fa-solid fa-user"></i> Thông tin khách hàng</h5>
+          </div>
+          <div class="card-body row" id="customer-info">
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mt-5">
+    <div class="mt-4">
+      <div class="row justify-content-center">
+        <div class="col-12">
+          <div class="card border-0 shadow">
+            <div class="card-body">
+              <h5><i class="fa-solid fa-rectangle-list"></i> Thông tin đơn hàng</h5>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="multi-filter-select" class="table table-hover mb-0">
+                  <thead class="table-light text-center">
+                  <tr>
+                    <th scope="col">STT</th>
+                    <th scope="col">Ảnh</th>
+                    <th scope="col">Thông tin sản phẩm</th>
+                    <th scope="col">Số lượng</th>
+                    <th scope="col">Tổng tiền</th>
+                    <th scope="col">Trạng thái</th>
+                    <!-- <th scope="col">Hoạt động</th> -->
+                  </tr>
+                  </thead>
+                  <tbody class="line-high-table" id="listProductDetail">
+
+
+
+                  </tbody>
+<!--                  <tbody class="line-high-table">-->
+<!--                  <tr th:each="list : ${billDetails}">-->
+<!--                    <td class="text-center">1</td>-->
+<!--                    <td class="text-center"><img-->
+<!--                            th:src="@{'/hinh-anh/test/' + ${list.productDetail.image.url1}}"-->
+<!--                            style="height: 30px;" class="img-fluid" alt=""></td>-->
+<!--                    <td style="max-width: 300px;">-->
+<!--                      <p>-->
+<!--                        <span th:text="${list.productDetail.product.name + ' [' + list.productDetail.size.name + ' - ' + list.productDetail.color.name + ' ]'}"></span>-->
+<!--                        <br>-->
+<!--                        <span class="text-danger" th:text="${list.productDetail.price}"></span>-->
+<!--                        <span class="text-decoration-line-through">200.000 VND</span>-->
+<!--                      </p>-->
+<!--                    </td>-->
+<!--                    <td class="text-center" th:text="${list.quantity}"></td>-->
+<!--                    <td class="text-center" th:text="${list.price}"></td>-->
+<!--                    <td class="text-center"><button-->
+<!--                            class="btn btn-primary rounded-pill" th:text="${list.description}"></button></td>-->
+<!--                  </tr>-->
+<!--                  </tbody>-->
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row justify-content-center">
+      <div class="col-8">
+        <div class="col-12" id="listProductTrade">
+
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card border-0 shadow pay-infor">
+          <div class="card-body">
+            <h5><i class="fa-solid fa-money-check-dollar"></i> Thông tin thanh toán</h5>
+          </div>
+          <div class="card-body" id="pay-infor">
+
+
+          </div>
+          <div class="card-body row">
+            <div class="col-6">
+              <p>Hoàn lại cho khách:</p>
+            </div>
+            <div class="col-6">
+              <span id="totalPay"></span>
+            </div>
+          </div>
+        </div>
+          <div class="card border-0 shadow pay-infor">
+            <div class="card-body">
+              <h5><i class="fa-solid fa-money-check-dollar"></i> Thông tin hoàn tiền</h5>
+            </div>
+            <div class="card-body" id="bank-info">
+
+            </div>
+            <div class="text-center mb-2">
+              <button class="col-3 btn btn-dark" id="btn-huy" onclick="deleteTrade()">Hủy</button>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal parse quantity-->
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Nhập số lượng</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="number" class="form-control">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Đóng</button>
+          <button type="button" class="btn btn-dark">Xác nhận</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal choose product-->
+  <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Nhập số lượng</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="">
+            <h4 class="text-center">Danh sách sản phẩm</h4>
+            <div class="card border-0 shadow" id="product-trade">
+              <div class="card-body row">
+                <div class="table-responsive">
+                  <table id="multi-filter-select" class="table table-hover mb-0">
+                    <thead class="table-light text-center">
+                    <tr>
+                      <th scope="col">Chọn</th>
+                      <th scope="col">Ảnh</th>
+                      <th scope="col">Thông tin sản phẩm</th>
+                      <th scope="col">Size</th>
+                      <th scope="col">Số lượng</th>
+                      <th scope="col">Giá tiền</th>
+                    </tr>
+                    </thead>
+                    <tbody class="line-high-table" id="listVoucher">
+                    <tr>
+                      <td class="text-center"><input class="form-check-input" type="checkbox" value=""></td>
+                      <td class="text-center"><img
+                              src="https://chodole.com/cdn/shop/products/CDL5_1_1024x1024.jpg?v=1586758906"
+                              style="height: 30px;" class="img-fluid" alt=""></td>
+                      <td>
+                        <p>Áo cộc tay mùa đông [ M - Yellow ] <br> <span
+                                class="text-danger">100.000
+                                                                VND</span> <span
+                                class="text-decoration-line-through">200.000VND</span></p>
+                      </td>
+                      <td class="text-center">M</td>
+                      <td class="text-center">100</td>
+                      <td class="text-center">200.000 VND</td>
+                    </tr>
+                    <tr>
+                      <td class="text-center"><input class="form-check-input" type="checkbox" value=""></td>
+                      <td class="text-center"><img
+                              src="https://chodole.com/cdn/shop/products/CDL5_1_1024x1024.jpg?v=1586758906"
+                              style="height: 30px;" class="img-fluid" alt=""></td>
+                      <td>
+                        <p>Áo cộc tay mùa đông [ M - Yellow ] <br> <span
+                                class="text-danger">100.000
+                                                                VND</span> <span
+                                class="text-decoration-line-through">200.000VND</span></p>
+                      </td>
+                      <td class="text-center">M</td>
+
+                      <td class="text-center">100</td>
+                      <td class="text-center">200.000 VND</td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Đóng</button>
+          <button type="button" class="btn btn-dark">Xác nhận</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  function showProductTrade(){
+    const show = document.getElementById("product-trade");
+    console.log(show.style.display)
+    if(show.style.display === "none"){
+      show.style.display = "block";
+    }else{
+      show.style.display = "none";
+    }
+  }
+</script>
+</body>
+
+</html>

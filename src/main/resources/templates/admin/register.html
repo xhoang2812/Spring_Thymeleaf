@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Ký Tài Khoản</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        function showErrors(messages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messages
+            });
+        }
+
+        // Hàm kiểm tra và gửi form
+        function vali(e) {
+            e.preventDefault(); // Ngăn chặn gửi form ngay lập tức
+
+            // Hiển thị hộp thoại xác nhận trước khi thực hiện lưu
+            Swal.fire({
+                title: 'Bạn có chắc muốn đăng ký?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#5ac155',
+                cancelButtonColor: '#47434c',
+                confirmButtonText: 'Có, đăng ký ngay!',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    // Lấy giá trị từ các trường trong form
+                    let name = document.getElementById('name').value;
+                    let dateOfBirth = document.getElementById('dateOfBirth').value;
+                    let email = document.getElementById('email').value;
+                    let phone = document.getElementById('phone').value;
+                    let username = document.getElementById('username').value;
+                    let password = document.getElementById('password').value;
+                    let confirmPassword = document.getElementById('confirmPassword').value;
+
+
+                    // Gán giá trị vào các trường ẩn
+                    document.getElementById('oldEmail').value = email;
+                    document.getElementById('oldPhone').value = phone;
+
+                    // Kiểm tra các trường bắt buộc
+                    if (name === "") {
+                        showErrors("Tên không được để trống");
+                        return;
+                    }
+                    if (dateOfBirth === "") {
+                        showErrors("Ngày sinh không được để trống");
+                        return;
+                    }
+                    if (email === "") {
+                        showErrors("Email không được để trống");
+                        return;
+                    }
+                    if (phone === "") {
+                        showErrors("Số điện thoại không được để trống");
+                        return;
+                    }
+                    if (username === "") {
+                        showErrors("Username không được để trống");
+                        return;
+                    }
+                    if (password === "") {
+                        showErrors("Password không được để trống");
+                        return;
+                    }
+                    if (password !== confirmPassword) {
+                        showErrors("Mật khẩu và xác nhận mật khẩu không khớp!");
+                        return;
+                    }
+                    if (!/^\d{10}$/.test(phone)) {
+                        showErrors("Số điện thoại phải có đúng 10 chữ số");
+                        return;
+                    }
+
+                    // Kiểm tra định dạng email: phải có '@' và ít nhất 1 dấu '.' sau '@'
+                    const emailRegex = /.+@.+\..+/;
+                    if (!emailRegex.test(email)) {
+                        showErrors("Vui lòng nhập đúng định dạng email");
+                        return;
+                    }
+
+                    // Kiểm tra tuổi lớn hơn 15
+                    const birthDate = new Date(dateOfBirth);
+                    const age = new Date().getFullYear() - birthDate.getFullYear();
+                    if (age < 13) {
+                        showErrors("Tuổi phải lớn hơn hoặc bằng 13");
+                        return;
+                    }
+
+                    // Kiểm tra trùng lặp
+                    axios.get(`/employee/api/employee/check-username?username=${username}`)
+                        .then(response => {
+                            if (response.data) {
+                                showErrors("Username đã tồn tại");
+                                console.log("day la user name da ton tai ", username)
+                                return Promise.reject(); // Ngăn không gửi form
+                            }
+                            return axios.get(`/employee/api/employee/check-email?email=${email}`);
+                        })
+                        .then(response => {
+                            if (response.data) {
+                                showErrors("Email đã tồn tại");
+                                return Promise.reject(); // Ngăn không gửi form
+                            }
+                            return axios.get(`/employee/api/employee/check-phone?phone=${phone}`);
+                        })
+                        .then(response => {
+                            if (response.data) {
+                                showErrors("Số điện thoại đã tồn tại");
+                                return Promise.reject(); // Ngăn không gửi form
+                            }
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Đăng ký thành công!',
+                                text: 'Tài khoản của bạn đã được tạo.',
+                                timer: 2500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                document.getElementById('form').submit(); // Gửi form ở đây
+                            });
+                        })
+                        .catch(error => {
+                            if (error) {
+                                console.error("Lỗi kiểm tra trùng lặp:", error);
+                            }
+                        });
+                }
+            });
+        }
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f4f7;
+        }
+
+        .register-container {
+            width: 800px; /* Điều chỉnh chiều rộng */
+            padding: 40px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .register-form {
+            display: flex;
+            flex-direction: column; /* Đặt chiều hướng là cột */
+        }
+
+        .register-form h2 {
+            margin-bottom: 20px;
+            font-weight: bold;
+            width: 100%; /* Đảm bảo tiêu đề chiếm toàn bộ chiều rộng */
+        }
+
+        .form-group {
+            margin-bottom: 15px; /* Khoảng cách giữa các trường */
+        }
+
+        .btn-register {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .forgot-password {
+            margin-right: 10px;
+        }
+
+        .forgot-password a {
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<form th:action="@{/login/register}" method="post" id="form">
+    <div class="register-container">
+        <div class="register-form">
+            <h2>Đăng Ký Tài Khoản</h2>
+            <div class="border p-3 rounded">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="name" class="form-label">Họ tên</label>
+                            <input type="text" name="name" id="name" class="form-control" placeholder="Nhập họ tên">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone" class="form-label">Số điện thoại</label>
+                            <input type="text" name="phone" id="phone" class="form-control"
+                                   placeholder="Nhập số điện thoại">
+                        </div>
+
+                        <!-- Thêm các trường ẩn cho email và số điện thoại -->
+                        <input type="hidden" id="oldEmail" name="oldEmail">
+                        <input type="hidden" id="oldPhone" name="oldPhone">
+
+                        <div class="form-group">
+                            <label for="gender" class="form-label">Giới tính</label>
+                            <select id="gender" name="gender" class="form-select">
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dateOfBirth" class="form-label">Ngày sinh</label>
+                            <input type="date" name="dateOfBirth" id="dateOfBirth" class="form-control">
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" name="email" id="email" class="form-control" placeholder="Nhập email">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="username" class="form-label">Tài khoản</label>
+                            <input type="text" name="username" id="username" class="form-control"
+                                   placeholder="Nhập tài khoản">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password" class="form-label">Mật khẩu</label>
+                            <input type="password" name="password" id="password" class="form-control"
+                                   placeholder="Nhập mật khẩu">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmPassword" class="form-label">Xác nhận mật khẩu</label>
+                            <input type="password" name="confirmPassword" id="confirmPassword" class="form-control"
+                                   placeholder="Xác nhận mật khẩu">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="forgot-password">
+                    <a href="/login">Quay lại trang đăng nhập</a>
+                </div>
+                <button type="submit" class="btn btn-register w-100 mt-3" onclick="vali(event)">Đăng Ký</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Font Awesome Icons -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

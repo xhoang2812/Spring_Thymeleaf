@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorate="~{user/index}"
+      xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Giỏ hàng</title>
+    <style>
+        .disabled-row {
+            position: relative;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .disabled-row .cart__close {
+            pointer-events: auto;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body layout:fragment="content">
+
+<!-- Breadcrumb Section Begin -->
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>Giỏ hàng</h4>
+                    <div class="breadcrumb__links">
+                        <a href="./index.html">Trang chủ</a>
+                        <span>Giỏ hàng</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb Section End -->
+
+<!-- Shopping Cart Section Begin -->
+<section class="shopping-cart spad">
+    <div class="container">
+        <form onsubmit="return validate()" th:action="@{/home/check-out}" th:method="POST">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="shopping__cart__table">
+                        <table id="productCart">
+                            <thead>
+                            <tr>
+                                <th>
+                                    <input id="selectAll" onchange="totalAndSubtotal()" type="checkbox">
+                                </th>
+                                <th>Sản phẩm</th>
+                                <th>Số lượng</th>
+                                <th>Tổng tiền</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody id="cart_body">
+                            <tr sec:authorize="isAuthenticated()"
+                                th:classappend="${list.quantity == 0 || list.productStatus == 0 || list.productDetailStatus == 0} ? 'disabled-row' : ''"
+                                th:each="list : ${listCartDetail}">
+                                <td>
+                                    <input class="childCheckbox" name="selectedCartIds" onchange="totalAndSubtotal2()"
+                                           th:value="${list.id}" type="checkbox">
+                                </td>
+                                <td class="product__cart__item">
+                                    <div style="color: red; font-weight: bold; text-align: center; margin-bottom: 5px;"
+                                         th:if="${list.quantity == 0 || list.productStatus == 0 || list.productDetailStatus == 0}">
+                                        Sản phẩm đang tạm dừng kinh doanh
+                                    </div>
+                                    <div class="product__cart__item__pic">
+                                        <img alt=""
+                                             style="width: 90px; height: 100px"
+                                             th:src="@{'/home/flim-image/' + ${list.maxImage}}">
+
+                                        <input name="selectedProductIds"
+                                               th:id="'idProdcutDetail_' + ${list.id} "
+                                               th:value="${list.idProductDetail}"
+                                               type="hidden">
+                                    </div>
+                                    <div class="product__cart__item__text" style="padding-top: 0px">
+                                        <h6 th:utext="${list.nameProduct}"></h6>
+                                        <h6 th:utext="${' [ ' + list.nameSize + ' + ' + list.nameColor +' ]'}"></h6>
+
+                                        <h6 th:utext="${'Kho: '+list.quantity}"></h6>
+                                        <input th:data-ma="${list.id}"
+                                               th:id="'khoProductAn_' + ${list.id} "
+                                               th:value="${list.quantity}" type="hidden">
+
+                                        <h5 th:id="'priceProduct_' + ${list.id} "
+                                            th:style="${list.havePromotion} ? 'text-decoration: line-through;' : ''"
+                                            th:utext="${#numbers.formatDecimal(list.price, 0, 'POINT', 0, 'POINT') + ' VND'}"></h5>
+                                        <input th:id="'priceProductAn_' + ${list.id} "
+                                               th:value="${list.price}"
+                                               type="hidden">
+
+                                        <h5 th:id="'priceSaleProduct_' + ${list.id} "
+                                            th:if="${list.havePromotion}"
+                                            th:style="${list.havePromotion} ? 'color:red' : ''"
+                                            th:utext="${#numbers.formatDecimal(list.priceSale, 0, 'POINT', 0, 'POINT') + ' VND'}"></h5>
+                                        <input th:id="'priceSaleProductAn_' + ${list.id} "
+                                               th:value="${list.priceSale}"
+                                               type="hidden">
+                                    </div>
+                                </td>
+                                <td class="quantity__item">
+                                    <div class="quantity">
+                                        <div class="pro-qty-2">
+                                            <span class="fa fa-angle-left dec qtybtn" th:data-ma="${list.id}"></span>
+                                            <input min="1"
+                                                   oninput="updateQuantityProductInCart(this.getAttribute('data-ma'))"
+                                                   th:data-ma="${list.id}"
+                                                   th:id="'quantity_'+ ${list.id}"
+                                                   th:value="${list.quantityInStock}" type="text">
+                                            <span class="fa fa-angle-right inc qtybtn" th:data-ma="${list.id}"></span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="cart__price" th:id="'totalProductPrice_' + ${list.id}"
+                                    th:utext="${#numbers.formatDecimal(list.total, 0, 'POINT', 0, 'POINT') + ' VND'}">
+                                </td>
+                                <td class="cart__close" id="deleteProduct"
+                                    onclick="deleteCartDetail(this.getAttribute('data-ma'))"
+                                    th:data-ma="${list.id}">
+                                    <i class="fa fa-close"></i>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="continue__btn">
+                                <a th:href="@{/home/shop}">Tiếp tục mua sắm</a>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="continue__btn update__btn">
+                                <a onclick="reload()"><i class="fa fa-spinner"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="cart__total">
+                        <h6>Tổng giỏ hàng</h6>
+                        <ul>
+                            <li>
+                                Tổng tiền
+                                <span th:id="subtotalCartDetail"></span>
+                            </li>
+                            <li>
+                                Tiền phải trả
+                                <span th:id="totalCartDetail"></span>
+                            </li>
+                        </ul>
+                        <button sec:authorize="isAuthenticated()" class="primary-btn disabled" id="checkoutLink"
+                                style="width: 300px" type="submit">
+                            Thanh toán
+                        </button>
+                        <button sec:authorize="isAnonymous()" onclick="thanhToanKoDangNhap()"
+                                class="primary-btn disabled" id="checkoutLink1" style="width: 300px" type="button">
+                            Thanh toán
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+<!-- Shopping Cart Section End -->
+
+<script sec:authorize="isAnonymous()">
+    window.onload = function () {
+        hienThiGioHangKhongDangNhap()
+    }
+
+    function hienThiGioHangKhongDangNhap() {
+        let cartItems = localStorage.getItem("itemCart");
+        if (cartItems) {
+            // Parse JSON từ localStorage
+            let parsedItems = JSON.parse(cartItems);
+            console.log("Dữ liệu giỏ hàng từ localStorage:", JSON.stringify(parsedItems));
+            // Gửi dữ liệu tới API
+            $.ajax({
+                url: '/home/api/cart-khong-dang-nhap',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(parsedItems),
+                success: function (response) {
+                    console.log("Dữ liệu từ API:", response);
+                    let cartBody = $('#cart_body');
+                    cartBody.empty();
+                    $.each(response, function (index, item) {
+                        let disabledClass = (item.quantityStock === 0 || item.statusProduct === 0 || item.statusProductDetail === 0) ? 'disabled-row' : '';
+                        let promotionStyle = item.pricePromotion > 0 ? 'text-decoration: line-through;' : '';
+                        let promotionPrice = item.pricePromotion > 0 ?
+                            `<h5 style="color:red" id="priceSaleProduct_${item.id} " >${item.pricePromotion.toLocaleString()} VND</h5>` : '';
+                        let tr = ` <tr class="${disabledClass}">
+                                <td>
+                                    <input class="childCheckbox" name="selectedCartIds" value="${item.idProductDetail}"
+                                           type="checkbox" onchange="totalAndSubtotal2()">
+                                </td>
+                                <td class="product__cart__item">
+                                    ${item.quantityStock === 0 || item.statusProduct === 0 || item.statusProductDetail === 0
+                            ? `<div style="color: red; font-weight: bold; text-align: center; margin-bottom: 5px;">
+                                        Sản phẩm đang tạm dừng kinh doanh
+                                      </div>`
+                            : ''}
+                                    <div class="product__cart__item__pic">
+                                        <img alt=""
+                                             style="width: 90px; height: 100px"
+                                             src="/home/flim-image/${item.img}">
+
+                                        <input id="idProdcutDetail_${item.idProductDetail} "
+                                               value="${item.idProductDetail}" type="hidden"
+                                               name="selectedProductIds">
+                                    </div>
+                                    <div class="product__cart__item__text" style="padding-top: 0px">
+                                        <h6>${item.name}</h6>
+                                        <h6>[ ${item.nameSize} + ${item.nameColor} ]</h6>
+                                        <h6>Kho: ${item.quantityStock}</h6>
+                                        <input id="khoProductAn_${item.idProductDetail}"
+                                               value="${item.quantityStock}"
+                                               type="hidden" >
+
+                                        <h5 id="priceProduct_${item.idProductDetail} " style="${promotionStyle}"
+                                            > ${item.priceProduct.toLocaleString()} VND</h5>
+                                        <input id="priceProductAn_${item.idProductDetail} "
+                                               value="${item.priceProduct}"
+                                               type="hidden">
+                                        ${promotionPrice}
+                                        <input id="priceSaleProductAn_${item.idProductDetail} "
+                                               value="${item.pricePromotion}"
+                                               type="hidden">
+                                    </div>
+                                </td>
+                                <td class="quantity__item">
+                                    <div class="quantity">
+                                        <div class="pro-qty-2">
+                                            <span class="fa fa-angle-left dec qtybtn"  data-ma="${item.idProductDetail}"></span>
+                                            <input data-ma="${item.idProductDetail}"
+                                                   id="quantity_${item.idProductDetail}"
+                                                   value="${item.quantityBuy}"
+                                                   type="text" min="1" oninput="suaSlKoDangNhap(${item.idProductDetail})">
+                                            <span class="fa fa-angle-right inc qtybtn" data-ma="${item.idProductDetail}"></span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="cart__price" id="totalProductPrice_${item.idProductDetail}"
+                                   > ${item.totalPrice.toLocaleString()} VND
+                                </td>
+                                <td class="cart__close" id="deleteProduc" onclick="deleteCartKoDangNhap(${item.idProductDetail})">
+                                    <i class="fa fa-close"></i>
+                                </td>
+                            </tr>`
+                        cartBody.append(tr);
+                    });
+
+                    //---------------------------------UpDown---------------------------------
+                    $('.pro-qty-2').on('click', '.qtybtn', async function () {
+                        let $button = $(this);
+                        let $input = $button.parent().find('input');
+                        let idProductDetail = $input.attr('data-ma');
+                        let oldValue = parseFloat($input.val());
+                        let maxStock = parseFloat($('#khoProductAn_' + idProductDetail).val());
+
+                        let newVal;
+                        if ($button.hasClass('inc')) {
+                            newVal = (oldValue < maxStock) ? oldValue + 1 : maxStock;
+                        } else {
+                            if (oldValue > maxStock) {
+                                newVal = maxStock;
+                            } else if (oldValue === 1) {
+                                newVal = 1;
+                            } else if (oldValue > 1) {
+                                newVal = oldValue - 1;
+                            }
+                        }
+                        $input.val(newVal);
+                        await tangGiamKoDangNhap(idProductDetail, newVal);
+                    });
+
+                    //---------------------------------Check box---------------------------------
+                    let checkoutLink = document.getElementById("checkoutLink1");
+                    let childCheckboxes = document.querySelectorAll(".childCheckbox");
+
+                    function toggleCheckoutLink() {
+                        let isAnyChecked = Array.from(childCheckboxes).some(cb => cb.checked);
+
+                        if (isAnyChecked) {
+                            checkoutLink.classList.remove("disabled");
+                        } else {
+                            checkoutLink.classList.add("disabled");
+                        }
+                    }
+
+                    checkoutLink.classList.add("disabled");
+                    document.querySelector("style").textContent += `
+                                .disabled {
+                                    pointer-events: none;
+                                    color: gray;
+                                    opacity: 0.5;
+                                }
+                            `;
+                    document.getElementById("selectAll").addEventListener("click", function () {
+                        let checkboxes = document.querySelectorAll(".childCheckbox");
+                        let selectAllChecked = document.getElementById("selectAll").checked;
+                        checkboxes.forEach(function (checkbox) {
+                            let row = checkbox.closest("tr"); // Lấy hàng chứa checkbox
+                            if (!row.classList.contains("disabled-row")) { // Chỉ xử lý nếu hàng không có class disabled-row
+                                checkbox.checked = selectAllChecked;
+                            }
+                        });
+                        toggleCheckoutLink();  // Kiểm tra lại liên kết "Thanh toán"
+                    });
+
+                    childCheckboxes.forEach(function (checkbox) {
+                        checkbox.addEventListener("click", function () {
+                            let allChecked = Array.from(childCheckboxes).every(cb => cb.checked);
+                            document.getElementById("selectAll").checked = allChecked;
+                            toggleCheckoutLink();  // Kiểm tra lại liên kết "Thanh toán"
+                        });
+                    });
+
+
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi:", error);
+                }
+            });
+        } else {
+            console.log("Không có dữ liệu giỏ hàng trong localStorage");
+        }
+    }
+
+
+    async function deleteCartKoDangNhap(id) {
+        Swal.fire({
+            title: 'Bạn có chắc chắn muốn xóa sản phẩm này không?',
+            showDenyButton: true,
+            confirmButtonText: `Xóa`,
+            denyButtonText: `Hủy`,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let list = JSON.parse(localStorage.getItem("itemCart"));
+                let remainingArr = list.filter(data => data.idSpct != id);
+                window.localStorage.setItem('itemCart', JSON.stringify(remainingArr));
+                showSuccesss("Xóa sản phẩm thành công");
+                hienThiGioHangKhongDangNhap();
+            }
+        });
+    }
+
+    async function tangGiamKoDangNhap(id, newValue) {
+        let list = JSON.parse(localStorage.getItem("itemCart"));
+        try {
+            const product = list.find(item => item.idSpct === id);
+            // Cập nhật giỏ hàng và lưu lại vào localStorage
+            product.soLuong = newValue;
+            localStorage.setItem("itemCart", JSON.stringify(list));
+            hienThiGioHangKhongDangNhap(); // Cập nhật lại giao diện giỏ hàng
+        } catch (error) {
+            console.error("Lỗi khi gọi API:", error);
+        }
+    }
+
+    async function suaSlKoDangNhap(id){
+        let list = JSON.parse(localStorage.getItem("itemCart"));
+        let maxStock = parseFloat($('#khoProductAn_' + id).val());
+        try {
+            let newValue = $(`input[id="quantity_${id}"]`).val();
+            if (Number(newValue) <= 0 || !Number.isInteger(Number(newValue))) {
+                await showError("Số lượng không hợp lệ");
+                return;
+            }
+
+            if (Number(newValue) > maxStock) {
+                showError("Số lượng mua đã quá số lượng trong kho");
+                return;
+            }
+
+            const product = list.find(item => item.idSpct === String(id));
+            // Cập nhật giỏ hàng và lưu lại vào localStorage
+            product.soLuong = newValue;
+            localStorage.setItem("itemCart", JSON.stringify(list));
+            hienThiGioHangKhongDangNhap(); // Cập nhật lại giao diện giỏ hàng
+        } catch (error) {
+            console.error("Lỗi khi gọi API:", error);
+        }
+    }
+
+
+
+    async function thanhToanKoDangNhap() {
+        let selectedItems = [];
+
+        // Lấy các sản phẩm được chọn
+        $(".childCheckbox:checked").each(function () {
+            let id = $(this).val(); // Lấy ID từ checkbox
+            let quantity = $(this).closest("tr").find("input[type='text']").val(); // Lấy số lượng từ input
+            selectedItems.push({ id: id, quantity: quantity });
+        });
+
+        if (selectedItems.length === 0) {
+            alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán!");
+            return;
+        }
+
+        // Tạo query string
+        let params = selectedItems.map(item => `selectedCartIds=${item.id}&soLuong=${item.quantity}`).join("&");
+
+        // Điều hướng tới URL controller
+        window.location.href = `/home/check-out-without-login?${params}`;
+    }
+
+
+</script>
+<script sec:authorize="isAuthenticated()">
+
+
+    function deleteCartDetail(id) {
+        Swal.fire({
+            title: 'Bạn có chắc chắn muốn xóa sản phẩm này không?',
+            showDenyButton: true,
+            confirmButtonText: `Xóa`,
+            denyButtonText: `Hủy`,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "/home/api/delete-cart-detail/" + id,
+                    type: "DELETE",
+                    success: function (data) {
+                        location.reload();
+                    },
+                    error: function (xhr) {
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            showError(xhr.responseJSON.error);
+                        } else {
+                            console.log("Lỗi backend");
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+
+    function updateQuantityProductInCart(id) {
+        let quantity = document.getElementById("quantity_" + id).value;
+        let price = document.getElementById("priceProductAn_" + id).value;
+        let idProdcutDetail = document.getElementById("idProdcutDetail_" + id).value;
+        let priceSale = document.getElementById("priceSaleProductAn_" + id).value;
+        let maxStock = parseFloat($('#khoProductAn_' + id).val());
+
+        if (Number(quantity) <= 0 || !Number.isInteger(Number(quantity))) {
+            showError("Số lượng không hợp lệ");
+            $('#quantity_' + id).val(1);
+            tinhTongGiaSP(id);
+            return;
+        }
+
+        if (Number(quantity) > maxStock) {
+            showError("Số lượng mua đã quá số lượng trong kho");
+            $('#quantity_' + id).val(maxStock);
+            tinhTongGiaSP(id);
+            return;
+        }
+
+        $.ajax({
+            url: "/home/api/update-cart-detail",
+            type: "PUT",
+            data: {
+                idCartDetail: id,
+                quantity: quantity,
+                price: price,
+                idProductDetail: idProdcutDetail,
+                priceSale: priceSale
+            },
+            success: function () {
+                tinhTongGiaSP(id);
+            },
+            error: function (xhr) {
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    showError(xhr.responseJSON.error);
+                } else {
+                    console.log("Lỗi backend");
+                }
+            }
+        });
+    }
+
+
+    $('.pro-qty-2').on('click', '.qtybtn', function () {
+        let $button = $(this);
+        let $input = $button.parent().find('input');
+        let idProductDetail = $input.attr('data-ma');
+        let oldValue = parseFloat($input.val());
+        let maxStock = parseFloat($('#khoProductAn_' + idProductDetail).val());
+        let newVal;
+
+        if ($button.hasClass('inc')) {
+            newVal = (oldValue < maxStock) ? oldValue + 1 : maxStock;
+        } else {
+            if (oldValue > maxStock) {
+                newVal = maxStock;
+            } else if (oldValue === 1) {
+                newVal = 1;
+            } else if (oldValue > 1) {
+                newVal = oldValue - 1;
+            }
+        }
+        $input.val(newVal);
+        updateQuantityProductInCart($input.attr('data-ma'));
+    });
+
+    //---------------------------------Check box---------------------------------
+    let checkoutLink = document.getElementById("checkoutLink");
+    let childCheckboxes = document.querySelectorAll(".childCheckbox");
+
+    function toggleCheckoutLink() {
+        let isAnyChecked = Array.from(childCheckboxes).some(cb => cb.checked);
+
+        if (isAnyChecked) {
+            checkoutLink.classList.remove("disabled");
+        } else {
+            checkoutLink.classList.add("disabled");
+        }
+    }
+
+    checkoutLink.classList.add("disabled");
+    document.querySelector("style").textContent += `
+        .disabled {
+            pointer-events: none;
+            color: gray;
+            opacity: 0.5;
+        }
+    `;
+    document.getElementById("selectAll").addEventListener("click", function () {
+        let checkboxes = document.querySelectorAll(".childCheckbox");
+        let selectAllChecked = document.getElementById("selectAll").checked;
+        checkboxes.forEach(function (checkbox) {
+            let row = checkbox.closest("tr"); // Lấy hàng chứa checkbox
+            if (!row.classList.contains("disabled-row")) { // Chỉ xử lý nếu hàng không có class disabled-row
+                checkbox.checked = selectAllChecked;
+            }
+        });
+        toggleCheckoutLink();  // Kiểm tra lại liên kết "Thanh toán"
+    });
+    childCheckboxes.forEach(function (checkbox) {
+        checkbox.addEventListener("click", function () {
+            let allChecked = Array.from(childCheckboxes).every(cb => cb.checked);
+            document.getElementById("selectAll").checked = allChecked;
+            toggleCheckoutLink();  // Kiểm tra lại liên kết "Thanh toán"
+        });
+    });
+</script>
+<script>
+
+    function reload() {
+        location.reload();
+    }
+
+    //Tinh lai tong gia
+    function tinhTongGiaSP(id) {
+        let soLuongSP = $(`input[id="quantity_${id}"]`).val();
+        let giaSP = $(`input[id="priceProductAn_${id}"]`).val();
+        let giaSaleSP = $(`input[id="priceSaleProductAn_${id}"]`).val();
+        let tongGia = $(`td[id="totalProductPrice_${id}"]`);
+        let tong;
+        if (Number(giaSaleSP) === 0) {
+            tong = Number(soLuongSP) * Number(giaSP);
+        } else {
+            tong = Number(soLuongSP) * Number(giaSaleSP);
+        }
+        let formattedTong = new Intl.NumberFormat('vi-VN').format(tong).replace(/,/g, '.');
+        tongGia.html(formattedTong + ' VND');
+        totalAndSubtotal2();
+    }
+
+    //Chon all
+    function totalAndSubtotal() {
+        let total = $('span[id="totalCartDetail"]');
+        let subtotal = $('span[id="subtotalCartDetail"]');
+        let chonALl = $('input[id="selectAll"]:checked');
+        let formattedTong;
+        let totalCart = 0;
+        const priceCells = document.querySelectorAll('.cart__price');
+        if (chonALl.length === 0) {
+            subtotal.html('');
+            total.html('');
+        } else {
+            const priceValues = [];
+            priceCells.forEach(cell => {
+                priceValues.push(cell.innerText.replace(/[^0-9]/g, ''));
+            });
+            priceValues.forEach(price => {
+                totalCart += Number(price);
+            });
+            formattedTong = new Intl.NumberFormat('vi-VN').format(totalCart).replace(/,/g, '.');
+            subtotal.html(formattedTong + ' VND');
+            total.html(formattedTong + ' VND');
+        }
+    }
+
+    //Chon tung cai 1
+    function totalAndSubtotal2() {
+        let total = $('span[id="totalCartDetail"]');
+        let subtotal = $('span[id="subtotalCartDetail"]');
+        let selectedCartDetailIds = $('input[name="selectedCartIds"]:checked').map(function () {
+            return $(this).val();
+        }).get();
+        console.log("selectedCartDetailId: " + selectedCartDetailIds);
+        if (selectedCartDetailIds.length === 0) {
+            subtotal.html('');
+            total.html('');
+        } else {
+            let totalCart = 0;
+            selectedCartDetailIds.forEach(id => {
+                console.log($(`td[id="totalProductPrice_${id}"]`).text().replace(/[^0-9]/g, ''));
+                let tongGia = $(`td[id="totalProductPrice_${id}"]`).text().replace(/[^0-9]/g, '');
+                totalCart += Number(tongGia);
+            });
+            let formattedTong = new Intl.NumberFormat('vi-VN').format(totalCart).replace(/,/g, '.');
+            subtotal.html(formattedTong + ' VND');
+            total.html(formattedTong + ' VND');
+        }
+    }
+
+
+    //---------------------------------<Toast>---------------------------------
+    function showSuccesss(messsages1) {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+            }
+        });
+        Toast.fire({
+            icon: "success",
+            title: messsages1
+        });
+    }
+
+    function showError(messsages1) {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+            }
+        });
+        Toast.fire({
+            icon: "error",
+            title: messsages1
+        });
+    }
+
+    [[${hetKm} == true]] ? showError("Sản phẩm bạn chọn mua đã hết đợt khuyến mãi") : "";
+    [[${kmDangCo} == true]] ? showError("Sản phẩm bạn chọn mua giá đã thay đổi") : "";
+    [[${hetSlKoKm} == true]] ? showError("Sản phẩm bạn chọn mua quá số lượng có kho") : "";
+    [[${spInactive} == true]] ? showError("Sản phẩm bạn chọn mua đã tạm dừng kinh doanh") : "";
+    [[${spctInactive} == true]] ? showError("Sản phẩm bạn chọn mua đã tạm dừng kinh doanh ") : "";
+    [[${hetVoucher} == true]] ? showError("Voucher đã hết vui lòng chọn lại") : "";
+    [[${apiVnpayLoi} == true]] ? showError("Cổng thanh toán vnpay hiện đang bảo trì vui lòng chọn phương thức khác!") : "";
+</script>
+
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thông báo nhận voucher</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f7f9fc;">
+<div style="width: 100%; max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); overflow: hidden;">
+  <!-- Header section -->
+  <div style="background-color: white; color: red; padding: 20px; text-align: center;">
+    <table style="width: 100%; text-align: center;">
+      <tr>
+        <td>
+          <div style="display: inline-block; text-align: center;">
+            <img src="https://res.cloudinary.com/dbe1h6ajz/image/upload/v1731337373/fp9motuy76l9fpun41hk.jpg" alt="" style="width: 30px; height: 30px; vertical-align: middle;">
+            <h1 style="display: inline-block; font-size: 26px; margin: 0; vertical-align: middle;">F6 Store</h1>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Content section -->
+  <div style="padding: 20px; color: #333;">
+    <p>Xin chào <strong th:text="${name}"></strong>,</p>
+    <p>Chúng tôi rất vui mừng thông báo rằng bạn vừa nhận được một voucher hấp dẫn: <strong style="color: red;" th:text="${voucherName}"></strong>!</p>
+
+    <div style="background-color: #f2f2f2; border-left: 5px solid #ff6f61; padding: 15px; margin: 20px 0; border-radius: 5px;">
+      <h2>Thông tin voucher</h2>
+      <p><strong>Mã voucher:</strong> <span th:text="${code}"></span></p>
+      <p><strong>Giảm giá:</strong> <span th:text="${discount}"></span></p>
+      <p><strong>Ngày bắt đầu:</strong> <span th:text="${dateStart}"></span></p>
+      <p><strong>Ngày kết thúc:</strong> <span th:text="${dateEnd}"></span></p>
+      <p><strong>Đơn hàng tối thiểu:</strong> <span th:text="${minimumOrder}"></span></p>
+      <p><strong>Giảm giá tối đa:</strong> <span th:text="${maximumReduction}"></span></p>
+    </div>
+
+    <p>Hãy nhanh chóng sử dụng mã voucher này để tiết kiệm cho đơn hàng của bạn. Nếu bạn có bất kỳ câu hỏi nào hoặc cần thêm thông tin, hãy liên hệ với chúng tôi qua email <strong>supportf6@gmail.com</strong> hoặc số điện thoại <strong>0123 456 789</strong> hoặc địa chỉ: Hà Nội.</p>
+
+    <p>Cảm ơn bạn đã lựa chọn <strong>F6Store</strong>. Chúng tôi luôn mong muốn mang đến cho bạn những trải nghiệm tuyệt vời nhất!</p>
+  </div>
+
+  <!-- Footer section -->
+  <div style="margin-top: 20px; padding: 10px; text-align: center; font-size: 0.9em; color: #777;">
+    <p>Thân ái,<br>
+      <strong>Công Ty F6Store</strong><br>
+      <a href="mailto:support@congtyxyz.com" style="color: #ff6f61; text-decoration: none;">support@congtyxyz.com</a></p>
+  </div>
+</div>
+</body>
+</html>

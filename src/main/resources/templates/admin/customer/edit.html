@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Chỉnh sửa khách hàng</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        function showErrors(messages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messages
+            });
+        }
+
+        // Hàm kiểm tra và gửi form
+        function vali(e) {
+            e.preventDefault(); // Ngăn chặn gửi form ngay lập tức
+
+            // Hiển thị hộp thoại xác nhận trước khi thực hiện lưu
+            Swal.fire({
+                title: 'Bạn có chắc muốn sửa khách hàng này?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#5ac155',
+                cancelButtonColor: '#47434c',
+                confirmButtonText: 'Có, sửa ngay!',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    // Lấy giá trị từ các trường trong form
+                    let name = document.getElementById('name') ? document.getElementById('name').value : '';
+                    let dateOfBirth = document.getElementById('dateOfBirth') ? document.getElementById('dateOfBirth').value : '';
+                    let email = document.getElementById('email') ? document.getElementById('email').value : '';
+                    let phone = document.getElementById('phone') ? document.getElementById('phone').value : '';
+                    // Lấy giá trị email và số điện thoại cũ từ các trường ẩn
+                    let oldEmail = document.getElementById('oldEmail').value;
+                    let oldPhone = document.getElementById('oldPhone').value;
+
+
+                    // Kiểm tra các trường bắt buộc
+                    if (name === "") {
+                        showErrors("Tên không được để trống");
+                        return;
+                    }
+                    if (dateOfBirth === "") {
+                        showErrors("Ngày sinh không được để trống");
+                        return;
+                    }
+                    if (email === "") {
+                        showErrors("Email không được để trống");
+                        return;
+                    }
+                    if (phone === "") {
+                        showErrors("Số điện thoại không được để trống");
+                        return;
+                    }
+                    if (!/^\d{10}$/.test(phone)) {
+                        showErrors("Số điện thoại phải có đúng 10 chữ số");
+                        return;
+                    }
+
+                    // Kiểm tra định dạng email: phải có '@' và ít nhất 1 dấu '.' sau '@'
+                    const emailRegex = /.+@.+\..+/;
+                    if (!emailRegex.test(email)) {
+                        showErrors("Vui lòng nhập đúng định dạng email");
+                        return;
+                    }
+
+                    // Kiểm tra tuổi lớn hơn 13
+                    const birthDate = new Date(dateOfBirth);
+                    const age = new Date().getFullYear() - birthDate.getFullYear();
+                    if (age < 13) {
+                        showErrors("Tuổi phải lớn hơn hoặc bằng 13");
+                        return;
+                    }
+
+                    // Kiểm tra trùng lặp chỉ nếu giá trị mới khác với giá trị cũ
+                    let checkEmail = (email !== oldEmail) ? axios.get(`/customer/api/customer/check-email?email=${email}`) : Promise.resolve(false);
+                    let checkPhone = (phone !== oldPhone) ? axios.get(`/customer/api/customer/check-phone?phone=${phone}`) : Promise.resolve(false);
+
+                    Promise.all([checkEmail, checkPhone])
+                        .then(([emailResponse, phoneResponse]) => {
+                            if (phoneResponse && phoneResponse.data) {
+                                showErrors("Số điện thoại đã tồn tại!");
+                                return; // Ngăn không gửi form
+                            }
+                            if (emailResponse && emailResponse.data) {
+                                showErrors("Email đã tồn tại!");
+                                return; // Ngăn không gửi form
+                            }
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Sửa hàng thành công!',
+                                text: 'Thông tin mới của khách hàng đã được cập nhật.',
+                                timer: 2500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                document.getElementById('form').submit(); // Gửi form ở đây
+                            });
+                        })
+                        .catch(error => {
+                            console.error("Lỗi kiểm tra trùng lặp:", error);
+                        });
+                }
+            });
+        }
+
+
+    </script>
+    <style>
+        .rounded-box {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .rounded-box h5 {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <main class="container px-3 py-4">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="fw-bold fs-4 mb-3">Chỉnh sửa khách hàng</h3>
+                <form th:action="@{/customer/update/{id}(id=${customer.id})}" method="post"
+                      enctype="multipart/form-data" id="form" onsubmit="vali(event)">
+                    <!-- Truyền ID của khách hàng vào form -->
+                    <input type="hidden" name="customerId" th:value="${customer.id}">
+
+                    <div class="row">
+                        <!-- Phần thông tin khách hàng -->
+                        <div class="col-md-12">
+                            <div class="rounded-box">
+                                <h5>Thông tin khách hàng</h5>
+                                <div class="mb-3">
+                                    <label for="customerCode" class="form-label">Mã khách hàng</label>
+                                    <input type="text" id="customerCode" name="customerCode" class="form-control"
+                                           th:value="${customer.customerCode}" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="photo" class="form-label">Ảnh</label>
+                                    <input type="file" id="photo" name="photo" class="form-control" accept="image/*">
+                                    <div>
+                                        <img th:src="@{'/customer/flim-image/'+${customer.photo}}" alt="Ảnh Khách hàng"
+                                             style="width: 80px; height: 70px;" class="mt-2"/>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Tên khách hàng</label>
+                                    <input type="text" id="name" name="name" class="form-control"
+                                           th:value="${customer.name}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Số điện thoại</label>
+                                    <input type="text" id="phone" name="phone" class="form-control"
+                                           th:value="${customer.phone}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" id="email" name="email" class="form-control"
+                                           th:value="${customer.email}">
+                                </div>
+                                <input type="hidden" id="oldEmail" name="oldEmail" th:value="${customer.email}">
+                                <input type="hidden" id="oldPhone" name="oldPhone" th:value="${customer.phone}">
+
+                                <div class="mb-3">
+                                    <label for="dateOfBirth" class="form-label">Ngày sinh</label>
+                                    <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control"
+                                           th:value="${customer.dateOfBirth}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="gender" class="form-label">Giới tính</label>
+                                    <select id="gender" name="gender" class="form-select">
+                                        <option value="Nam" th:selected="${customer.gender == 'Nam'}">Nam</option>
+                                        <option value="Nữ" th:selected="${customer.gender == 'Nữ'}">Nữ</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Lưu thay đổi</button>
+                    <a href="/customer/display" class="btn btn-secondary">Hủy</a>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

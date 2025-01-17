@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/index}">
+<head>
+    <meta charset="UTF-8">
+    <title>Sửa hình ảnh</title>
+    <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet"/>
+    <style>
+        body {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        body.show {
+            opacity: 1;
+        }
+    </style>
+    <script defer>
+        function loading(){
+            setTimeout(() => {
+                $.ajax({
+                    url: "/api/vouchers/userData",
+                    method: "GET",
+                    success: function (data) {
+                        console.log(data)
+                        if (data === "") {
+                            sessionStorage.setItem("notificationForMap","Bạn không phải là Admin");
+                            window.location.href = "/";
+                        }else {
+                            document.body.classList.add('show');
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error)
+                    }
+                })
+            }, 300);
+        }
+    </script>
+</head>
+<body onload="loading()">
+<div layout:fragment="content" class="card container">
+    <div class="card-header">
+        <div style="text-align: center">
+            <h3>Sửa hình ảnh</h3>
+        </div>
+    </div>
+    <div class="card-body">
+        <form onsubmit="return valid()"  th:action="@{/hinh-anh/edit/{id}(id=${data.id})}" th:method="POST" enctype="multipart/form-data" th:object="${data}">
+            <div class="row mb-3">
+                <div class="mb-3 col-6">
+                    <label class="form-label">Mã hình ảnh</label>
+                    <input class="form-control" th:field="*{code}" type="text">
+                </div>
+                <div class="mb-3 col-6">
+                    <label class="form-label">Trạng thái</label>
+                    <select class="form-select" th:field="*{status}">
+                        <option th:value="1">Hoạt động</option>
+                        <option th:value="0">Ngừng hoạt động</option>
+                    </select>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label">Ngày tạo</label>
+                    <input class="form-control"  th:value="*{dateCreate}" th:readonly="true">
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label">Ngày sửa</label>
+                    <input class="form-control"  th:value="*{dateUpdate}" th:readonly="true">
+                </div>
+                <div class="col-4 mt-3">
+                    <label class="form-label">Ảnh 1</label>
+                    <img style="width: 100px" th:src="@{'/hinh-anh/test/'+${data.url1}}">
+                </div>
+                <div class="col-4 mt-3">
+                    <label class="form-label">Ảnh 2</label>
+                    <img style="width: 100px" th:src="@{'/hinh-anh/test/'+${data.url2}}">
+                </div>
+                <div class="col-4 mt-3 ">
+                    <label class="form-label">Ảnh 3</label>
+                    <img style="width: 100px" th:src="@{'/hinh-anh/test/'+${data.url3}}">
+                </div>
+            </div>
+            <div class="row">
+                <div class="card-header">
+                    <h5>
+                        Chọn ảnh mới để sửa
+                    </h5>
+                </div>
+                <div class="col-4 card-body">
+                    <div>
+                        <label for="avatarFile1" class="form-label">Ảnh 1</label>
+                        <input th:name="imgProduct1" id="avatarFile1" type="file" class="form-control" >
+                    </div>
+                    <div class="mt-3">
+                        <img  id="avatarPreview1" style="display: none; max-height: 250px" alt="Avatar Preview">
+                    </div>
+                </div>
+                <div class="col-4 card-body">
+                    <div>
+                        <label for="avatarFile2" class="form-label">Ảnh 2</label>
+                        <input th:name="imgProduct2" id="avatarFile2" type="file" class="form-control" >
+                    </div>
+                    <div class="mt-3">
+                        <img  id="avatarPreview2" style="display: none; max-height: 250px" alt="Avatar Preview">
+                    </div>
+                </div>
+                <div class="col-4 card-body">
+                    <div>
+                        <label for="avatarFile3" class="form-label">Ảnh 3</label>
+                        <input th:name="imgProduct3" id="avatarFile3" type="file" class="form-control" >
+                    </div>
+                    <div class="mt-3">
+                        <img id="avatarPreview3" style="display: none; max-height: 250px" alt="Avatar Preview">
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center" class="mt-3">
+                <button class="btn btn-dark" type="submit">Sửa</button>
+                <a class="btn btn-dark" th:href="@{/hinh-anh/hien-thi}">Quay lại</a>
+            </div>
+        </form>
+    </div>
+    <script>
+        $(document).ready(() => {
+            const avatarFiles = [
+                { fileInput: $("#avatarFile1"), preview: $("#avatarPreview1") },
+                { fileInput: $("#avatarFile2"), preview: $("#avatarPreview2") },
+                { fileInput: $("#avatarFile3"), preview: $("#avatarPreview3") }
+            ];
+
+            avatarFiles.forEach(({ fileInput, preview }) => {
+                fileInput.change(function (e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const imgURL = URL.createObjectURL(file);
+                        preview.attr("src", imgURL).css("display", "block");
+
+                        // Giải phóng URL khi không cần nữa
+                        preview.on('load', () => {
+                            URL.revokeObjectURL(imgURL);
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        function valid() {
+            const nameField = document.querySelector('input[name="code"]');
+            const fileInput1 = document.getElementById('avatarFile1');
+            const fileInput2 = document.getElementById('avatarFile2');
+            const fileInput3 = document.getElementById('avatarFile3');
+            const nameValue = nameField.value.trim();
+            let isValid = true;
+
+            if (!nameValue) {
+                showErrors("Mã hình ảnh không được để trống!");
+                isValid = false;
+            } else if (!fileInput1.files.length) {
+                showErrors("Ảnh 1  không được để trống!");
+                isValid = false;
+            }
+            else if (!fileInput2.files.length) {
+                showErrors("Ảnh 2 không được để trống!");
+                isValid = false;
+            }
+            else if (!fileInput3.files.length) {
+                showErrors("Ảnh 3 không được để trống!");
+                isValid = false;
+            }
+            return isValid;
+        }
+    </script>
+
+    <script>
+        function showErrors(messsages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messsages
+            });
+        }
+
+        [[${maTonTai} == true]] ? showErrors('Mã hình ảnh đã tồn tại!') : '';
+    </script>
+</div>
+</body>
+</html>

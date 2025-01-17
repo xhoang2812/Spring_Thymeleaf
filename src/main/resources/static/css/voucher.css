@@ -1,0 +1,168 @@
+.form-control{
+    border: 0.09rem solid black;
+}
+.form-select{
+    border: 0.09rem solid black;
+}
+.table_outer {
+    padding: 20px 0;
+}
+table td,
+table th {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+a{
+    text-decoration: none;
+}
+.card {
+    border-radius: .5rem;
+}
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #ededed;
+}
+.template-add-voucher .col-6 {
+    margin-top: 10px;
+}
+.line-high-table td {
+    line-height: 40px;
+}
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    visibility: hidden;
+    max-width: 300px;
+    background-color: #333;
+    color: #fff;
+    border-radius: 5px;
+    padding: 16px;
+    position: relative;
+    font-size: 17px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: fadeInOut 5s ease forwards;
+}
+
+.toast .close {
+    cursor: pointer;
+    font-size: 20px;
+    margin-left: 10px;
+    color: #fff;
+}
+
+#countdown {
+    margin-left: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #4caf50;
+}
+
+.progress {
+    width: 100%;
+    height: 4px;
+    background-color: #4caf50;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    animation: progressBar 5s linear;
+}
+
+@keyframes progressBar {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.toast.show {
+    visibility: visible;
+}
+
+.loading {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#custom-inputs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.input-container {
+    position: relative;
+    display: flex;
+    flex-direction: column-reverse;
+    width: 150px;
+    padding-top: 15px;
+}
+
+.input-container label {
+    position: absolute;
+    top:6px;
+    left: 10px;
+    background-color: white;
+    padding: 0 5px;
+    font-size: 12px;
+    color: black;
+    transition: 0.3s ease;
+}
+
+.input-container input, .input-container select {
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    outline: none;
+}
+
+.input-container input:focus, .input-container select:focus {
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.input-container input[type="date"] {
+    min-width: 140px;
+}
+
+#custom-inputs select {
+    min-width: 200px;
+}

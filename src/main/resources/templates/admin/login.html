@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f4f7;
+        }
+
+        .login-container {
+            display: flex;
+            width: 900px;
+            height: 450px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .login-form {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background-color: #f8f9fa;
+        }
+
+        .login-form h2 {
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .social-icons a {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .social-icons a i {
+            font-size: 18px;
+            color: #495057;
+        }
+
+        .form-control {
+            margin-bottom: 15px;
+        }
+
+        .btn-login {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .forgot-password {
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .register-section {
+            flex: 1;
+            background-color: #1f4c38;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .register-section h2 {
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .btn-register {
+            background-color: white;
+            color: #1f4c38;
+            border: 2px solid white;
+            font-weight: bold;
+        }
+
+        .forgot-password-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .forgot-password {
+            margin-right: 10px;
+        }
+
+        .forgot-password a {
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const notification = document.getElementById("error");
+            // if (notification) {
+            //     setTimeout(() => {
+            //         notification.style.display = "none";
+            //     }, 2000);
+            // }
+            const  perror = document.getElementById("p-error");
+            console.log(perror.innerText)
+            showErrors(perror.innerText)
+        });
+
+        function showErrors(messsages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messsages
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Lấy tất cả các thông báo
+            const errorMessage = document.getElementById("errorMessage");
+            const successMessage = document.getElementById("successMessage");
+            const notificationMessage = document.getElementById("notificationMessage");
+
+            // Hàm ẩn thông báo sau 2 giây
+            function hideMessage(messageElement) {
+                if (messageElement) {
+                    setTimeout(function() {
+                        messageElement.style.display = "none";
+                    }, 2000); // 2 giây
+                }
+            }
+
+            // Ẩn các thông báo nếu có
+            hideMessage(errorMessage);
+            hideMessage(successMessage);
+            hideMessage(notificationMessage);
+        });
+
+    </script>
+
+</head>
+<body>
+<form th:action="@{/login}" method="post">
+    <div class="login-container">
+        <!-- Login Form Section -->
+        <div class="login-form">
+            <h2>Đăng nhập</h2>
+
+            <div th:if="${errorMessage}" class="alert alert-danger" role="alert" id="errorMessage">
+                <p th:text="${errorMessage}"></p>
+            </div>
+            <div th:if="${message}" class="alert alert-success" role="alert" id="successMessage">
+                <p th:text="${message}"></p>
+            </div>
+            <!-- Hiển thị thông báo Tài khoản khóa -->
+            <div th:if="${accountStatus}" style="color: red;" id="notificationMessage">
+                <p th:text="${accountStatus}"></p>
+            </div>
+<!--         //    Hiển thị thông báo ngoài giờ làm việc -->
+            <div style="display: none" th:if="${error}" id="error" class="alert alert-danger" role="alert">
+                <p th:text="${error}" id="p-error"></p>
+            </div>
+
+
+            <input name="username" class="form-control" placeholder="Nhập username" required>
+            <input name="password" class="form-control" placeholder="Nhập password" required>
+            <div class="forgot-password-container">
+                <div class="forgot-password">
+                    <a href="/login/forgot-password">Quên mật khẩu?</a>
+                </div>
+                <div class="forgot-password">
+                    <a href="/login/change-password">Đổi mật khẩu</a>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-login w-100 mt-3">Đăng nhập</button>
+            <!--            <span style="color: red;font-size: 15px">[[${error}]]</span>-->
+        </div>
+
+        <!-- Register Section -->
+        <div class="register-section">
+            <!--            <img src="/logo.jpg"  height="200px" alt="">-->
+            <h2>F6 Store xin chào!</h2>
+            <p>Hãy đăng nhập để sử dụng phần mềm của chúng tôi</p>
+            <!--            <button class="btn btn-register w-50 mt-3">Đăng ký</button>-->
+            <a th:href="@{/login/register}" class="btn btn-register w-50 mt-3">Đăng ký</a>
+        </div>
+    </div>
+</form>
+
+
+<!-- Font Awesome Icons -->
+<script>
+    document.addEventListener("keydown", function (e) {
+        // Kiểm tra nếu phím nhấn là F5 hoặc Ctrl+R
+        if (e.key === "F5" || (e.ctrlKey && e.key === "r")) {
+            e.preventDefault(); // Ngăn hành vi tải lại mặc định
+            // Chuyển hướng đến trang khác, ví dụ "/other-page"
+            window.location.href = "/logout";
+        }
+    });</script>
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

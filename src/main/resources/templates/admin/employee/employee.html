@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Danh sách nhân viên</title>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const perror = document.getElementById("p-error");
+            console.log(perror.innerText)
+            showErrors(perror.innerText)
+        });
+
+        function showErrors(messsages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messsages
+            });
+        }
+        function checkUser(){
+            $.ajax({
+                url: "/api/vouchers/userData",
+                method: "GET",
+                success: function (data) {
+                    console.log(data)
+                    if (data === "") {
+                        document.querySelectorAll("#i-1").forEach(i => i.remove());
+                        document.querySelectorAll("#i-2").forEach(i => i.remove());
+                        document.querySelectorAll("#i-3").forEach(i => i.remove());
+                    }
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            })
+        }
+    </script>
+</head>
+<body onload="checkUser()">
+<div layout:fragment="content">
+    <main class="container-fluid px-3 py-4">
+        <h3 class="fw-bold fs-4 mb-3">Danh sách nhân viên</h3>
+        <!-- Form Tìm Kiếm -->
+        <form th:action="@{/employee/display}" method="get" class="row g-3 mb-3">
+            <div class="col-auto">
+                <input type="text" name="keyword" class="form-control" placeholder="Nhập từ khóa..."
+                       th:value="${keyword}">
+            </div>
+            <div class="col-auto">
+                <select name="gender" class="form-select" th:value="${gender}">
+                    <option value="">Tất cả giới tính</option>
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <select name="status" class="form-select" th:value="${status}">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="1">Hoạt động</option>
+                    <option value="0">Ngừng hoạt động</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-success">Tìm Kiếm</button>
+            </div>
+        </form>
+
+        <!--Thông báo không thay đổi admin-->
+        <div style="display: none" th:if="${error}" id="error" class="alert alert-danger" role="alert">
+            <p th:text="${error}" id="p-error"></p>
+        </div>
+
+        <div class="row">
+            <div class="col-12 text-end mb-3">
+                <a id="i-1" class="btn btn-dark" th:href="@{/employee/add}">
+                    <i class="lni lni-plus"></i> Thêm mới
+                </a>
+            </div>
+            <div class="col-12">
+                <table class="table table-striped table-hover table-bordered">
+                    <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Ảnh</th>
+                        <th scope="col">Mã nhân viên</th>
+                        <th scope="col">Tên nhân viên</th>
+                        <th scope="col">Ngày sinh</th>
+                        <th scope="col">Chức vụ</th>
+                        <th scope="col">Giới tính</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${noData}">
+                        <td colspan="10" class="text-center text-danger">Không có dữ liệu nào được tìm thấy.</td>
+                    </tr>
+                    <tr th:each="employee : ${employeesPage.content}">
+                        <td>
+                            <img style="width: 60px;height: 70px" th:src="@{'/employee/flim-image/'+${employee.photo}}">
+                        </td>
+                        <td th:text="${employee.employeeCode}"></td>
+                        <td th:text="${employee.name}"></td>
+                        <td th:text="${employee.dateOfBirth}"></td>
+                        <td th:text="${employee.position}"></td>
+                        <td th:text="${employee.gender}"></td>
+                        <td th:text="${employee.status ? 'Hoạt động' : 'Ngừng hoạt động'}"></td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center">
+                                <a class="btn btn-info btn-sm me-1"
+                                   th:href="@{/employee/detail/{id}(id=${employee.id})}">
+                                    <i class="lni lni-eye"></i>
+                                </a>
+                                <a id="i-2" class="btn btn-primary btn-sm me-1"
+                                   th:href="@{/employee/edit/{id}(id=${employee.id})}">
+                                    <i class="lni lni-pencil"></i>
+                                </a>
+                                <a id="i-3" class="btn btn-danger btn-sm"
+                                   th:href="@{/employee/toggleStatus/{id}(id=${employee.id})}"
+                                   onclick="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái của nhân viên này?')">
+                                    <i class="lni"
+                                       th:classappend="${employee.status ? 'lni-ban' : 'lni-checkmark-circle'}"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+            <span>Trang <span th:text="${employeesPage.number + 1}"></span> của <span
+                    th:text="${employeesPage.totalPages}"></span></span>
+            <nav>
+                <ul class="pagination mb-0">
+                    <li class="page-item" th:if="${employeesPage.hasPrevious()}">
+                        <a class="page-link"
+                           th:href="@{/employee/display(page=${employeesPage.number - 1}, size=${employeesPage.size})}">&laquo;</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, employeesPage.totalPages - 1)}">
+                        <a class="page-link" th:href="@{/employee/display(page=${i}, size=${employeesPage.size})}"
+                           th:text="${i + 1}" th:classappend="${i == employeesPage.number} ? ' active' : ''">
+                        </a>
+                    </li>
+                    <li class="page-item" th:if="${employeesPage.hasNext()}">
+                        <a class="page-link"
+                           th:href="@{/employee/display(page=${employeesPage.number + 1}, size=${employeesPage.size})}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
+</html>

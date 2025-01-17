@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="Male_Fashion Template" name="description">
+    <meta content="Male_Fashion, unica, creative, html" name="keywords">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="ie=edge" http-equiv="X-UA-Compatible">
+    <title>Male-Fashion | Template</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap"
+          rel="stylesheet">
+    <!-- Css Styles -->
+    <link rel="stylesheet" href="/user/css/voucher.css">
+    <link href=/user/css/bootstrap.min.css rel="stylesheet" type="text/css">
+    <link href="/user/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="/user/css/elegant-icons.css" rel="stylesheet" type="text/css">
+    <link href="/user/css/magnific-popup.css" rel="stylesheet" type="text/css">
+    <link href="/user/css/nice-select.css" rel="stylesheet" type="text/css">
+    <link href="/user/css/owl.carousel.min.css" rel="stylesheet" type="text/css">
+    <link href="/user/css/slicknav.min.css" rel="stylesheet" type="text/css">
+    <link href="/user/css/style.css" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="/logo.jpg" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+          integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="/images/logo.jpg" rel="shortcut icon" type="image/png"/>
+    <script>
+        function confirmLogout() {
+            event.preventDefault();  // Ngừng hành động mặc định của <a href>
+
+            Swal.fire({
+                title: 'Xác nhận đăng xuất?',
+                text: 'Bạn có chắc chắn muốn đăng xuất?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Đăng xuất',
+                cancelButtonText: 'Hủy',
+                reverseButtons: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Nếu người dùng chọn "Đăng xuất", tiến hành đăng xuất
+                    window.location.href = '/logout';  // Điều hướng đến trang đăng xuất
+                } else {
+                    // Nếu người dùng chọn "Hủy", có thể hiển thị thông báo hoặc làm gì đó
+                    showErrors("Bạn đã hủy đăng xuất.");
+                }
+            });
+        }
+
+        function showErrors(messages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messages
+            });
+        }
+    </script>
+
+    <style>
+        .header__top__hover ul {
+            min-width: 150px; /* Đảm bảo chiều rộng đủ để chữ không xuống dòng */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .header__top__hover ul li {
+            padding: 10px 15px; /* Thêm khoảng cách để chữ dễ nhìn hơn */
+            white-space: nowrap; /* Đảm bảo chữ không bị xuống dòng */
+        }
+
+        .header__top__hover ul li a {
+            font-size: 14px;
+            color: #333;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .header__top__hover ul li a i {
+            margin-right: 5px;
+        }
+
+        /* Hiệu ứng chớp nháy */
+        @keyframes blink {
+            0% {
+                color: #333;
+            }
+            50% {
+                color: #ff6347;
+            }
+            /* Màu nháy, bạn có thể đổi sang màu khác */
+            100% {
+                color: #333;
+            }
+        }
+
+        /* Khi di chuột vào, áp dụng hiệu ứng nháy nháy */
+        .header__top__hover ul li a:hover {
+            animation: blink 0.6s infinite; /* Tốc độ nháy và lặp vô tận */
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Page Preloder -->
+<div id="preloder">
+    <div class="loader"></div>
+</div>
+
+<!-- Offcanvas Menu Begin -->
+<div class="offcanvas-menu-overlay"></div>
+<div class="offcanvas-menu-wrapper">
+    <div class="offcanvas__option">
+        <div class="offcanvas__links">
+            <a href="/login">Đăng nhập</a>
+            <a href="#">FAQs</a>
+        </div>
+        <div class="offcanvas__top__hover">
+            <span>Usd <i class="arrow_carrot-down"></i></span>
+            <ul>
+                <li>USD</li>
+                <li>EUR</li>
+                <li>USD</li>
+            </ul>
+        </div>
+    </div>
+    <div class="offcanvas__nav__option">
+        <a class="search-switch" href="#"><img alt="" src="/user/img/icon/search.png"></a>
+        <a href="#"><img alt="" src="/user/img/icon/heart.png"></a>
+        <a href="#"><img alt="" src="/user/img/icon/cart.png"> <span></span></a>
+        <div class="price">$0.00</div>
+    </div>
+    <div id="mobile-menu-wrap"></div>
+    <div class="offcanvas__text">
+        <p>Free shipping, 30-day return or refund guarantee.</p>
+    </div>
+</div>
+<!-- Offcanvas Menu End -->
+
+<!-- Header Section Begin -->
+<header class="header"
+        style="position: fixed;top: 0; z-index: 1000; width: 100%; background-color: #fff; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+    <div class="header__top">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 col-md-7">
+                    <div class="header__top__left">
+                        <p>Hoàn trả hàng trong 7 ngày</p>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-5">
+                    <div class="header__top__right">
+                        <div class="header__top__links">
+                            <a href="#" th:text="${tenKhachHang}" th:if="${tenKhachHang != 'Đăng nhập'}"></a>
+                            <a href="/login" th:if="${tenKhachHang == 'Đăng nhập'}">ĐĂNG NHẬP</a>
+                        </div>
+                        <div class="header__top__hover">
+                            <span> <i class="arrow_carrot-down"></i></span>
+                            <ul style="background-color: #f8f9fa; padding: 10px; border-radius: 5px;">
+                                <!-- Hiển thị "Hồ sơ của tôi", "Đổi mật khẩu" và "Đăng xuất" nếu đã đăng nhập -->
+                                <input th:value="${idKhachHang == null ? null : idKhachHang}" type="hidden"
+                                       id="idKhachHang">
+
+                                <li style="padding: 5px 0;" th:if="${tenKhachHang != 'Đăng nhập'}">
+                                    <a href="/home/profile" style="color: #333; font-weight: 600;">
+                                        <i class="fa fa-user" style="margin-right: 5px;"></i> Hồ sơ của tôi
+                                    </a>
+                                </li>
+                                <li style="padding: 5px 0;" th:if="${tenKhachHang != 'Đăng nhập'}">
+                                    <a href="/home/customer-bill-management" style="color: #333; font-weight: 600;">
+                                        <i class="fa fa-file-invoice" style="margin-right: 5px;"></i> Hóa đơn của tôi
+                                    </a>
+                                </li>
+                                <li style="padding: 5px 0;" th:if="${tenKhachHang != 'Đăng nhập'}">
+                                    <a href="/home/change-password" style="color: #333; font-weight: 600;">
+                                        <i class="fa fa-key" style="margin-right: 5px;"></i> Đổi mật khẩu
+                                    </a>
+                                </li>
+                                <li style="padding: 5px 0;" th:if="${tenKhachHang != 'Đăng nhập'}">
+                                    <a href="/logout" style="color: #333; font-weight: 600;" onclick="confirmLogout()">
+                                        <i class="fa fa-sign-out" style="margin-right: 5px;"></i> Đăng xuất
+                                    </a>
+                                </li>
+
+                                <!-- Hiển thị "Đăng ký" và "Quên mật khẩu" nếu chưa đăng nhập -->
+                                <li style="padding: 5px 0;" th:if="${tenKhachHang == 'Đăng nhập'}">
+                                    <a href="/login/register" style="color: #333; font-weight: 600;">
+                                        <i class="fa fa-user-plus" style="margin-right: 5px;"></i> Đăng ký
+                                    </a>
+                                </li>
+                                <li style="padding: 5px 0;" th:if="${tenKhachHang == 'Đăng nhập'}">
+                                    <a href="/login/forgot-password" style="color: #333; font-weight: 600;">
+                                        <i class="fa fa-key" style="margin-right: 5px;"></i> Quên mật khẩu
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-2 col-md-3">
+                <div class="header__logo">
+                    <a style="font-size: 24px; height: 23px; font-weight: bold; color: black; text-transform: uppercase; text-decoration: none; font-family: Nunito Sans, sans-serif;"
+                       th:href="@{/home}">
+                        F6 STORE
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-8 col-md-6">
+                <nav class="header__menu mobile-menu">
+                    <ul>
+                        <li><a th:href="@{/home}">Trang chủ</a></li>
+                        <li><a th:href="@{/home/shop}">Sản phẩm</a></li>
+                        <li><a th:href="@{/home/store-policy}">Chính sách cửa hàng</a></li>
+                        <li><a th:href="@{/home/blog}">Blog</a></li>
+                        <li><a th:href="@{/home/contact}">Liên hệ</a></li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="col-lg-2 col-md-3">
+                <div class="header__nav__option">
+                    <a th:href="@{/home/cart}"><img alt="" src="/user/img/icon/cart.png"> <span></span></a>
+                </div>
+            </div>
+        </div>
+        <div class="canvas__open"><i class="fa fa-bars"></i></div>
+    </div>
+</header>
+<!-- Header Section End -->
+
+
+<!--Main Content Start-->
+<main id="content" layout:fragment="content" style="padding-top: 135px">
+
+</main>
+<!--Main Content End-->
+
+
+<!-- Footer Section Begin -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3 col-md-6 col-sm-6">
+                <div class="footer__about">
+                    <div class="footer__logo">
+                        <a href="#"><img alt="" src="/user/img/logo1.png"></a>
+                    </div>
+                    <p>Khách hàng là trung tâm của mô hình kinh doanh độc đáo của chúng tôi, bao gồm cả thiết kế.</p>
+                    <a href="#"><img alt="" src="/user/img/payment.png"></a>
+                </div>
+            </div>
+            <div class="col-lg-2 offset-lg-1 col-md-3 col-sm-6">
+                <div class="footer__widget">
+                    <h6>Mua sắm</h6>
+                    <ul>
+                        <li><a href="#">Giảm giá</a></li>
+                        <li><a href="#">Hấp dẫn</a></li>
+                        <li><a href="#">Độc quyền</a></li>
+                        <li><a href="#">Khuyến mãi</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <div class="footer__widget">
+                    <h6>Shopping</h6>
+                    <ul>
+                        <li><a href="#">Liên hệ với chúng tôi</a></li>
+                        <li><a href="#">Phương thức thanh toán</a></li>
+                        <li><a href="#">Vận chuyển</a></li>
+                        <li><a href="#">Trả hàng</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-3 offset-lg-1 col-md-6 col-sm-6">
+                <div class="footer__widget">
+                    <h6>Thông điệp mới</h6>
+                    <div class="footer__newslatter">
+                        <p>Hãy là người đầu tiên biết về hàng mới, sách tra cứu, khuyến mại và khuyến mãi!</p>
+                        <form action="#">
+                            <label>
+                                <input placeholder="Your email" type="text">
+                            </label>
+                            <button type="submit"><span class="icon_mail_alt"></span></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- Footer Section End -->
+
+<!-- Search Begin -->
+<div class="search-model">
+    <div class="h-100 d-flex align-items-center justify-content-center">
+        <div class="search-close-switch">+</div>
+        <form class="search-model-form">
+            <label for="search-input"></label>
+            <input id="search-input" placeholder="Search here....." type="text">
+        </form>
+    </div>
+</div>
+<!-- Search End -->
+
+
+<!-- Js Plugins -->
+<script src="/user/js/jquery-3.3.1.min.js"></script>
+<script src="/user/js/bootstrap.min.js"></script>
+<!--<script src="/user/js/jquery.nice-select.min.js"></script>-->
+<script src="/user/js/jquery.nicescroll.min.js"></script>
+<script src="/user/js/jquery.magnific-popup.min.js"></script>
+<script src="/user/js/jquery.countdown.min.js"></script>
+<script src="/user/js/jquery.slicknav.js"></script>
+<script src="/user/js/mixitup.min.js"></script>
+<script src="/user/js/owl.carousel.min.js"></script>
+<script src="/user/js/main.js"></script>
+
+<script>
+    const menuItems = document.querySelectorAll('.header__menu ul li');
+    const currentPath = window.location.pathname;
+    menuItems.forEach(item => {
+        const link = item.querySelector('a');
+        if (link && link.getAttribute('href') === currentPath) {
+            item.classList.add('active');
+        }
+    });
+</script>
+
+<script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+<df-messenger
+        intent="WELCOME"
+        chat-title="Chat-AI-F6-Store"
+        agent-id="dc96424e-6abe-4b87-af38-8776bae07fdb"
+        language-code="en"
+></df-messenger>
+
+</body>
+</html>

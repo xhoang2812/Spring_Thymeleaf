@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@types/axios": "^0.9.36",
+    "axios": "^1.7.7",
+    "chosen-js": "^1.8.7",
+    "datatables.net-dt": "^2.1.8",
+    "jspdf": "^2.5.2",
+    "sweetalert2": "^11.14.1"
+  }
+}

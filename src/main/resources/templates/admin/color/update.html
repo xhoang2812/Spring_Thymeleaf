@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{admin/index}"
+      xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý màu sắc</title>
+    <style>
+        body {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        body.show {
+            opacity: 1;
+        }
+    </style>
+    <script defer>
+        function loading(){
+            setTimeout(() => {
+                $.ajax({
+                    url: "/api/vouchers/userData",
+                    method: "GET",
+                    success: function (data) {
+                        console.log(data)
+                        if (data === "") {
+                            sessionStorage.setItem("notificationForMap","Bạn không phải là Admin");
+                            window.location.href = "/";
+                        }else {
+                            document.body.classList.add('show');
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error)
+                    }
+                })
+            }, 300);
+        }
+    </script>
+</head>
+<body onload="loading()">
+<div class="card container" layout:fragment="content" style=" box-shadow: 0px 0px 3px gray;">
+    <div class="card-header">
+        <div style="text-align: center">
+            <h3>Sửa màu sắc</h3>
+        </div>
+    </div>
+    <div class="card-body">
+        <form class="row" onsubmit="return valid()" th:action="@{/mau-sac/edit/{id}(id=${data.id})}" th:method="POST"
+              th:object="${data}">
+            <div class="col-6 mb-3">
+                <label class="form-label">Tên màu</label>
+                <input class="form-control" th:field="*{name}" type="text">
+            </div>
+            <div class="col-6 mb-3">
+                <label class="form-label">Trạng thái</label>
+                <select class="form-select" th:field="*{status}">
+                    <option th:value="1">Hoạt động</option>
+                    <option th:value="0">Ngừng hoạt động</option>
+                </select>
+            </div>
+            <div class="col-6 mb-3">
+                <label class="form-label">Ngày tạo</label>
+                <input class="form-control"  th:value="*{dateCreate}" th:readonly="true">
+            </div>
+            <div class="col-6 mb-3">
+                <label class="form-label">Ngày sửa</label>
+                <input class="form-control"  th:value="*{dateUpdate}" th:readonly="true">
+            </div>
+            <div class="mt-3" style="text-align: center">
+                <button class="btn btn-dark" type="submit">Sửa</button>
+                <a class="btn btn-dark" th:href="@{/mau-sac/hien-thi}">Quay lại</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function valid() {
+            const nameField = document.querySelector('input[name="name"]');
+            const nameValue = nameField.value.trim();
+            let isValid = true;
+            if (!nameValue) {
+                showErrors("Tên màu sắc không được để trống!");
+                isValid = false;
+            }
+
+            return isValid;
+        }
+    </script>
+    <script>
+
+        function showErrors(messsages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messsages
+            });
+        }
+        [[${tenTonTai} == true]] ? showErrors('Tên màu sắc đã tồn tại!') : '';
+    </script>
+</div>
+</body>
+</html>

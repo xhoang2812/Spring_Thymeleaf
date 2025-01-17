@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{admin/index}"
+      xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý sản phẩm chi tiết</title>
+</head>
+<body>
+<div class="card container" layout:fragment="content">
+    <section class="py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="row gx-4 gx-lg-5 align-items-center">
+                <div class="col-md-6">
+                    <div class="carousel slide" data-bs-ride="carousel" id="carouselExampleIndicators">
+                        <div class="carousel-indicators">
+                            <button aria-current="true" aria-label="Slide 1" class="active"
+                                    data-bs-slide-to="0" data-bs-target="#carouselExampleIndicators"
+                                    type="button"></button>
+                            <button aria-label="Slide 2" data-bs-slide-to="1"
+                                    data-bs-target="#carouselExampleIndicators"
+                                    type="button"></button>
+                            <button aria-label="Slide 3" data-bs-slide-to="2"
+                                    data-bs-target="#carouselExampleIndicators"
+                                    type="button"></button>
+                        </div>
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <img alt="..."
+                                     class="d-block w-100" style=""
+                                     th:src="@{/san-pham-chi-tiet/test/{url1}(url1=${productVariantDetail.image.url1})}">
+                            </div>
+                            <div class="carousel-item">
+                                <img alt="..."
+                                     class="d-block w-100"
+                                     th:src="@{/san-pham-chi-tiet/test/{url1}(url1=${productVariantDetail.image.url2})}">
+                            </div>
+                            <div class="carousel-item">
+                                <img alt="..."
+                                     class="d-block w-100"
+                                     th:src="@{/san-pham-chi-tiet/test/{url1}(url1=${productVariantDetail.image.url3})}">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" data-bs-slide="prev"
+                                data-bs-target="#carouselExampleIndicators"
+                                type="button">
+                            <span aria-hidden="true" class="carousel-control-prev-icon"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" data-bs-slide="next"
+                                data-bs-target="#carouselExampleIndicators"
+                                type="button">
+                            <span aria-hidden="true" class="carousel-control-next-icon"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-bordered table-hover">
+                        <tr>
+                            <td>Mã Sản Phẩm:</td>
+                            <td th:utext="${productVariantDetail.product.code}"></td>
+                        </tr>
+                        <tr>
+                            <td>Tên Sản Phẩm:</td>
+                            <td th:utext="${productVariantDetail.product.name}"></td>
+                        </tr>
+                        <tr>
+                            <td>Giá:</td>
+                            <td th:utext="${#numbers.formatDecimal(productVariantDetail.price, 0, 'POINT', 0, 'POINT') + ' VND'}"></td>
+                        </tr>
+                        <tr>
+                            <td>Số lượng tồn:</td>
+                            <td th:utext="${#numbers.formatDecimal(productVariantDetail.quantity, 0, 'POINT', 0, 'POINT')}"></td>
+                        </tr>
+                        <tr>
+                            <td>Trọng lượng:</td>
+                            <td th:utext="${#numbers.formatDecimal(productVariantDetail.weight, 0, 'POINT', 0, 'POINT') + ' gram'}"></td>
+                        </tr>
+                        <tr>
+                            <td>Size:</td>
+                            <td th:utext="${productVariantDetail.size.name}"></td>
+                        </tr>
+                        <tr>
+                            <td>Màu sắc:</td>
+                            <td th:utext="${productVariantDetail.color.name}"></td>
+                        </tr>
+                        <tr>
+                            <td>Thương hiệu:</td>
+                            <td th:utext="${productVariantDetail.product.brand.name}"></td>
+                        </tr>
+                        <tr>
+                            <td>Kiểu dáng:</td>
+                            <td th:utext="${productVariantDetail.product.style.name}"></td>
+                        </tr>
+                        <tr>
+                            <td>Chất liệu:</td>
+                            <td th:utext="${productVariantDetail.product.material.name}"></td>
+                        </tr>
+                        <tr>
+                            <td>Danh mục:</td>
+                            <td th:utext="${productVariantDetail.product.category.name}"></td>
+                        </tr>
+                        <tr>
+                            <td>QR Code:</td>
+                            <td>
+                                <a th:href="@{'/san-pham-chi-tiet/qr/' + ${productVariantDetail.qrCode}}">
+                                    <img style="width: 200px;height: 200px" th:id="img"
+                                         th:src="@{'/san-pham-chi-tiet/qr/' + ${productVariantDetail.qrCode}}">
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+                    <p>
+                        <button aria-controls="collapseExample" aria-expanded="false" class="btn btn-danger"
+                                data-bs-target="#collapseExample" data-bs-toggle="collapse" type="button">
+                            Mô tả
+                        </button>
+                        <a>
+                            <a class="btn btn-secondary" th:href="@{/san-pham-chi-tiet/hien-thi}">Quay lại</a>
+                        </a>
+                    </p>
+                    <div class="collapse" id="collapseExample">
+                        <div class="card card-body">
+                            <p th:utext="${productVariantDetail.product.description}"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+</body>
+</html>

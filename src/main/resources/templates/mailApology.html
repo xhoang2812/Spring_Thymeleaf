@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông báo về voucher</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f7f9fc;">
+<div style="width: 100%; max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); overflow: hidden;">
+    <!-- Header section -->
+    <div style="background-color: #ff6f61; color: white; padding: 20px; text-align: center;">
+        <table style="width: 100%; text-align: center;">
+            <tr>
+                <td>
+                    <div style="display: inline-block; text-align: center;">
+                        <img src="https://res.cloudinary.com/dbe1h6ajz/image/upload/v1731337373/fp9motuy76l9fpun41hk.jpg" alt="" style="width: 30px; height: 30px; vertical-align: middle;">
+                        <h1 style="display: inline-block; font-size: 26px; margin: 0; vertical-align: middle;">F6 Store</h1>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Content section -->
+    <div style="padding: 20px; color: #333;">
+        <p>Xin chào <strong th:text="${name}"></strong>,</p>
+        <p>Chúng tôi rất tiếc phải thông báo rằng voucher có mã <strong th:text="${code}"></strong> hiện tại đã không còn thuộc về bạn. Chúng tôi xin lỗi vì sự bất tiện này và mong bạn hiểu rằng điều này là cần thiết để duy trì sự công bằng trong các chương trình khuyến mãi của chúng tôi.</p>
+
+        <div style="background-color: #f2f2f2; border-left: 5px solid #ff6f61; padding: 15px; margin: 20px 0; border-radius: 5px;">
+            <h2 style="margin-top: 0;">Thông tin voucher</h2>
+            <p><strong>Mã voucher:</strong> <span th:text="${code}"></span></p>
+            <p><strong>Giảm giá:</strong> <span th:text="${discount}"></span></p>
+            <p><strong>Ngày bắt đầu:</strong> <span th:text="${dateStart}"></span></p>
+            <p><strong>Ngày kết thúc:</strong> <span th:text="${dateEnd}"></span></p>
+            <p><strong>Đơn hàng tối thiểu:</strong> <span th:text="${minimumOrder}"></span></p>
+            <p><strong>Giảm giá tối đa:</strong> <span th:text="${maximumReduction}"></span></p>
+        </div>
+
+        <p>Chúng tôi hiểu rằng đây là một sự thay đổi không mong muốn. Nếu bạn có bất kỳ câu hỏi nào hoặc cần thêm thông tin, xin vui lòng liên hệ với chúng tôi qua email <strong>supportf6store@gmail.com</strong> hoặc số điện thoại <strong>0909666622</strong>.</p>
+        <p>Chúng tôi rất tiếc vì sự thay đổi này và hy vọng sẽ tiếp tục có cơ hội phục vụ bạn trong tương lai!</p>
+    </div>
+
+    <!-- Footer section -->
+    <div style="margin-top: 20px; padding: 10px; text-align: center; font-size: 0.9em; color: #777;">
+        <p>Trân trọng,<br>
+            <strong>Công Ty F6Store</strong><br>
+            <strong>supportf6store@gmail.com</strong></p>
+    </div>
+</div>
+</body>
+</html>
+

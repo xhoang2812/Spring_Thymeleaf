@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thông báo hoàn tiền</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #f4f4f4;
+    }
+    .header img {
+      max-width: 150px;
+      margin-bottom: 10px;
+    }
+    .header h1 {
+      font-size: 20px;
+      color: #333333;
+    }
+    .content {
+      margin: 20px 0;
+      color: #555555;
+    }
+    .content h2 {
+      font-size: 18px;
+      color: #333333;
+    }
+    .table-container {
+      margin: 20px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+    }
+    table th, table td {
+      border: 1px solid #dddddd;
+      padding: 10px;
+      text-align: left;
+      vertical-align: middle;
+    }
+    table th {
+      background-color: #f8f8f8;
+      font-weight: bold;
+    }
+    table img {
+      max-width: 50px;
+      border-radius: 5px;
+    }
+    .image-container {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .image-container img {
+      max-width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      color: #777777;
+      font-size: 14px;
+    }
+    .button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      color: #ffffff;
+      background-color: #007bff;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    .button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+<div class="email-container">
+  <div class="header">
+    <div style="display: inline-block; text-align: center;">
+      <img src="https://res.cloudinary.com/dbe1h6ajz/image/upload/v1731337373/fp9motuy76l9fpun41hk.jpg" alt="" style="width: 30px; height: 30px; vertical-align: middle;">
+      <h1 style="display: inline-block; font-size: 26px; margin: 0; vertical-align: middle;">F6 Store</h1>
+    </div>
+    <h1>Xác nhận hoàn tiền đơn hàng #<strong style="color: red" th:text="${trade.bill.id}"></strong></h1>
+  </div>
+  <div class="content">
+    <p>Chào <strong th:text="${name}"></strong>,</p>
+    <p>Cảm ơn bạn đã mua sắm tại <strong>F6 Store</strong>. Đơn hàng của bạn đã được trả hàng và hoàn tiền thành công. Dưới đây là chi tiết:</p>
+    <h2>Sản phẩm đã mua:</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+        <tr>
+          <th>Sản phẩm</th>
+          <th>Số lượng</th>
+          <th>Giá</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="list : ${billDetail}">
+          <td th:text="${list.productDetail.product.name + ' [ ' + list.productDetail.color.name + ' - ' + list.productDetail.size.name + ' ]'}"></td>
+          <td th:text="${list.quantity}"></td>
+          <td th:utext="${#numbers.formatDecimal(list.price, 0, 'POINT', 0, 'POINT') + ' VND'}"></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <h2>Sản phẩm trả hàng:</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+        <tr>
+          <th>Sản phẩm</th>
+          <th>Số lượng trả</th>
+          <th>Giá hoàn trả</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="list : ${tradeProducts}">
+          <td th:text="${list.billDetail.productDetail.product.name + ' [ ' + list.billDetail.productDetail.color.name + ' - ' + list.billDetail.productDetail.size.name + ' ]'}"></td>
+          <td th:text="${list.quantity}"></td>
+          <td th:utext="${#numbers.formatDecimal(list.totalMoney, 0, 'POINT', 0, 'POINT') + ' VND'}"></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <h2>Tổng số tiền đã hoàn trả:</h2>
+    <p><strong th:text="${trade.payMoney} + ' VND'"></strong></p>
+    <p>Số tiền sẽ được chuyển về tài khoản ngân hàng của bạn: <strong th:text="${trade.nameBank + ' - ' + trade.bankInfo + ' - ' + trade.userInfo}"></strong>.</p>
+    <div class="image-container">
+      <p><strong>Hình ảnh xác nhận chuyển tiền:</strong></p>
+      <img th:src="@{${trade.qrPay}}" alt="Hình ảnh chuyển tiền">
+    </div>
+  </div>
+  <div class="footer">
+    <p>Nếu bạn có bất kỳ thắc mắc nào, vui lòng liên hệ:</p>
+    <p>Hotline: <strong>0123456789</strong> | Email: <strong>f6support@gmail.com</strong></p>
+    <p>Trân trọng,<br>Đội ngũ <strong>F6 Store</strong></p>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giao Dịch Trong Ca</title>
+
+    <script>
+        // Hàm tính số tiền còn thiếu
+        function calculateTienConThieu() {
+            console.log('da chay vao tinh tien')
+            // Lấy giá trị các trường
+            let tienmatdauca = parseFloat(document.getElementById('tienmatdauca').value.replace(/,/g, '') || 0);
+            let tienmattrongca = parseFloat(document.getElementById('tienmattrongca').value.replace(/,/g, '') || 0);
+            let chuyenkhoantrongca = parseFloat(document.getElementById('chuyenkhoantrongca').value.replace(/,/g, '') || 0);
+            let xacnhantienmat = parseFloat(document.getElementById('xacnhantienmat').value.replace(/,/g, '') || 0);
+            let xacnhantienchuyenkhoan = parseFloat(document.getElementById('xacnhantienchuyenkhoan').value.replace(/,/g, '') || 0);
+            let tienphatsinh = parseFloat(document.getElementById('tienphatsinh').value.replace(/,/g, '') || 0);
+            // Tính toán số tiền còn thiếu theo công thức
+            let sotienconthieu = (xacnhantienmat + xacnhantienchuyenkhoan) - (tienmattrongca + chuyenkhoantrongca);
+            let sotienthucnhan = tienmatdauca + tienmattrongca - tienphatsinh;
+            // Cập nhật giá trị vào trường Số tiền còn thiếu
+            document.getElementById('sotienthucnhan').value = formatCurrency(sotienthucnhan.toFixed(0));
+            document.getElementById('sotienconthieu').value = formatCurrency(sotienconthieu.toFixed(0));
+        }
+
+        function formatCurrency(amount) {
+            return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function updateFormattedInput(event) {
+            let input = event.target;
+            let value = input.value.replace(/,/g, ''); // Loại bỏ dấu phẩy cũ
+            if (!isNaN(value) && value !== '') {
+                input.value = formatCurrency(value);
+            }
+            calculateTienConThieu(); // Tính toán lại số tiền còn thiếu sau khi nhập dữ liệu
+        }
+
+
+        // Hàm loại bỏ dấu phẩy trước khi submit form
+        function removeCommasFromInputs() {
+            const inputs = document.querySelectorAll('input[type="text"]');
+            inputs.forEach(input => {
+                if (input.value.includes(',')) {
+                    input.value = input.value.replace(/,/g, '');
+                }
+            });
+        }
+
+        // Sự kiện khi submit form
+        document.querySelector('form').onsubmit = function (event) {
+            removeCommasFromInputs();
+        };
+        // Gọi hàm khi trang được tải và khi người dùng nhập dữ liệu vào các trường liên quan
+        window.onload = function () {
+            calculateTienConThieu();
+       // Tính toán ngay khi trang được tải
+        };
+    </script>
+    <style>
+        /* CSS cho nền tối của modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        /* CSS cho phần nội dung của modal */
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 450px; /* Đặt chiều rộng lớn hơn */
+            text-align: center;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+            animation: slideDown 0.4s;
+            position: relative;
+        }
+
+        /* CSS cho nút đóng modal */
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #888;
+            transition: color 0.3s;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        /* CSS cho trường nhập mật khẩu và icon mắt */
+        .input-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            padding-right: 40px; /* Chừa khoảng cho icon mắt */
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        /* Icon mắt */
+        .eye-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #888;
+            font-size: 20px;
+        }
+
+        /* CSS cho các nút */
+        .button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            font-size: 16px;
+            width: 45%; /* Chiều rộng các nút */
+            margin: 5px;
+        }
+
+        .button-confirm {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        .button-confirm:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .button-cancel {
+            background-color: #ccc;
+            color: #333;
+        }
+
+        .button-cancel:hover {
+            background-color: #999;
+            transform: scale(1.05);
+        }
+
+        /* Bố trí các nút trên cùng một hàng */
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        /* CSS cho thông báo lỗi */
+        .error {
+            color: #fff;
+            background-color: #e74c3c;
+            padding: 8px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Hiệu ứng fade-in và slide-down */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+    <script>
+        //validate
+        //show lỗi
+        function showDungGio(mess) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "center",
+                showConfirmButton: true, // Hiển thị nút "OK"
+                timer: null, // Loại bỏ bộ đếm thời gian
+                timerProgressBar: false, // Không hiển thị thanh tiến trình
+            });
+            Toast.fire({
+                icon: "success",
+                title: mess
+            });
+        }
+
+        function showMuonGio(mess) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "center",
+                showConfirmButton: true, // Hiển thị nút "OK"
+                timer: null, // Loại bỏ bộ đếm thời gian
+                timerProgressBar: false, // Không hiển thị thanh tiến trình
+            });
+            Toast.fire({
+                icon: "warning",
+                title: mess
+            });
+        }
+
+
+        function showSuccesss(messsages1) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "success",
+                title: messsages1
+            });
+        }
+
+        function showErrors(messsages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messsages
+            });
+        }
+
+        function valid(e) {
+            e.preventDefault();
+            const tienmatdauca = document.getElementById('tienmatdauca').value.trim();
+            const tienphatsinh = document.getElementById('tienphatsinh').value.trim();
+            const ghichu = document.getElementById('ghichu').value.trim();
+            const xacnhantienmat = document.getElementById('xacnhantienmat').value.trim();
+            const xacnhantienchuyenkhoan = document.getElementById('xacnhantienchuyenkhoan').value.trim();
+            const sotienthucnhan = document.getElementById('sotienthucnhan').value.trim();
+            const tienmattrongca = document.getElementById('tienmattrongca').value.trim();
+            const chuyenkhoantrongca = document.getElementById('chuyenkhoantrongca').value.trim();
+            const employeeSelect = document.getElementById('employeeSelect').value;
+            const currentHour = new Date().getHours();
+            const shiftValue = document.getElementById('tenca').value;
+            console.log(employeeSelect);
+            let isValid = true;
+
+            // Helper function to remove commas from string
+            function removeCommas(value) {
+                return value.replace(/,/g, ''); // Loại bỏ dấu phẩy
+            }
+
+            // Helper function to check if a string is a valid number
+            function isNumber(value) {
+                // Regular expression to match valid number (including optional decimal point)
+                const numberPattern = /^-?\d+(\.\d+)?$/;
+                return numberPattern.test(removeCommas(value)); // Kiểm tra chuỗi đã loại bỏ dấu phẩy
+            }
+
+            // Helper function to check if a number is non-negative
+            function isNonNegativeNumber(value) {
+                return isNumber(value) && parseFloat(removeCommas(value)) >= 0;
+            }
+
+            // function showMessageDG(message) {
+            //     alert(message); // Hoặc có thể dùng SweetAlert, Toast, hay các phương thức hiển thị khác
+            // }
+            function checkLoginTime() {
+                const currentHour = new Date().getHours();
+                const currentMinute = new Date().getMinutes();
+                const shiftValue = document.getElementById('tenca').value;
+
+                if (shiftValue.includes('Ca 1') && currentHour === 7 && currentMinute >= 0 && currentMinute < 10) {
+                    showDungGio("Đúng giờ");
+                } else if ((currentHour === 7 && currentMinute >= 10) || currentHour > 7) {
+                    showDungGio("Muộn giờ");
+                } else {
+                    showDungGio("Ngoài thời gian quy định"); // Trường hợp đăng nhập trước 7:00 hoặc không trong khoảng thời gian được phép
+                }
+            }
+
+
+            if (shiftValue.includes('Ca 1') && currentHour >= 7 && currentHour < 12) {
+                // checkLoginTime();
+                showErrors("Bạn không thể giao ca sớm, thời gian giao ca của bạn là sau 12h");
+            } else if (shiftValue.includes('Ca 2') && currentHour >= 12 && currentHour < 17) {
+                showErrors("Bạn không thể giao ca sớm, thời gian giao ca của bạn là sau 17h");
+            } else if (shiftValue.includes('Ca 3') && currentHour >= 17 && currentHour < 22) {
+                showErrors("Bạn không thể giao ca sớm, thời gian giao ca của bạn là sau 22h");
+            } else if (!tienphatsinh) {
+                showErrors("Tiền phát sinh không được để trống!");
+            } else if (!isNonNegativeNumber(tienphatsinh)) {
+                showErrors("Tiền phát sinh phải là số và không được âm!");
+            } else if (parseFloat(removeCommas(tienphatsinh)) > parseFloat(removeCommas(tienmatdauca)) + parseFloat(removeCommas(tienmattrongca))) {
+                // console.log(tienphatsinh , parseFloat(removeCommas(tienmatdauca)) + parseFloat(removeCommas(tienmattrongca)))
+                showErrors("Tiền phát sinh không được lớn hơn tổng tiền mặt trong ca (1+3)");
+            }
+// else if (!isNonNegativeNumber(tienphatsinh)) {
+//                 showErrors("Tiền phát sinh phải là số và không được âm!");
+//             }
+            else if (!ghichu) {
+                showErrors("Ghi chú không được để trống!");
+            } else if (!xacnhantienmat) {
+                showErrors("Xác nhận tiền mặt không được để trống!");
+            } else if (!isNonNegativeNumber(xacnhantienmat)) {
+                showErrors("Xác nhận tiền mặt phải là số và không được âm!");
+            } else if (!xacnhantienchuyenkhoan) {
+                showErrors("Xác nhận tiền chuyển khoản không được để trống!");
+            } else if (!isNonNegativeNumber(xacnhantienchuyenkhoan)) {
+                showErrors("Xác nhận tiền chuyển khoản phải là số và không được âm!");
+            } else if (parseFloat(removeCommas(xacnhantienmat)) > parseFloat(removeCommas(tienmattrongca))) {
+                showErrors("Xác nhận tiền mặt trong ca không được lớn hơn tổng tiền mặt trong ca");
+            } else if (parseFloat(removeCommas(xacnhantienchuyenkhoan)) > parseFloat(removeCommas(chuyenkhoantrongca))) {
+                showErrors("Xác nhận tiền chuyển khoản trong ca không được lớn hơn tổng tiền chuyển khoản trong ca");
+            } else if (employeeSelect === '0') {
+                showErrors("Vui lòng chọn nhân viên bàn giao!");
+            } else if (shiftValue.includes('Ca 3') && currentHour >= 22) {
+                showPasswordConfirmation();
+            } else {
+                Swal.fire({
+                    title: 'Xác nhận giao ca',
+                    html: 'Bạn có chắc chắn muốn giao ca không ? <br><strong> </strong>',
+                    icon: 'warning',
+                    showCancelButton: true,       // Hiển thị nút "Hủy"
+                    confirmButtonText: 'Xác nhận', // Nút xác nhận
+                    cancelButtonText: 'Hủy'        // Nút hủy
+                }).then((result) => {
+                    // Kiểm tra nếu người dùng nhấn nút xác nhận
+                    if (result.isConfirmed) {
+                        const form = document.getElementById('form-gc');
+                        removeCommasFromInputs();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Giao ca thành công!',
+                            text: 'Bạn đã giao ca thành công, bạn sẽ đăng xuất sau 3s',
+                            timer: 3000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            form.submit();  // Gửi form sau khi hiển thị thông báo thành công
+                        });
+                    }
+                    // Nếu người dùng nhấn "Hủy", không làm gì cả
+                });
+            }
+            // document.addEventListener('DOMContentLoaded');
+            // // Thêm sự kiện khi giá trị trong input thay đổi
+            // document.getElementById('tenca').addEventListener('input');
+        }
+    </script>
+    <!--    <script>-->
+    <!--        function hehe() {-->
+    <!--            const tbdunggio = document.getElementById("tbdunggio").value-->
+    <!--            if (tbdunggio !== "") {-->
+    <!--                console.log(tbdunggio)-->
+    <!--            }-->
+    <!--        }-->
+    <!--    </script>-->
+    <!--    // xu ly nhap mk xac nhan-->
+    <script>
+        function showPasswordConfirmation() {
+            document.getElementById('passwordModal').style.display = 'block';
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function closeModal() {
+            document.getElementById('passwordModal').style.display = 'none';
+        }
+
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('passwordInput');
+            const eyeIcon = document.querySelector('.eye-icon');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.textContent = '👁️'; // Icon mắt mở
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.textContent = '👁️'; // Icon mắt đóng
+            }
+        }
+
+        function confirmPassword() {
+            const password = document.getElementById('passwordInput').value.trim();
+            console.log('Mk nhap vao la:', password);
+            if (password === '9999') {
+                closeModal();
+                Swal.fire({
+                    title: 'Xác nhận giao ca',
+                    html: 'Bạn có chắc chắn muốn giao ca không ? <br><strong> </strong>',
+                    icon: 'warning',
+                    showCancelButton: true,       // Hiển thị nút "Hủy"
+                    confirmButtonText: 'Xác nhận', // Nút xác nhận
+                    cancelButtonText: 'Hủy'        // Nút hủy
+                }).then((result) => {
+                    // Kiểm tra nếu người dùng nhấn nút xác nhận
+                    if (result.isConfirmed) {
+                        const form = document.getElementById('form-gc');
+                        removeCommasFromInputs();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Giao ca thành công!',
+                            text: 'Bạn đã giao ca thành công, bạn sẽ đăng xuất sau 3s',
+                            timer: 3000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            form.submit();  // Gửi form sau khi hiển thị thông báo thành công
+                        });
+                    }
+                    // Nếu người dùng nhấn "Hủy", không làm gì cả
+                });
+            } else {
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+        }
+    </script>
+
+</head>
+
+<body>
+<div class="container mt-5" layout:fragment="content">
+    <!--    Modal ẩn-->
+    <!-- Modal xác nhận mật khẩu -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>Xác nhận mật khẩu rút tiền</h3>
+            <div class="input-container">
+                <input type="password" id="passwordInput" class="input-field" placeholder="Nhập mật khẩu">
+                <span class="eye-icon" onclick="togglePasswordVisibility()">👁️</span>
+            </div>
+            <div class="button-container">
+                <button class="button button-confirm" onclick="confirmPassword()">Xác nhận</button>
+                <button class="button button-cancel" onclick="closeModal()">Hủy</button>
+            </div>
+            <div id="errorMessage" class="error">Mật khẩu sai, vui lòng nhập lại</div>
+        </div>
+    </div>
+
+    <h3 class="text-center mb-4">Giao Dịch Trong Ca</h3>
+    <form th:action="@{/giaoca}" method="post" id="form-gc">
+        <div class="row">
+            <!--            input an thong bao dung gio-->
+            <div>
+                <input type="hidden" id="tbdunggio" th:value="${tBDungGio}">
+            </div>
+            <!-- Giao Dịch Trong Ca Column -->
+            <div class="col-md-6">
+                <h5 class="text-center">Giao Dịch Trong Ca</h5>
+                <div class="row">
+                    <div class="mb-3 col-6">
+                        <label for="magiaoca" class="form-label">Mã giao ca</label>
+                        <input type="text" class="form-control" id="magiaoca" name="magiaoca" th:value="${magiaoca}"
+                               readonly>
+                    </div>
+                    <div class="mb-3 col-6">
+                        <label for="tenca" class="form-label">Tên ca</label>
+                        <input type="text" class="form-control" id="tenca" name="tenca" th:value="${tenca}"
+                               readonly>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="mb-3 col-6">
+                        <label for="thoigianvaoca" class="form-label">Thời gian nhận ca</label>
+                        <input type="text" class="form-control" id="thoigianvaoca" name="thoigianvaoca"
+                               th:value="${thoigianvaoca}" readonly>
+                    </div>
+                    <div class="mb-3 col-6">
+                        <label for="thoigianketthucca" class="form-label">Thời gian hiện tại</label>
+                        <input type="text" class="form-control" id="thoigianketthucca" name="thoigianketthucca"
+                               th:value="${thoigianketthucca}" readonly>
+                        <script>
+                            function updateTime() {
+                                const inputField = document.getElementById("thoigianketthucca");
+                                const now = new Date();
+
+                                // Định dạng giờ, phút, giây, ngày, tháng và năm
+                                const hours = String(now.getHours()).padStart(2, '0');
+                                const minutes = String(now.getMinutes()).padStart(2, '0');
+                                const seconds = String(now.getSeconds()).padStart(2, '0');
+                                const day = String(now.getDate()).padStart(2, '0');
+                                const month = String(now.getMonth() + 1).padStart(2, '0'); // Tháng bắt đầu từ 0
+                                const year = now.getFullYear();
+
+                                // Ghép chuỗi thời gian
+                                const currentTime = `${hours}:${minutes}:${seconds} ${day}-${month}-${year}`;
+
+                                // Cập nhật giá trị vào trường input
+                                inputField.value = currentTime;
+                            }
+
+                            // Tự động cập nhật thời gian vào trường input mỗi giây
+                            // document.addEventListener("DOMContentLoaded", () => {
+                            //     setInterval(updateTime, 100);
+                            //
+                            // });
+                            function startUpdatingTime() {
+                                updateTime(); // Cập nhật ngay lập tức khi gọi
+                                requestAnimationFrame(startUpdatingTime); // Tiếp tục gọi lại chính nó
+                            }
+
+                            // Khởi động cập nhật khi DOM được tải
+                            document.addEventListener("DOMContentLoaded", () => {
+                                startUpdatingTime();
+                            });
+                        </script>
+
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="mb-3 col-4">
+                        <label for="maNhanVienHienTai" class="form-label">Mã nhân viên</label>
+                        <input type="text" class="form-control" id="maNhanVienHienTai" th:value="${user.employeeCode}"
+                               readonly>
+                    </div>
+                    <div class="mb-3 col-4">
+                        <label for="nhanVienHienTai" class="form-label">Nhân viên ca hiện tại</label>
+                        <input type="text" class="form-control" id="nhanVienHienTai" th:value="${user.name}" readonly>
+                    </div>
+                    <div class="mb-3 col-4">
+                        <label for="dienThoai" class="form-label">Điện thoại</label>
+                        <input type="text" class="form-control" id="dienThoai" th:value="${user.phone}" readonly>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="mb-3 col-6">
+                        <label for="tienmatdauca" class="form-label">Số tiền mặt đầu ca (1)</label>
+                        <input type="text" class="form-control" name="tienmatdauca" id="tienmatdauca"
+                               th:value="${tienmatdauca}" readonly>
+                    </div>
+
+                    <!--                    <div class="mb-3">-->
+                    <!--                        <label for="sotienthucnhan" class="form-label">Tổng số tiền mặt bàn giao (1)+(3)-(2)</label>-->
+                    <!--                        <input type="text" class="form-control" id="sotienthucnhan" name="sotienthucnhan"-->
+                    <!--                               oninput="updateFormattedInput(event);calculateTienConThieu()"-->
+                    <!--                               onblur="updateFormattedInput(event)" readonly>-->
+                    <!--                    </div>-->
+                    <div class="mb-3 col-6">
+                        <label for="tienphatsinh" class="form-label">Số tiền phát sinh (2)</label>
+                        <input type="text" class="form-control" id="tienphatsinh" name="tienphatsinh"
+                               oninput="updateFormattedInput(event)" onblur="updateFormattedInput(event)">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="mb-3 col-6">
+                        <label for="slhoadondathanhtoan" class="form-label">Tổng số hóa đơn đã thanh toán</label>
+                        <input type="text" class="form-control" id="slhoadondathanhtoan" name="slhoadondathanhtoan"
+                               th:value="${slhoadondathanhtoan}" readonly>
+                    </div>
+                    <div class="mb-3 col-6">
+                        <label for="slhoadonchuathanhtoan" class="form-label">Tổng số hóa đơn chưa thanh toán</label>
+                        <input type="text" class="form-control" id="slhoadonchuathanhtoan" name="slhoadonchuathanhtoan"
+                               th:value="${slhoadonchuathanhtoan}" readonly>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="mb-3 col-6">
+                        <label for="tienmattrongca" class="form-label">Tổng tiền mặt trong ca (3)</label>
+                        <input type="text" class="form-control" id="tienmattrongca" name="tienmattrongca"
+                               th:value="${tienmattrongca}"
+                               oninput="updateFormattedInput(event)" onblur="updateFormattedInput(event)" readonly>
+                    </div>
+                    <div class="mb-3 col-6">
+                        <label for="chuyenkhoantrongca" class="form-label">Tổng tiền chuyển khoản trong ca (4)</label>
+                        <input type="text" class="form-control" id="chuyenkhoantrongca" name="chuyenkhoantrongca"
+                               th:value="${chuyenkhoantrongca}" oninput="updateFormattedInput(event)"
+                               onblur="updateFormattedInput(event)"
+                               readonly>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="ghichu" class="form-label">Ghi chú</label>
+                    <textarea placeholder="Hãy ghi chú rõ ràng nếu bạn dùng đến tiền phát sinh" class="form-control"
+                              id="ghichu" name="ghichu" rows="3"></textarea>
+                </div>
+            </div>
+
+            <!-- Bàn Giao Ca Column -->
+            <div class="col-md-6">
+                <h5 class="text-center">Bàn Giao Ca</h5>
+                <div class="mb-3">
+                    <label class="label-control">Người nhận bàn giao</label>
+                    <select class="form-select mt-3" name="employee" id="employeeSelect">
+                        <option class="text-center" value="0">--Chọn nhân viên--</option>
+                        <option class="text-center" th:each="employee : ${employeesPage}" th:value="${employee.id}"
+                                th:text="${#strings.concat('Tên: ', employee.name, ' - Mã: ', employee.employeeCode, ' - SĐT: ', employee.phone)}"></option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="xacnhantienmat" class="form-label">Xác nhận tiền mặt trong ca (5)</label>
+                    <input type="text" class="form-control" id="xacnhantienmat" name="xacnhantienmat"
+                           th:value="${xacnhantienmat}" oninput="updateFormattedInput(event)"
+                           onblur="updateFormattedInput(event)">
+                </div>
+                <div class="mb-3">
+                    <label for="xacnhantienchuyenkhoan" class="form-label">Xác nhận tiền chuyển khoản trong ca
+                        (6)</label>
+                    <input type="text" class="form-control" id="xacnhantienchuyenkhoan" name="xacnhantienchuyenkhoan"
+                           th:value="${xacnhantienchuyenkhoan}" oninput="updateFormattedInput(event)"
+                           onblur="updateFormattedInput(event)">
+                </div>
+
+                <div class="mb-3">
+                    <label for="sotienthucnhan" class="form-label">Tổng số tiền mặt bàn giao (1)+(3)-(2)</label>
+                    <input type="text" class="form-control" id="sotienthucnhan" name="sotienthucnhan"
+                           oninput="updateFormattedInput(event);calculateTienConThieu()"
+                           onblur="updateFormattedInput(event)" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="sotienconthieu" class="form-label">Số tiền còn thiếu (5)+(6)-(3)-(4)</label>
+                    <input type="text" class="form-control" id="sotienconthieu" name="sotienconthieu" value="0"
+                           oninput="formatCurrency(this)" readonly>
+                </div>
+
+                <!--                <div class="form-check">-->
+                <!--                    <input class="form-check-input" type="checkbox" id="xuatBaoCao">-->
+                <!--                    <label class="form-check-label" for="xuatBaoCao">-->
+                <!--                        Rút tiền và bàn giao ca cuối ngày-->
+                <!--                    </label>-->
+                <!--                </div>-->
+                <div>
+                    <span id="banGiaoGiaoCa" style="display: none" class="btn btn-primary mt-3"
+                          th:attr="onclick='valid(event)'">Bàn Giao Ca</span>
+                </div>
+                <div>
+                    <span class="btn btn-primary mt-3" style="display: none" id="rutTienGiaoCa"
+                          th:attr="onclick='valid(event)'">Rút tiền và giao ca cuối ngày</span>
+                </div>
+                <!--                <div>-->
+                <!--                    <span class="btn btn-primary mt-3" style="display: none" id="rutTienGiaoCa"  th:attr="onclick='valid(event); ;openModal()'" >Rút tiền và giao ca cuối ngày</span>-->
+                <!--                </div>-->
+            </div>
+        </div>
+    </form>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Hàm kiểm tra và thay đổi hiển thị nút
+        function checkShift() {
+            const shiftValue = document.getElementById('tenca').value;
+
+            const banGiaoCaBtn = document.getElementById('banGiaoGiaoCa');
+            const rutTienBtn = document.getElementById('rutTienGiaoCa');
+
+            if (shiftValue.includes('Ca 1') || shiftValue.includes('Ca 2')) {
+                banGiaoCaBtn.style.display = 'block';
+                rutTienBtn.style.display = 'none';
+            } else if (shiftValue.includes('Ca 3')) {
+                banGiaoCaBtn.style.display = 'none';
+                rutTienBtn.style.display = 'block';
+            } else {
+                banGiaoCaBtn.style.display = 'none';
+                rutTienBtn.style.display = 'none';
+            }
+        }
+
+        // Gọi hàm khi tài liệu đã sẵn sàng
+        document.addEventListener('DOMContentLoaded', checkShift);
+        // Thêm sự kiện khi giá trị trong input thay đổi
+        document.getElementById('tenca').addEventListener('input', checkShift);
+    </script>
+</div>
+</body>
+</html>

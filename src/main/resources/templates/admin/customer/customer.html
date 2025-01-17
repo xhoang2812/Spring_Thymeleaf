@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Danh sách khách hàng</title>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const errorAlert = document.getElementById('errorAlert');
+            if (errorAlert) {
+                setTimeout(() => {
+                    errorAlert.style.display = 'none'; // Ẩn thông báo sau 2 giây
+                }, 2000);
+            }
+        });
+    </script>
+    <style>
+        .address-wrapper {
+            position: relative; /* Để biểu tượng được định vị theo phần tử này */
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .icon-wrapper {
+            position: absolute; /* Định vị biểu tượng theo chiều ngang */
+            right: 0; /* Gắn sát bên phải */
+            top: 50%; /* Đặt giữa theo chiều dọc */
+            transform: translateY(-50%); /* Căn giữa hoàn hảo theo chiều dọc */
+            border-radius: 50%; /* Tạo hình tròn */
+            padding: 5px; /* Khoảng cách giữa biểu tượng và viền */
+            transition: background-color 0.3s; /* Hiệu ứng chuyển đổi màu nền */
+        }
+
+        .icon-wrapper:hover {
+            background-color: rgba(0, 123, 255, 0.1); /* Màu nền khi hover */
+        }
+
+        .icon-wrapper i {
+            color: #007bff; /* Màu biểu tượng */
+            font-size: 20px; /* Kích thước biểu tượng */
+        }
+
+        .icon-wrapper:hover i {
+            color: #0056b3; /* Màu biểu tượng khi hover */
+        }
+
+        .address-text {
+            padding-right: 30px; /* Tạo khoảng trống cho biểu tượng bên phải */
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <main class="container-fluid px-3 py-4">
+        <h3 class="fw-bold fs-4 mb-3">Danh Sách Khách Hàng</h3>
+        <!-- Form Tìm Kiếm -->
+        <form th:action="@{/customer/display}" method="get" class="row g-3 mb-3">
+            <div class="col-auto">
+                <input type="text" name="keyword" class="form-control" placeholder="Nhập từ khóa..."
+                       th:value="${keyword}">
+            </div>
+            <div class="col-auto">
+                <select name="gender" class="form-select" th:value="${gender}">
+                    <option value="">Tất cả giới tính</option>
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <select name="status" class="form-select" th:value="${status}">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="1">Hoạt động</option>
+                    <option value="0">Ngừng hoạt động</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-success">Tìm Kiếm</button>
+            </div>
+        </form>
+
+        <div th:if="${error}" id="errorAlert" class="alert alert-danger" role="alert">
+            <p th:text="${error}"></p>
+        </div>
+
+        <div class="row">
+            <div class="col-12 text-end mb-3">
+                <a class="btn btn-dark" th:href="@{/customer/add}">
+                    <i class="lni lni-plus"></i> Thêm mới
+                </a>
+            </div>
+
+            <div class="col-12">
+                <table class="table table-striped table-hover table-bordered">
+                    <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Ảnh</th>
+                        <th scope="col">Mã khách hàng</th>
+                        <th scope="col">Tên khách hàng</th>
+                        <th scope="col">Số điện thoại</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Ngày sinh</th>
+                        <th scope="col">Địa chỉ</th>
+                        <th scope="col">Giới tính</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${noData}">
+                        <td colspan="10" class="text-center text-danger">Không có dữ liệu nào được tìm thấy.</td>
+                    </tr>
+                    <tr th:each="customer : ${customersPage.content}">
+                        <td>
+                            <img style="width: 60px;height: 70px" th:src="@{'/customer/flim-image/'+${customer.photo}}">
+                        </td>
+                        <td th:text="${customer.customerCode}"></td>
+                        <td th:text="${customer.name}"></td>
+                        <td th:text="${customer.phone}"></td>
+                        <td th:text="${customer.email}"></td>
+                        <td th:text="${customer.dateOfBirth}"></td>
+                        <td>
+                            <ul>
+                                <li th:each="address : ${customer.addresses}" th:if="${address.isDefault}">
+                                    <div class="address-wrapper">
+                                        <span class="address-text"
+                                              th:text="${address.addreseDetail + ', ' + address.ward + ', ' + address.district + ', ' + address.province}"></span>
+                                        <span class="icon-wrapper">
+                                            <a th:href="@{/customer/{customerId}/addresses(customerId=${customer.id})}"
+                                               class="text-primary" style="text-decoration: none;">
+                                                <i class="lni lni-eye"></i>
+                                            </a>
+                                        </span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </td>
+                        <td th:text="${customer.gender}"></td>
+                        <td th:text="${customer.status ? 'Hoạt động' : 'Ngừng hoạt động'}"></td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center">
+                                <a class="btn btn-primary btn-sm me-1"
+                                   th:href="@{/customer/edit/{id}(id=${customer.id})}">
+                                    <i class="lni lni-pencil"></i>
+                                </a>
+                                <a class="btn btn-danger btn-sm"
+                                   th:href="@{/customer/toggleStatus/{id}(id=${customer.id})}"
+                                   onclick="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái của khách hàng này?')">
+                                    <i class="lni"
+                                       th:classappend="${customer.status ? 'lni-ban' : 'lni-checkmark-circle'}"></i>
+                                </a>
+                            </div>
+                        </td>
+
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+            <span>Trang <span th:text="${customersPage.number + 1}"></span> của <span
+                    th:text="${customersPage.totalPages}"></span></span>
+            <nav>
+                <ul class="pagination mb-0">
+                    <li class="page-item" th:if="${customersPage.hasPrevious()}">
+                        <a class="page-link"
+                           th:href="@{/customer/display(page=${customersPage.number - 1}, size=${customersPage.size})}">&laquo;</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, customersPage.totalPages - 1)}">
+                        <a class="page-link" th:href="@{/customer/display(page=${i}, size=${customersPage.size})}"
+                           th:text="${i + 1}" th:classappend="${i == customersPage.number} ? ' active' : ''">
+                        </a>
+                    </li>
+                    <li class="page-item" th:if="${customersPage.hasNext()}">
+                        <a class="page-link"
+                           th:href="@{/customer/display(page=${customersPage.number + 1}, size=${customersPage.size})}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Sửa địa chỉ</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        function showErrors(messages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messages
+            });
+        }
+
+        function collectAddressNames() {
+            const provinceSelect = document.querySelector("#province");
+            const districtSelect = document.querySelector("#district");
+            const wardSelect = document.querySelector("#ward");
+
+            const provinceName = provinceSelect.options[provinceSelect.selectedIndex].text;
+            const districtName = districtSelect.options[districtSelect.selectedIndex].text;
+            const wardName = wardSelect.options[wardSelect.selectedIndex].text;
+
+            document.querySelector("#provinceName").value = provinceName;
+            document.querySelector("#districtName").value = districtName;
+            document.querySelector("#wardName").value = wardName;
+
+            return true; // Cho phép gửi form
+        }
+
+        // Hàm kiểm tra và gửi form
+        function vali(e) {
+            e.preventDefault(); // Ngăn chặn gửi form ngay lập tức
+
+            // Hiển thị hộp thoại xác nhận trước khi thực hiện lưu
+            Swal.fire({
+                title: 'Bạn có chắc muốn sửa địa chỉ này?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#5ac155',
+                cancelButtonColor: '#47434c',
+                confirmButtonText: 'Có, sửa ngay!',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    collectAddressNames(); // Gọi hàm để thu thập tên tỉnh, huyện, xã
+
+                    // Lấy giá trị từ các trường trong form
+                    let nameRecipient = document.getElementById('nameRecipient') ? document.getElementById('nameRecipient').value : '';
+                    let provinceElement = document.getElementById('province') ? document.getElementById('province').value : '';
+                    let districtElement = document.getElementById('district') ? document.getElementById('district').value : '';
+                    let wardElement = document.getElementById('ward') ? document.getElementById('ward').value : '';
+                    let phone = document.getElementById('phone') ? document.getElementById('phone').value : '';
+                    let addressDetails = document.getElementById('addressDetails') ? document.getElementById('addressDetails').value : '';
+
+
+                    // Kiểm tra các trường bắt buộc
+                    if (nameRecipient === "") {
+                        showErrors("Tên người nhận không được để trống");
+                        return;
+                    }
+                    if (phone === "") {
+                        showErrors("Số điện thoại không được để trống");
+                        return;
+                    }
+                    if (provinceElement === "") {
+                        showErrors("Tỉnh/Thành phố không được để trống");
+                        return;
+                    }
+                    if (districtElement === "") {
+                        showErrors("Quận/Huyện không được để trống");
+                        return;
+                    }
+                    if (wardElement === "") {
+                        showErrors("Phường/Xã không được để trống");
+                        return;
+                    }
+                    if (addressDetails === "") {
+                        showErrors("Địa chỉ chi tiết không được để trống");
+                        return;
+                    }
+                    if (!/^\d{10}$/.test(phone)) {
+                        showErrors("Số điện thoại phải có đúng 10 chữ số");
+                        return;
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Sửa thành công!',
+                        text: 'Địa chỉ đã được cập nhật.',
+                        timer: 2500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        document.getElementById('form').submit(); // Gửi form ở đây
+                    });
+                }
+            });
+        }
+
+
+        function loadProvinces() {
+            if (document.getElementById('province').options.length === 1) { // Chỉ gọi API khi tỉnh chưa được tải
+                fetch('https://online-gateway.ghn.vn/shiip/public-api/master-data/province', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Token': 'e72e960b-9e77-11ef-a35f-3e447ea83dcd' // Thêm token trực tiếp ở đây
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        let provinceSelect = document.getElementById('province');
+                        provinceSelect.innerHTML = '<option value="">Chọn tỉnh</option>';
+                        data.data.forEach(province => {
+                            let option = document.createElement('option');
+                            option.value = province.ProvinceID;
+                            option.text = province.ProvinceName;
+                            provinceSelect.add(option);
+                        });
+
+                        const provinceName = document.getElementById("provinceName").value;
+                        if (provinceName) {
+                            selectOptionByText(provinceSelect, provinceName);
+                            loadDistricts(); // Gọi tải huyện ngay sau khi tỉnh được chọn
+                        }
+                    })
+                    .catch(error => console.error('Error fetching provinces:', error));
+            }
+        }
+
+        function loadingg() {
+            loadProvinces();
+        }
+
+        function loadDistricts() {
+            let provinceId = document.getElementById('province').value;
+            let districtSelect = document.getElementById('district');
+            districtSelect.innerHTML = '<option value="">Chọn huyện</option>';
+            document.getElementById('ward').innerHTML = '<option value="">Chọn xã</option>';
+
+            if (provinceId) {
+                fetch(`https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=${provinceId}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Token': 'e72e960b-9e77-11ef-a35f-3e447ea83dcd' // Thêm token trực tiếp ở đây
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        data.data.forEach(district => {
+                            let option = document.createElement('option');
+                            option.value = district.DistrictID;
+                            option.text = district.DistrictName;
+                            districtSelect.add(option);
+                        });
+
+                        const districtName = document.getElementById("districtName").value;
+                        if (districtName) {
+                            selectOptionByText(districtSelect, districtName);
+                            loadWards(); // Gọi tải xã ngay sau khi huyện được chọn
+                        }
+                    })
+                    .catch(error => console.error('Error fetching districts:', error));
+            }
+        }
+
+        function loadWards() {
+            let districtId = document.getElementById('district').value;
+            let wardSelect = document.getElementById('ward');
+            wardSelect.innerHTML = '<option value="">Chọn xã</option>';
+
+            if (districtId) {
+                fetch(`https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=${districtId}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Token': 'e72e960b-9e77-11ef-a35f-3e447ea83dcd' // Thêm token trực tiếp ở đây
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        data.data.forEach(ward => {
+                            let option = document.createElement('option');
+                            option.value = ward.WardCode;
+                            option.text = ward.WardName;
+                            wardSelect.add(option);
+                        });
+
+                        const wardName = document.getElementById("wardName").value;
+                        if (wardName) {
+                            selectOptionByText(wardSelect, wardName);
+                        }
+                    })
+                    .catch(error => console.error('Error fetching wards:', error));
+            }
+        }
+
+        function selectOptionByText(select, text) {
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].text === text) {
+                    select.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('province').addEventListener('change', loadDistricts);
+            document.getElementById('district').addEventListener('change', loadWards);
+            loadingg(); // Gọi hàm để nạp dữ liệu ban đầu
+        });
+
+
+    </script>
+
+
+    <style>
+        .rounded-box {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .rounded-box h5 {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body onload="loadingg()">
+<div layout:fragment="content">
+    <main class="container px-3 py-4">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="fw-bold fs-4 mb-3">Sửa địa chỉ</h3>
+                <div th:if="${message}" class="text-success" th:text="${message}"></div>
+                <div th:if="${error}" class="text-danger" th:text="${error}"></div>
+                <form th:action="@{/customer/{customerId}/update-address/{addressId}(customerId=${customerId}, addressId=${address.id})}"
+                      method="post" enctype="multipart/form-data" id="form" onsubmit="vali(event)">
+                    <div class="row">
+                        <div class="col-md-6 offset-md-3">
+                            <div class="rounded-box">
+                                <h5>Thông tin</h5>
+
+                                <div class="mb-3">
+                                    <label for="nameRecipient" class="form-label">Tên người nhận</label>
+                                    <input type="text" id="nameRecipient" name="nameRecipient" class="form-control"
+                                           th:value="${address.nameRecipient}">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Số điện thoại người nhận</label>
+                                    <input type="text" id="phone" name="phone" class="form-control"
+                                           th:value="${address.phone}">
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="province" class="form-label">Tỉnh/ Thành phố</label>
+                                        <select id="province" name="province" class="form-select">
+                                            <option value="">Chọn tỉnh</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="district" class="form-label">Quận/ Huyện</label>
+                                        <select id="district" name="district" class="form-select">
+                                            <option value="">Chọn huyện</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="ward" class="form-label">Phường/ Xã</label>
+                                        <select id="ward" name="ward" class="form-select">
+                                            <option value="">Chọn xã</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="addressDetails" class="form-label">Địa chỉ chi tiết</label>
+                                    <input type="text" id="addressDetails" name="addreseDetail" class="form-control"
+                                           th:value="${address.addreseDetail}">
+                                </div>
+
+                                <!-- Các trường ẩn để lưu tên tỉnh, huyện, xã -->
+                                <input type="hidden" id="provinceName" name="provinceName"
+                                       th:value="${address.province}">
+                                <input type="hidden" id="districtName" name="districtName"
+                                       th:value="${address.district}">
+                                <input type="hidden" id="wardName" name="wardName" th:value="${address.ward}">
+
+                                <button type="submit" class="btn btn-success">Cập nhật</button>
+                                <a th:href="@{/customer/{customerId}/addresses(customerId=${customer.id})}"
+                                   class="btn btn-secondary">Hủy</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

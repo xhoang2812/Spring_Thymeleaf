@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorate="~{user/index}"
+      xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Hồ Sơ Của Tôi</title>
+    <style>
+        .profile-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .profile-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .profile-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            width: 600px;
+            margin-right: 30px;
+        }
+
+        .profile-info h3 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .profile-info p {
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="email"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .form-group .change-link {
+            color: #007bff;
+            font-size: 14px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .gender-group, .date-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .gender-group label {
+            margin-right: 10px;
+        }
+
+        .profile-photo {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .profile-photo img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .profile-photo .btn-upload-label {
+            margin-top: 10px;
+            display: inline-block;
+            padding: 8px 15px;
+            font-size: 16px;
+            color: #333;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .profile-photo .btn-upload-label:hover {
+            background-color: #f0f0f0;
+        }
+
+        .profile-photo .file-info {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .btn-save {
+            background-color: #ff4d4f;
+            color: #fff;
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100px;
+        }
+
+        .address-list-link {
+            color: #007bff;
+            text-decoration: underline;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .address-list-link:hover {
+            color: #6c757d;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1050; /* Thấp hơn Swal */
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-content h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .modal-content input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .modal-content .btn-submit {
+            background-color: #007bff;
+            color: #fff;
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .modal-content .btn-cancel {
+            background-color: #6c757d;
+            color: #fff;
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            margin-left: 10px;
+        }
+
+        .modal-content .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            color: #888;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        .modal-content input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #f9f9f9;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .modal-content input[type="email"]:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            background-color: #ffffff;
+        }
+
+        .modal-content input[type="email"]::placeholder {
+            color: #aaa;
+            font-style: italic;
+        }
+
+        .resend-otp {
+            margin-top: 10px;
+            text-align: center;
+            color: #555;
+        }
+
+        .resend-otp a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .resend-otp a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        function previewImage(event) {
+            const input = event.target;
+            const image = document.querySelector('.profile-photo img');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    image.src = e.target.result;
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function showErrors(messages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messages
+            });
+        }
+
+        function vali(e) {
+            e.preventDefault();
+
+            let username = document.getElementById('username').value;
+            let name = document.getElementById('name').value;
+            let dateOfBirth = document.getElementById('dateOfBirth').value;
+
+            if (username === "") {
+                showErrors("Username không được để trống");
+                return;
+            }
+            if (name === "") {
+                showErrors("Tên không được để trống");
+                return;
+            }
+            if (dateOfBirth === "") {
+                showErrors("Ngày sinh không được để trống");
+                return;
+            }
+
+
+            axios.get(`/login/api/check-username?username=${username}`)
+                .then(response => {
+                    if (!response.data) {
+                        showErrors("Username không tồn tại");
+                        return Promise.reject();
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Cập nhật thành công!',
+                        text: 'Hồ sơ của bạn đã được cập nhật.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        document.getElementById('form').submit();
+                    });
+                })
+                .catch(error => {
+                    console.error("Lỗi kiểm tra username:", error);
+                });
+        }
+
+        let currentStep = 0; // Step: 0 - Send OTP, 1 - Enter OTP, 2 - Update Email
+
+        function openModal() {
+            currentStep = 0;
+            document.getElementById("otpModal").classList.remove("hidden");
+        }
+
+        function closeModal() {
+            document.getElementById("otpModal").classList.add("hidden");
+            document.getElementById("verifyOtpModal").classList.add("hidden");
+            document.getElementById("changeEmailModal").classList.add("hidden");
+        }
+
+        function sendOtp() {
+            axios.post('/home/send-otp')
+                .then(response => {
+                    Swal.fire('Thành công', 'Mã OTP đã được gửi đến email của bạn.', 'success');
+                    currentStep = 1;
+                    document.getElementById("otpModal").classList.add("hidden");
+                    document.getElementById("verifyOtpModal").classList.remove("hidden");  // Show OTP verification modal
+                })
+                .catch(error => {
+                    showErrors("Không thể gửi mã OTP. Vui lòng thử lại.");
+                    console.error("Error sending OTP:", error);
+                });
+        }
+
+        function verifyOtp() {
+            const otp = document.getElementById("otpInput").value;
+
+            if (otp.trim() === "") {
+                showErrors("Vui lòng nhập mã OTP");
+                return;
+            }
+
+            axios.post('/home/verify-otp', {otp})
+                .then(response => {
+                    if (response.data.success) {
+                        Swal.fire('Thành công', 'Mã OTP đúng, tiếp tục cập nhật email.', 'success');
+                        currentStep = 2;
+                        document.getElementById("verifyOtpModal").classList.add("hidden"); // Hide OTP verification modal
+                        document.getElementById("changeEmailModal").classList.remove("hidden");  // Show email update modal
+                    } else {
+                        showErrors("Mã OTP không chính xác.");
+                    }
+                })
+                .catch(error => {
+                    showErrors("Mã OTP không chính xác.");
+                    console.error("Lỗi xác minh OTP:", error);
+                });
+        }
+
+        function changeEmail() {
+            const newEmail = document.getElementById("newEmailInput").value;
+
+            // Kiểm tra nếu email rỗng
+            if (newEmail.trim() === "") {
+                showErrors("Vui lòng nhập email mới");
+                return;
+            }
+
+            // Kiểm tra định dạng email: phải có '@' và ít nhất 1 dấu '.' sau '@'
+            const emailRegex = /.+@.+\..+/;
+            if (!emailRegex.test(newEmail)) {
+                showErrors("Vui lòng nhập đúng định dạng email");
+                return;
+            }
+
+            // Hiển thị xác nhận thay đổi trước
+            Swal.fire({
+                icon: 'question',
+                title: 'Xác nhận thay đổi',
+                text: `Bạn có chắc muốn thay đổi email thành "${newEmail}" không?`,
+                showCancelButton: true,
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy bỏ',
+                reverseButtons: false,
+            }).then(result => {
+                if (result.isConfirmed) {
+                    // Người dùng đồng ý, kiểm tra trùng lặp email
+                    return axios.get(`/customer/api/customer/check-email?email=${newEmail}`);
+                } else {
+                    // Người dùng hủy bỏ
+                    throw new Error("Hủy thay đổi email");
+                }
+            }).then(response => {
+                if (response.data) {
+                    showErrors("Email đã được sử dụng. Vui lòng nhập email khác.");
+                    throw new Error("Email đã tồn tại");
+                }
+
+                // Gửi yêu cầu cập nhật email
+                return axios.post('/home/update-email', { email: newEmail });
+            }).then(() => {
+                Swal.fire('Thành công', 'Email của bạn đã được cập nhật.', 'success')
+                    .then(() => {
+                        closeModal(); // Đóng modal sau khi thành công
+                        location.reload(); // Tải lại trang
+                    });
+            }).catch(error => {
+                if (error.message !== "Hủy thay đổi email" && error.message !== "Email đã tồn tại") {
+                    console.error("Lỗi cập nhật email:", error);
+                    showErrors("Có lỗi xảy ra khi xử lý yêu cầu của bạn.");
+                }
+            });
+        }
+    </script>
+</head>
+<body layout:fragment="content">
+<section class="profile-container">
+    <form th:action="@{/home/editprofile/{customerId}(customerId=${customer.id})}" method="post"
+          enctype="multipart/form-data" onsubmit="vali(event)" id="form">
+        <div class="profile-section">
+            <div class="profile-info">
+                <h3>Hồ Sơ Của Tôi</h3>
+                <p>Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
+
+                <div class="form-group">
+                    <label>Tên đăng nhập</label>
+                    <input type="text" id="username" name="username" th:value="${customer.username}" readonly>
+                    <small>Tên đăng nhập không thể sửa đổi</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Tên</label>
+                    <input type="text" id="name" name="name" th:value="${customer.name}">
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" name="email" th:value="${customer.email}" readonly>
+                    <span class="change-link" onclick="openModal()">Thay Đổi</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Số điện thoại</label>
+                    <input type="text" name="phone" th:value="${customer.phone}">
+                </div>
+
+                <div class="form-group gender-group">
+                    <label>Giới tính:</label>
+                    <input type="radio" name="gender" value="Nam" th:checked="${customer.gender == 'Nam'}"> Nam
+                    <input type="radio" name="gender" value="Nữ" th:checked="${customer.gender == 'Nữ'}"> Nữ
+                </div>
+
+                <div class="form-group date-group">
+                    <label>Ngày sinh</label>
+                    <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control"
+                           th:value="${customer.dateOfBirth}">
+                </div>
+
+                <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+                    <button type="submit" class="btn-save">Lưu</button>
+                    <a th:href="@{/home/{customerId}/addresses(customerId=${customer.id})}" class="address-list-link">Danh
+                        sách địa chỉ</a>
+                </div>
+            </div>
+
+            <div class="profile-photo">
+                <img th:src="${customer.photo != null ? '/customer/flim-image/' + customer.photo : '/images/default-avatar.png'}"
+                     alt="Ảnh cá nhân">
+                <label for="file-input" class="btn-upload-label">Chọn Ảnh</label>
+                <input type="file" id="file-input" class="file-input" name="photo" onchange="previewImage(event)">
+                <div class="file-info">Dung lượng file tối đa 1 MB<br>Chỉ hỗ trợ file hình ảnh (PNG, JPG, JPEG)</div>
+            </div>
+        </div>
+    </form>
+</section>
+
+
+<!-- Modal Gửi OTP -->
+<div id="otpModal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">×</span>
+        <h3>Gửi Mã OTP</h3>
+        <p>Chúng tôi sẽ gửi mã OTP đến email hiện tại của bạn.</p>
+        <button class="btn-submit" onclick="sendOtp()">Gửi OTP</button>
+    </div>
+</div>
+
+<!-- Modal Nhập OTP -->
+<div id="verifyOtpModal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">×</span>
+        <h3>Nhập Mã OTP</h3>
+        <p>Chúng tôi đã gửi mã OTP đến email của bạn. Vui lòng nhập mã để xác nhận.</p>
+        <input type="text" id="otpInput" placeholder="Nhập mã OTP">
+        <button class="btn-submit" onclick="verifyOtp()">Xác Nhận</button>
+
+        <p class="resend-otp">
+            <small>Không nhận được mã?
+                <a href="#" onclick="sendOtp()">Gửi lại OTP</a>
+            </small>
+        </p>
+    </div>
+</div>
+
+<!-- Modal Nhập Email Mới -->
+<div id="changeEmailModal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">×</span>
+        <h3>Nhập Email Mới</h3>
+        <p>Nhập địa chỉ email mới mà bạn muốn thay đổi.</p>
+        <input type="email" id="newEmailInput" placeholder="Nhập email mới" class="styled-input">
+        <button class="btn-submit" onclick="changeEmail()">Lưu Email</button>
+    </div>
+</div>
+
+
+</body>
+</html>

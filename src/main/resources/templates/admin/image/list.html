@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{admin/index}"
+      xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Quản lý hình ảnh</title>
+    <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet"/>
+</head>
+
+<body onload="checkUser()">
+<div layout:fragment="content">
+    <main class="content px-3 py-4">
+        <div class="container-fluid">
+            <div class="mb-3">
+                <h3 class="fw-bold fs-4 mb-3">Danh sách hình ảnh</h3>
+                <div class="row">
+                    <div style="text-align:end">
+                        <a id="i-1">
+                            <i class="fa-solid fa-circle-plus  fa-lg fa-2xl" data-bs-target="#exampleModal"
+                               data-bs-toggle="modal"></i>
+                        </a>
+                    </div>
+                    <div class="col-12">
+                        <table class="table table-striped table-hover" id="example">
+                            <thead class="table-dark">
+                            <tr>
+                                <th scope="col">Mã hình ảnh</th>
+                                <th scope="col">Ảnh 1</th>
+                                <th scope="col">Ảnh 2</th>
+                                <th scope="col">Ảnh 3</th>
+                                <th scope="col">Trạng thái</th>
+                                <th scope="col">Ngày tạo</th>
+                                <th scope="col">Ngày sửa</th>
+                                <th scope="col">Chức Năng</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="list : ${listImage}">
+                                <td th:utext="${list.code}"></td>
+                                <td><img style="width: 100px;height: 125px" th:src="@{'/hinh-anh/test/'+${list.url1}}">
+                                </td>
+                                <td><img style="width: 100px;height: 125px" th:src="@{'/hinh-anh/test/'+${list.url2}}">
+                                </td>
+                                <td><img style="width: 100px;height: 125px" th:src="@{'/hinh-anh/test/'+${list.url3}}">
+                                </td>
+                                <td>
+                                    <span
+                                            class="badge bg-success"
+                                            th:id="'trangThaiUpdate_'+${list.id}"
+                                            th:if="${list.status == 1}">Hoạt Động
+                                    </span>
+                                    <span
+                                            class="badge bg-danger"
+                                            th:id="'trangThaiUpdate_'+${list.id}"
+                                            th:if="${list.status == 0}">Ngừng Hoạt Động
+                                    </span>
+                                </td>
+                                <td th:utext="${#dates.format(list.dateCreate,'dd/MM/yyyy')}"></td>
+                                <td th:id="'dateUpdate_'+${list.id}"
+                                    th:utext="${#dates.format(list.dateUpdate,'dd/MM/yyyy')}"></td>
+                                <td>
+                                    <div class="d-flex">
+                                        <div style="display: flex;align-items: center;justify-content: center;">
+                                            <a id="i-2" th:href="@{/hinh-anh/update/{id}(id=${list.id})}">
+                                                <i class="fa-solid fa-wrench -pulse"></i>
+                                            </a>
+                                        </div>
+                                        <div style="display: flex;align-items: center;justify-content: center; margin-left: 7px" >
+                                            <a class="form-switch ms-2">
+                                                <input id="i-3" class="form-check-input" onchange="capNhatLaiDuLieu(this)"
+                                                       onclick="capNhatTrangThai(this.getAttribute('data-ma'))"
+                                                       role="switch"
+                                                       th:checked="${list.status == 1}"
+                                                       th:data-ma="${list.id}"
+                                                       type="checkbox">
+                                                <input style="display: none" th:id="'btnDoiTrangThai_' + ${list.id}"
+                                                       th:value="${list.status}">
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade modal-lg" id="exampleModal"
+         tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Thêm mới hình ảnh</h5>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <form enctype="multipart/form-data" onsubmit="return valid()" th:action="@{/hinh-anh/store}"
+                              th:method="POST" th:object="${data}">
+                            <div class="mb-3">
+                                <label class="form-label">Mã hình ảnh</label>
+                                <input class="form-control" th:field="*{code}" type="text">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Trạng thái</label>
+                                <select class="form-select" th:field="*{status}">
+                                    <option th:value="1">Hoạt động</option>
+                                    <option th:value="0">Ngừng hoạt động</option>
+                                </select>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4">
+                                    <div>
+                                        <label class="label-control" for="avatarFile1">Ảnh 1</label>
+                                        <input class="form-control" id="avatarFile1" th:name="imgProduct1" type="file">
+                                    </div>
+                                    <div class="mt-3">
+                                        <img alt="Avatar Preview" id="avatarPreview1"
+                                             style="display: none; max-height: 250px; max-width: 240px">
+                                    </div>
+                                </div>
+                                <div class="col-4 ">
+                                    <div>
+                                        <label class="label-control" for="avatarFile2">Ảnh 2</label>
+                                        <input class="form-control" id="avatarFile2" th:name="imgProduct2" type="file">
+                                    </div>
+                                    <div class="mt-3">
+                                        <img alt="Avatar Preview" id="avatarPreview2"
+                                             style="display: none; max-height: 250px; max-width: 240px">
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div>
+                                        <label class="label-control" for="avatarFile3">Ảnh 3</label>
+                                        <input class="form-control" id="avatarFile3" th:name="imgProduct3" type="file">
+                                    </div>
+                                    <div class="mt-3">
+                                        <img alt="Avatar Preview" id="avatarPreview3"
+                                             style="display: none; max-height: 250px; max-width: 240px">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3" style="text-align: center">
+                                <button class="btn btn-dark" type="submit">Thêm</button>
+                                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $('#example').DataTable({
+            fixedColumns: true,
+            layout: {
+                topStart: {
+                    buttons: ['copy', 'excel', 'pdf', 'colvis']
+                }
+            }
+        });
+    </script>
+
+    <script>
+        function valid() {
+            const nameField = document.querySelector('input[name="code"]');
+            const fileInput1 = document.getElementById('avatarFile1');
+            const fileInput2 = document.getElementById('avatarFile2');
+            const fileInput3 = document.getElementById('avatarFile3');
+            const nameValue = nameField.value.trim();
+            let isValid = true;
+
+            if (!nameValue) {
+                showErrors("Mã hình ảnh không được để trống!");
+                isValid = false;
+            } else if (!fileInput1.files.length) {
+                showErrors("Ảnh 1  không được để trống!");
+                isValid = false;
+            } else if (!fileInput2.files.length) {
+                showErrors("Ảnh 2 không được để trống!");
+                isValid = false;
+            } else if (!fileInput3.files.length) {
+                showErrors("Ảnh 3 không được để trống!");
+                isValid = false;
+            }
+            return isValid;
+        }
+    </script>
+    <script>
+        function showErrors(messsages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messsages
+            });
+        }
+
+        function showSuccesss(messages) {
+            Swal.fire({
+                title: messages,
+                icon: "success"
+            });
+        }
+        [[${maTonTai} == true]] ? showErrors('Mã hình ảnh đã tồn tại!') : '';
+        [[${createSuccess} == true]] ? showSuccesss('Thêm thành công') : '';
+        [[${updateSuccess} == true]] ? showSuccesss('Sửa thành công') : '';
+    </script>
+    <script>
+        function checkUser(){
+            $.ajax({
+                url: "/api/vouchers/userData",
+                method: "GET",
+                success: function (data) {
+                    console.log(data)
+                    if (data === "") {
+                        document.querySelectorAll("#i-1").forEach(i => i.remove());
+                        document.querySelectorAll("#i-2").forEach(i => i.remove());
+                        document.querySelectorAll("#i-3").forEach(i => i.remove());
+                    }
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            })
+        }
+        function capNhatTrangThai(id) {
+            idMau = id;
+            let trangThai = document.getElementById("btnDoiTrangThai_" + id).value;
+            var formData = new FormData();
+            formData.append("trangThai", trangThai);
+            $.ajax({
+                type: "PUT",
+                url: "/hinh-anh/change-status/" + id,
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    console.log("Success: " + response);
+                    showSuccesss('Trạng thái đã được cập nhật!')
+                },
+                error: function (error) {
+                    console.log("Error1: " + JSON.stringify(error));
+                }
+            });
+        }
+
+        function capNhatLaiDuLieu(checkbox) {
+            let trangThai = checkbox.checked;
+            let tThai = document.getElementById("trangThaiUpdate_" + idMau);
+            let dateUpdate = document.getElementById("dateUpdate_" + idMau);
+            let date = new Date();
+            let dateString = date.toLocaleDateString('vi-VN');
+            if (trangThai) {
+                tThai.innerText = "Hoạt Động";
+                tThai.style.color = "white";
+                tThai.classList.remove("badge", "bg-danger");
+                tThai.classList.add("badge", "bg-success");
+            } else {
+                tThai.innerText = "Không Hoạt Động";
+                tThai.style.color = "white";
+                tThai.classList.remove("badge", "bg-success");
+                tThai.classList.add("badge", "bg-danger");
+            }
+            dateUpdate.innerText = dateString;
+        }
+    </script>
+    <script>
+        $(document).ready(() => {
+            const avatarFiles = [
+                {fileInput: $("#avatarFile1"), preview: $("#avatarPreview1")},
+                {fileInput: $("#avatarFile2"), preview: $("#avatarPreview2")},
+                {fileInput: $("#avatarFile3"), preview: $("#avatarPreview3")}
+            ];
+
+            avatarFiles.forEach(({fileInput, preview}) => {
+                fileInput.change(function (e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const imgURL = URL.createObjectURL(file);
+                        preview.attr("src", imgURL).css("display", "block");
+
+                        // Giải phóng URL khi không cần nữa
+                        preview.on('load', () => {
+                            URL.revokeObjectURL(imgURL);
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+
+</div>
+</body>
+</html>

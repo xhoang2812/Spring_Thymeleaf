@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>F6 Shop</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/assets/css/kaiadmin.min.css"/>
+    <link rel="stylesheet" href="/css/sale.css"/>
+
+
+    <!-- JS -->
+    <!-- Thêm qr-scanner và bootstrap -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://unpkg.com/qr-scanner/qr-scanner.legacy.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <!-- Liên kết đến file sale.js của bạn -->
+    <script src="/js/sale.js" defer></script>
+<!--    <style>-->
+<!--        body {-->
+<!--            opacity: 0;-->
+<!--            transition: opacity 0.5s ease-in-out;-->
+<!--        }-->
+<!--        body.show {-->
+<!--            opacity: 1;-->
+<!--        }-->
+<!--    </style>-->
+</head>
+<body onload="loading()">
+<div class="container" layout:fragment="content">
+
+    <div class="card-header">
+        <h4 class="card-title">Quầy F6</h4>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <div style="overflow-x: auto; white-space: nowrap;">
+                    <ul class="nav nav-pills nav-tab nav-secondary nav-pills-no-bd" id="pills-tab-without-border"
+                        role="tablist">
+                        <li class="nav-item">
+                            <button id="create-cart" class="nav-link">
+                                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAFZJREFUSEtjZKAxYKSx+QyjFhAMYVKD6D/URKL1Ea0QavCoBQTjbOgEEcylBL2EpgAj0eBKRTS3AJfLh04cjPoAHgKDriwiNV+M1miEQ4zUSCZsIpoKAFy0DhnDOA3uAAAAAElFTkSuQmCC"/>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+
+                <div class="tab-content mt-2 mb-3" id="pills-without-border-tabContent">
+                    <div class="addPandQr">
+                        <button class="btn btn-muted" onclick="openScanner()">
+                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAIhJREFUSEvtVO0KgDAIvNX7P3IfLLQfhpy0WQsaDCY4z7t5K0heJbk+HgfYCCNtKJp3YRC9GM1zAax0WtAyYHk/AFfA09AbpvGnqLuxh3XyChwPPAOoZxufStx95GYA6lBpcQEwya5utzGfYylkvwqVgDKJdmoBaGHt4DUA5uRmidIAvu/k7gx2NgZEGaiQ12MAAAAASUVORK5CYII="/>
+                        </button>
+                        <button class="btn btn-muted" id="popupSelectProduct" data-bs-toggle="modal"
+                                data-bs-target="#myModalProduct">
+                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAV5JREFUSEvN1CFIXXEUx/GPTIthC4LCFkQQFowGtRlctAwGhoEw5oIKWsSoUcQisoGgDFwQLBbbhDVRg8mkUUFBLIKCRX1/eRced/fd+9fnGzv1f+7ve37nnHsa1Dka6qzvnwLuy26usYqJl3BX6SABJLofsF0rJKtF05jDFgarAJJiClucldCCc7xCO04yIDUBgt4vfMY8gqN01Azoww4u8Q63uKPq1oW34PivyOvhIbowjLVIwBLGsYjJQMsDfMMy9tGTKi2rRU24wBu8x1ERoBlneI1uHFRAsgBDJeF17KE3yS1as8TyT3wpAPzGAEawEgvoxHF5yK24qvJfvMUpbtCGcA0eo8hByPmD/tJHU1ioApjFTPnEfK3MiQF8wkbkyQjrvftUQGN5IzoKIJv4mM6JcRBZfHZaLOA7RvGjtOtjKam8t6ghB73KU54uKu8tGlB3B8+eQ+wM/l/AA0MGQBmWCd8sAAAAAElFTkSuQmCC"/>
+                        </button>
+                    </div>
+                    <!--                    Thêm các panel mới bằng js ở đây-->
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <div class="card-body">
+                    <!-- Header -->
+                    <div class="card-header">
+                        <h4 class="card-title">Thông tin thanh toán</h4>
+                    </div>
+                    <!-- Nội dung -->
+                    <div class="row">
+
+                        <!-- Thông tin giao hàng -->
+                        <div class="col-xl-7">
+                            <div id="delivery">
+                                <div class="mb-3 mt-3">
+                                    <button class="btn" style="background-color:  rgb(104, 97, 206);color: white"
+                                            onclick="renderAddress()"
+                                            id="popupSelectAddress" data-bs-toggle="modal"
+                                            data-bs-target="#myModalAddress">Chọn địa chỉ
+                                    </button>
+                                </div>
+                                <div style="display: flex">
+                                    <div class="mb-3 mt-3" style="width: 450px; margin-right: 30px">
+                                        <label class="form-label">Họ tên</label>
+                                        <input type="text" class="form-control" id="nameCustomer"
+                                               placeholder="Nhập họ tên">
+                                    </div>
+
+                                    <div class="mb-3 mt-3">
+                                        <label class="form-label" style="width: 250px">Số điện thoại</label>
+                                        <input type="number" class="form-control" id="phoneCustomer"
+                                               placeholder="Nhập số điện thoại">
+                                    </div>
+                                </div>
+                                <div class="d-flex">
+                                    <div class="mb-3 mt-3" style="width: 200px; margin-right:  60px">
+                                        <label for="province">Tỉnh/ Thành phố</label>
+                                        <select class="form-select" id="province" onchange="loadDistricts()">
+                                            <option>Chọn tỉnh/thành phố</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3 mt-3" style="width: 200px; margin-right:  60px">
+                                        <label for="district">Quận/Huyện</label>
+                                        <select class="form-select" id="district" onchange="loadWards()">
+                                            <option>Chọn quận/huyện</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3 mt-3" style="width: 200px">
+                                        <label for="ward">Phường xã</label>
+                                        <select class="form-select" id="ward" onclick="showPrice()">
+                                            <option>Chọn phường/xã</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 mt-3">
+                                    <label class="form-label">Địa chỉ cụ thể</label>
+                                    <input type="text" class="form-control" id="addressDetailCustomer"
+                                           placeholder="Nhập địa chỉ cụ thể">
+                                </div>
+                                <div class="mb-3 mt-3">
+                                    <label class="form-label">Ghi chú cho người vận chuyển:</label>
+                                    <textarea class="form-control" id="describeCustomerAddress"
+                                              placeholder="Nhập ghi chú"></textarea>
+                                </div>
+
+                                <div class="mb-3 mt-3" id="showSaveAddress">
+                                    <input type="checkbox" id="saveAddress" class="form-check-input">
+                                    <label for="saveAddress" class="form-label"> Lưu địa chỉ của khách hàng</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 mt-3">
+                                <label class="form-label">Ghi chú đơn hàng:</label>
+                                <textarea class="form-control" id="describeCustomerBill"
+                                          placeholder="Nhập ghi chú"></textarea>
+                            </div>
+                        </div>
+                        <!-- Thông tin thanh toán -->
+                        <div class="col-xl-5" style="float: right">
+                            <div class="d-flex justify-content-between align-items-center mb-3"
+                                 style="margin-top: 20px">
+                                <div class="d-flex align-items-center">
+                                    <label style="margin-right: 10px;">Khách hàng:</label>
+                                    <h3 id="nameCustomerInCart"></h3>
+                                    <div id="btnRemoveCustomer" style="display: none">
+                                        <button class="nav-link " onclick="removeCustomer()" style="margin-left: 20px;">
+                                            <i
+                                                    class="material-icons">close</i></button>
+                                    </div>
+                                </div>
+                                <button class="btn"
+                                        style="background-color: rgb(104, 97, 206); color: white; margin-top: 14px"
+                                        id="popupSelectCustomer" data-bs-toggle="modal"
+                                        data-bs-target="#myModalCustomer" onclick="renderCustomer()">
+                                    Chọn khách hàng
+                                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAchJREFUSEu1lTtPVUEUhb8VaxOJRo1EGwosrfgBxhcaSyFW/AITgiRYGeiESLSwpwUt1Uh4WdraGQsaDChGo1FLyPLsZCDXwx3mesidds5e336s2Ud0+ajL+nQEsH27SmQS6EsJrQMPJb0uJVgE2J4AHmWExiXNHgY5FGD7OrAIfAECtJTErgHTwFngiqTVHKQEWA4BYFjS81YR20PAAvBG0s2mgB/ACeC4pD81wEngG7AlqbcpYBs4DZyS9D0D2JYUrWp7Si2Knl8FhiS9yLRoUdJgU0DrkMeBmMmxBJ0BzhxpyJGV7TEgxEK49ewCYdOnjW26F2i7H7gPhD13gLVq8LOSPh75oZUESvfZIdsOe0bWA8Cl5KZWva/Ae+BdquZ3O1hbgO1wxVwaYinJuN8CRiSt1D8+ALB9C3iVPnwJTAHrkn7WbBoVxvKL+4iJMygpVsv++Qdgu6daCx9S5tOSHnSSvu3HqZ2fgYuSfu3F1QGjwBPgraTLnYgnK4dOPMrYW/ckPcsBYqHdKT2edmDbN2LxVRXMV/a9mwNsAOeBnnrPS9XYPgdsAp8kXcgBHBeSij+iTBUH4hsJlarJuuh/Ajv9tusV/AXpWpsZNntrxAAAAABJRU5ErkJggg=="/>
+                                </button>
+
+                            </div>
+
+
+                            <div class="d-flex align-items-center mb-4">
+                                <h4 class="me-3">Giao hàng</h4>
+                                <label class="switch">
+                                    <input type="checkbox" id="hideDelivery">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                            <div class="input-group mb-4">
+                                <input type="text" id="codeVoucher" class="form-control" placeholder="Mã giảm giá">
+                                <button id="popupSelectVoucher" data-bs-toggle="modal"
+                                        data-bs-target="#myModalVoucher"
+                                        onclick="renderVoucher()"
+                                        style="background-color:  rgb(104, 97, 206);color: white" class="btn">Chọn mã
+                                </button>
+                            </div>
+                            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;" class="d-flex justify-content-between">
+                                <h5>Tổng tiền</h5>
+                                <h5 id="totalPrice">0 đ</h5>
+                            </div>
+                            <div id="oldTotalPricex">
+                                <div class="d-flex justify-content-between" >
+                                    <h5>Tiền thanh toán cũ</h5>
+                                    <h5 id="payPriceOldx">0 đ</h5>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <h5>Giảm giá</h5>
+                                <h5 id="reducedPrice">0 đ</h5>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <h5>Tiền ship</h5>
+                                <h5 id="shipPrice">0 đ</h5>
+                            </div>
+                            <div id="oldTotalPrice">
+                                <div class="d-flex justify-content-between" >
+                                    <h5>Tiền thanh toán cũ</h5>
+                                    <h5 id="payPriceOld">0 đ</h5>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <h4 id="returnPrice">Thanh toán</h4>
+                                <h3 id="payPrice">0 đ</h3>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <label for="printfBill" class="form-label">
+                                    <input id="printfBill" class="form-check-input" checked type="checkbox"><span
+                                        style="margin-left: 5px">In hóa đơn</span></label>
+                            </div>
+                            <div class="col-md-6" id="paymenMethor">
+                                <div class="card" style="width: 500px;">
+                                    <div class="card" style="width: 500px;">
+                                        <div class="card-body">
+                                            <ul
+                                                    class="nav nav-pills nav-secondary nav-pills-no-bd nav-pills-icons justify-content-center"
+                                                    id="pills-tab-with-icon"
+                                                    role="tablist"
+                                            >
+                                                <li class="nav-item" onclick="setPaymentMethods(1)">
+                                                    <a
+                                                            class="nav-link active"
+                                                            id="pills-home-tab-icon"
+                                                            data-bs-toggle="pill"
+                                                            href="#pills-home-icon"
+                                                            role="tab"
+                                                            aria-controls="pills-home-icon"
+                                                            aria-selected="true"
+                                                    >Tiền mặt
+                                                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAASlJREFUSEvVlbFKA1EQRc9FQbCzECS1vZ0gWKSxtxaEdDaKggGt1CKItfoJ2oRA6oBgIVZWdv6ApIllOuG6hl0J6yYb9mUjvnJ5M+femdl5ouSjkvPzA7DtacIkDXLPDpCoT5wkCiZ1NSruVw/+FDAOXtiB7XmgBuwDa3HJOsCRpLe80uaWyPYVcJLRiw9gWdJg+kIcdIEVYFfSne054AnYADYlPYcC+sAisC7pZdRUhTi4B3ZSiXvAJXAj6TPUwQJwChwCSynQtaTv78V7kFUS29vRRLWBrqRKEMB20uRjoAm8A2dR0otpAc7jZFlmDiTdBjmIg+uR2j1gNaa8Ag1JreAfbVh2Kavi/27TSZWn76Xfkaxl9whUCwIeot20NRw7u0e/oOLcsC+uCtgZHdLN7QAAAABJRU5ErkJggg=="/>
+                                                    </a>
+                                                </li>
+                                                <li class="nav-item" onclick="setPaymentMethods(2)">
+                                                    <a
+                                                            class="nav-link"
+                                                            id="pills-profile-tab-icon"
+                                                            data-bs-toggle="pill"
+                                                            href="#pills-profile-icon"
+                                                            role="tab"
+                                                            aria-controls="pills-profile-icon"
+                                                            aria-selected="false"
+                                                    >
+                                                        QR
+                                                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAKxJREFUSEvVVdEOgCAIhPX/n1w0XTRGoCVq5ZtTuDuQE2HwwsH54QQgInLAFkTcPCJeHCLm3PMBGLm1dKzIVZAOarJL598CYJmaVWnvKpA1f5Iwxen7Mpc5B5Ee6MfxDkDrE7Xi5lmF1eRLPY/xJ6JkHYlcthG979HkPgDeHDDDEnO+czE7aRUtAF2sQvdGKgGANdu0Z9d3zC4MEJmDaomM5D/50SJlKcUOt4odRkXkGW5+V2EAAAAASUVORK5CYII="/>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                            <div
+                                                    class="tab-content mt-2 mb-3"
+                                                    id="pills-with-icon-tabContent"
+                                            >
+                                                <div
+                                                        class="tab-pane fade show active"
+                                                        id="pills-home-icon"
+                                                        role="tabpanel"
+                                                        aria-labelledby="pills-home-tab-icon"
+                                                >
+                                                    <!--Nội dung tiền mặt-->
+                                                    <div class="mb-3 mt-3">
+                                                        <label class="form-label">Tiền khách đưa</label>
+                                                        <input type="number" id="inputMoney"
+                                                               onchange="coculateMoneyInput()" class="form-control"
+                                                               min="0"
+                                                               placeholder="Tiền khách đưa">
+                                                    </div>
+                                                    <div style="display: flex;margin-top: 30px;"
+                                                         class="d-flex justify-content-between">
+                                                        <h5 id="excessMoneyText">Trả khách</h5>
+                                                        <h4 style="float: right" id="excessMoney">0 đ</h4>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                        class="tab-pane fade"
+                                                        id="pills-profile-icon"
+                                                        role="tabpanel"
+                                                        aria-labelledby="pills-profile-tab-icon"
+                                                >
+                                                    <!--Nội dung chuyển khoản-->
+                                                    <img
+                                                            id="QRPay"
+                                                            src=""
+                                                            alt="QR Code"
+                                                            class="img-fluid mb-3"
+                                                    />
+                                                    <p>Cao Thanh Tùng</p>
+                                                    <p>Nhân hàng: MB Bank</p>
+                                                    <p>Số: 400290412004</p>
+                                                    <p id="viewTotalPricePay"></p>
+                                                    <p>Nội dung: Chuyển tiền thanh toán QR CODE</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button id="clickPay" class="btn" onclick="pay()"
+                                    style="background-color:  rgb(104, 97, 206);color: white;width: 100%">
+                                Xác nhận thanh toán
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
+        </div>
+
+        <!-- Modal  select product -->
+        <div class="modal modal-xl" id="myModalProduct">
+            <div class="modal-dialog modal-dialog-centered modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">&times;</button>
+                    </div>
+                    <!--  Nội dung-->
+                    <div class="col-md-6">
+                        <div class="card" style="width: 1140px">
+                            <div class="card-header">
+                                <div class="card-title">Chọn sản phẩm</div>
+                            </div>
+
+                            <!-- Filter selects and search box below the table -->
+                            <div class="card-footer">
+                                <div class="row">
+                                    <div class="col-md-9">
+                                        <div class="d-flex justify-content-start">
+                                            <!-- Filter select for each column -->
+                                            <select id="styleSelect" class="form-select me-2"
+                                                    aria-label="Filter by First">
+                                                <option selected>Chọn kiểu dáng</option>
+                                            </select>
+                                            <select id="materialSelect" class="form-select me-2"
+                                                    aria-label="Filter by First">
+                                                <option selected>Chọn chất liệu</option>
+                                            </select>
+                                            <select id="nsxSelect" class="form-select me-2"
+                                                    aria-label="Filter by First">
+                                                <option selected>Chọn NSX</option>
+                                            </select>
+                                            <select id="categorySelect" class="form-select me-2"
+                                                    aria-label="Filter by First">
+                                                <option selected>Chọn danh mục</option>
+                                            </select>
+                                            <select id="sizeSelect" class="form-select me-2"
+                                                    aria-label="Filter by First">
+                                                <option selected>Chọn kích thước</option>
+                                            </select>
+                                            <select id="colorSelect" class="form-select me-2"
+                                                    aria-label="Filter by First">
+                                                <option selected>Chọn màu sắc</option>
+                                            </select>
+                                        </div>
+
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="d-flex justify-content-end">
+                                            <!-- Search box on the right -->
+                                            <input type="text" id="searchProduct" class="form-control"
+                                                   placeholder="Tìm kiếm">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body" style=" max-height: 600px; overflow-y: auto;">
+                                <table class="table table-hover">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col" style="width: 200px">Sản phẩm</th>
+                                        <th scope="col">Kiểu dáng</th>
+                                        <th scope="col">Chất liệu</th>
+                                        <th scope="col">Màu</th>
+                                        <th scope="col" style="width: 20px">Kích thước</th>
+                                        <th scope="col" style="width: 20px">Kho</th>
+                                        <th scope="col">Đơn giá</th>
+                                        <th scope="col"></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="tbodyProduct">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!--  Footer-->
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal  input quantity product -->
+        <div class="modal fade" id="myModalInputQuantityProduct" tabindex="-1" aria-labelledby="quantityModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="quantityModalLabel">Nhập số lượng</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" style="display: flex">
+                        <label for="quantityAddProduct" style="padding-right: 30px">Số lượng:</label>
+                        <input class="form-control"
+                               placeholder="Nhập số lượng"
+                               id="quantityAddProduct"
+                               style="margin-right: 10px">
+                        <button type="button" class="btn btn-white" data-bs-dismiss="modal" id="payButton"
+                                onclick="addToCart()"><img
+                                src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAFZJREFUSEtjZKAxYKSx+QyjFhAMYVKD6D/URKL1Ea0QavCoBQTjbOgEEcylBL2EpgAj0eBKRTS3AJfLh04cjPoAHgKDriwiNV+M1miEQ4zUSCZsIpoKAFy0DhnDOA3uAAAAAElFTkSuQmCC"/>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal  select Customer -->
+        <div class="modal modal-xl" id="myModalCustomer">
+            <div class="modal-dialog modal-dialog-centered modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">&times;</button>
+                    </div>
+                    <!--  Nội dung-->
+                    <div class="col-md-6">
+                        <div class="card" style="width: 1140px">
+                            <div class="card-header">
+                                <div class="card-title">Chọn khách hàng</div>
+                                <button class="btn btn-dark"
+                                        style="float: right" id="popupAddCustomer" data-bs-toggle="modal"
+                                        data-bs-target="#myModalAddCustomer">Thêm <i class='fas fa-user-plus'></i>
+                                </button>
+                            </div>
+                            <div class="card-body" style=" max-height: 600px; overflow-y: auto;">
+                                <table class="table table-hover">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Họ tên</th>
+                                        <th scope="col">Số điện thoại</th>
+                                        <th scope="col">E-Mail</th>
+                                        <th scope="col">Giới tính</th>
+                                        <th scope="col">Sinh nhật</th>
+                                        <th scope="col">Địa chỉ</th>
+                                        <th scope="col"></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="tbodyCustomer">
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Nguyên Văn A</td>
+                                        <td>0987654321</td>
+                                        <td>customer1@f6.email</td>
+                                        <td>Nam</td>
+                                        <td>01/01/1999</td>
+                                        <td>Hai bà trưng,Hà nội</td>
+                                        <td>
+                                            <a class="btn" data-bs-dismiss="modal"><img
+                                                    src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAYVJREFUSEvN1D9IlVEYx/HPJV0abBAUbIggaAinhnQJhxpdgqAhCMQ/oEIt4qijREtEQZEENQQtLm4FgYOog4tNNRokhYug4KTvI+eFy8u9933pdqVnOXDOc37f53eeh1PT4ah1WN+5Ak6Sm0Ms4/G/cFfvIAfkunfxpV1IoyeaxxJWMdoEkBdT+sSNEnqxhwu4gt0GkLYAofcBD/EU4agYbQOGsY59XMZxgdA2IPS+4QYe4T1eY7JJT95gCi8wi+d4ErmtmhRiIbqFW+jGGoYKkA3cTnt/cAnX8b0McDGr6hd6cBPb6MNOWuP+bwym9UEm/BGb9UWUjVlu+R3GUpXhIJxEROXhIOIz7mACb3OXZYBr+JGaHNUfpIt5L+LtIwbwE0foR/wGZ1EGiJyvGMkuzeFZkyYvYiF9MeP1OVUA9/GpiXBxO8Y7f7LKDrrSRFwtgazgXjGnioOKxTdOqwp4mY3idDaerzBTkGp1VqnJoVf/lReLanVWGdBxB3/dh6o9+H8BpwsdRBk/cucSAAAAAElFTkSuQmCC"/>
+                                            </a></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Filter selects and search box below the table -->
+                            <div class="card-footer">
+                                <div class="row">
+                                    <div class="col-md-3" style="display: flex">
+                                        <div class="d-flex justify-content-end">
+                                            <input type="text" id="keyWordSearchCustomer" oninput="renderCustomer()"
+                                                   class="form-control" placeholder="Tìm kiếm">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="modal" id="myModalAddCustomer">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button"  id="closePopup" class="btn btn-dark" data-bs-dismiss="modal">&times;</button>
+                    </div>
+                    <div style="margin: 20px;">
+                        <div class="mb-3 mt-3">
+                            <label class="form-label">Họ tên</label>
+                            <input type="text" class="form-control" id="nameCustomerAdd"
+                                   placeholder="Nhập họ tên">
+                        </div>
+
+                        <div class="mb-3 mt-3">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="text" class="form-control" id="phoneCustomerAdd"
+                                   placeholder="Nhập số điện thoại">
+                        </div>
+
+                        <div class="mb-3 mt-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="emailCustomerAdd"
+                                   placeholder="Nhập email">
+                        </div>
+
+                        <div class="mb-3 mt-3">
+                            <label class="form-label" style="margin-right: 20px">Giới tính:</label>
+                            <label style="margin-right: 20px">
+                                <input type="radio" value="Nam" name="genderCustomerAdd">
+                                Nam
+                            </label>
+                            <label>
+                                <input type="radio" value="Nữ" name="genderCustomerAdd">
+                                Nữ
+                            </label>
+                        </div>
+                        <div class="mb-3 mt-3">
+                            <label class="form-label">Sinh nhật</label>
+                            <input type="date" class="form-control" id="birthDayCustomerAdd">
+                        </div>
+
+                        <button style="float: right" id="saveCustomer" class="btn btn-dark" onclick="saveNewCustomer()">Lưu và áp dụng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal  select Customer -->
+        <div class="modal modal-xl" id="myModalAddress">
+            <div class="modal-dialog modal-dialog-centered modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">&times;</button>
+                    </div>
+                    <!--  Nội dung-->
+                    <div class="col-md-6">
+                        <div class="card" style="width: 1140px">
+                            <div class="card-header">
+                                <div class="card-title">Địa chỉ</div>
+                            </div>
+                            <div class="card-body" style=" max-height: 600px; overflow-y: auto;">
+                                <table class="table table-hover">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Họ tên</th>
+                                        <th scope="col">Số điện thoại</th>
+                                        <th scope="col">Địa chỉ</th>
+                                        <th scope="col"></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="tbodyAddress">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!-- Modal  select Customer -->
+        <div class="modal modal-xl" id="myModalVoucher">
+            <div class="modal-dialog modal-dialog-centered modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">&times;</button>
+                    </div>
+                    <!--  Nội dung-->
+                    <div class="col-md-6">
+                        <div class="card" style="width: 1140px">
+                            <div class="card-header">
+                                <div class="card-title">Mã giảm giá</div>
+                            </div>
+                            <div class="card-body" style=" max-height: 600px; overflow-y: auto;">
+                                <table class="table table-hover">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Tên</th>
+                                        <th scope="col">Trạng thái</th>
+                                        <th scope="col">Mã</th>
+                                        <th scope="col">Giảm</th>
+                                        <th scope="col">Đơn tối thiểu</th>
+                                        <th scope="col">Giảm tối đa</th>
+                                        <th scope="col"></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="tbodyVoucher">
+                                    <tr>
+                                        <td>1</td>
+                                        <td>KM324J</td>
+                                        <td>7%</td>
+                                        <td>20.000 VNĐ</td>
+                                        <td>50.000 VNĐ</td>
+                                        <td>
+                                            <a class="btn"><img
+                                                    src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAYVJREFUSEvN1D9IlVEYx/HPJV0abBAUbIggaAinhnQJhxpdgqAhCMQ/oEIt4qijREtEQZEENQQtLm4FgYOog4tNNRokhYug4KTvI+eFy8u9933pdqVnOXDOc37f53eeh1PT4ah1WN+5Ak6Sm0Ms4/G/cFfvIAfkunfxpV1IoyeaxxJWMdoEkBdT+sSNEnqxhwu4gt0GkLYAofcBD/EU4agYbQOGsY59XMZxgdA2IPS+4QYe4T1eY7JJT95gCi8wi+d4ErmtmhRiIbqFW+jGGoYKkA3cTnt/cAnX8b0McDGr6hd6cBPb6MNOWuP+bwym9UEm/BGb9UWUjVlu+R3GUpXhIJxEROXhIOIz7mACb3OXZYBr+JGaHNUfpIt5L+LtIwbwE0foR/wGZ1EGiJyvGMkuzeFZkyYvYiF9MeP1OVUA9/GpiXBxO8Y7f7LKDrrSRFwtgazgXjGnioOKxTdOqwp4mY3idDaerzBTkGp1VqnJoVf/lReLanVWGdBxB3/dh6o9+H8BpwsdRBk/cucSAAAAAElFTkSuQmCC"/>
+                                            </a></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div id="overlay"></div>
+
+        <!-- Popup chứa video và nút đóng -->
+        <div id="popup">
+            <!-- Nút X để đóng popup -->
+            <button class="close-btn" onclick="closeScanner()">&times;</button>
+            <video id="video"></video>
+        </div>
+    </div>
+</div>
+
+
+</body>
+</html>

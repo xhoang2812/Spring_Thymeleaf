@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date Grid</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        .form-check-input[type="radio"] {
+            border: 8px solid rgb(184, 183, 183);
+        }
+        .form-check-input[type="radio"]:checked {
+            background-color: black;
+            border: 2px solid black;
+        }
+    </style>
+    <script defer>
+        let initialData = [];
+        function loading() {
+            const yearSelect = document.getElementById("year-select");
+            const currentYear = new Date().getFullYear();
+            const monthSelect = document.getElementById("month-select")
+
+            const selectedRadio = document.querySelector('input[name="shiftRadio"]:checked');
+
+            $.ajax({
+                url: "http://localhost:8080/api" + "/caLam",
+                type: "GET",
+                success: function (data) {
+                    initialData = data;
+                },
+                error: function (error) {
+                    console.log(error)
+                },
+                complete: function () {
+                    for (let year = currentYear - 5; year <= currentYear + 5; year++) {
+                        const option = document.createElement("option");
+                        option.value = year;
+                        option.textContent = year;
+                        yearSelect.appendChild(option);
+                    }
+
+                    // Thiết lập năm và tháng hiện tại
+                    const currentMonth = new Date().getMonth();
+                    yearSelect.value = currentYear;
+                    monthSelect.value === "0" ? document.getElementById("month-select").value = currentMonth : document.getElementById("month-select").value = monthSelect.value;
+
+                    monthSelect.value === "0" ? displayDates(currentYear, currentMonth) : displayDates(currentYear, monthSelect.value);
+
+                    if (selectedRadio) {
+                        const radioToCheck = document.getElementById(selectedRadio.value);
+                        if (radioToCheck) {
+                            radioToCheck.checked = true;
+                        }
+                    }
+                    // Thay đổi tháng và năm
+                    yearSelect.addEventListener("change", () => {
+                        displayDates(yearSelect.value, document.getElementById("month-select").value);
+                    });
+
+                    document.getElementById("month-select").addEventListener("change", () => {
+                        displayDates(yearSelect.value, document.getElementById("month-select").value);
+                    });
+                }
+            })
+        }
+        function isLeapYear(year) {
+            return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+        }
+
+        function generateDays(month, year) {
+            let daysInMonth;
+            switch (month) {
+                case 1:
+                    daysInMonth = isLeapYear(year) ? 29 : 28;
+                    break;
+                case 3: case 5: case 8: case 10:
+                    daysInMonth = 30;
+                    break;
+                default:
+                    daysInMonth = 31;
+            }
+            return daysInMonth;
+        }
+
+        function getDayName(date) {
+            const dayNames = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+            return dayNames[date.getDay()];
+        }
+
+        let shiftsData = {};
+
+        function displayDates(year, month) {
+            const dateGrid = document.getElementById("date-grid");
+            dateGrid.innerHTML = '';
+
+            const daysInMonth = generateDays(month, year);
+            const today = new Date();
+            const currentDate = new Date(year, month);
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const colClass = "col-12 col-md-6 col-lg-4 col-xl-3";
+                const dateDiv = document.createElement("div");
+                dateDiv.className = `mb-3 ${colClass}`;
+                const card = document.createElement("div");
+                card.className = "card h-100";
+
+                const cardBody = document.createElement("div");
+                cardBody.className = "card-body";
+
+                const dateTitle = document.createElement("h5");
+                dateTitle.className = "card-title";
+                dateTitle.textContent = `${String(day).padStart(2, '0')}/${String(Number(month) + 1).padStart(2, '0')}/${year} (${getDayName(date)})`;
+
+                const formattedDate = date.toLocaleDateString('vi-VN');
+                const existingData = initialData.find(item => item.ngayLam === formattedDate);
+                const createShiftButton = document.createElement("button");
+                createShiftButton.className = "btn btn-primary";
+
+                // Disable button for past dates
+                if (today > date.setHours(22,0,0,0)) {
+                    createShiftButton.disabled = existingData ? false : true;
+                    createShiftButton.className = "btn btn-dark";
+                }
+                createShiftButton.onclick = (e) => {
+                    e.stopPropagation(); // Ngăn sự kiện click lan truyền lên div cha
+                    $.ajax({
+                        url: "http://localhost:8080/api" + "/caLam?ngayLam=" + formattedDate,
+                        type: "POST",
+                        success: function (data) {
+                            shiftsData[formattedDate] = data.caLamChiTiets;
+                            displayShifts(formattedDate, cardBody);
+                        },
+                        error: function (error) {
+                            console.log(error)
+                        },
+                        complete: function () {
+                            loading()
+                        }
+                    })
+                };
+
+                cardBody.appendChild(dateTitle);
+                cardBody.appendChild(createShiftButton);
+                card.appendChild(cardBody);
+                dateDiv.appendChild(card);
+                dateGrid.appendChild(dateDiv);
+
+                if (existingData) {
+                    // If existing data, display shifts in the modal
+                    shiftsData[formattedDate] = existingData.caLamChiTiets;
+                    displayShifts(formattedDate, cardBody);
+                } else {
+                    createShiftButton.textContent = "Tạo ca";
+                }
+            }
+        }
+
+        function displayShifts(date, cardBody) {
+            const shifts = shiftsData[date];
+            const shiftsDiv = document.createElement("div");
+            shiftsDiv.className = "mt-2";
+            let thongtin = "";
+            shifts.forEach(shift => {
+                if (shift?.employees.length === 0) {
+                    thongtin = "";
+                } else {
+                    thongtin = `${shift?.employees[0]?.employeeCode} [ ${shift?.employees[0]?.name} ] -`
+                }
+                const shiftDiv = document.createElement("div");
+                shiftDiv.className = "shift";
+                shiftDiv.innerHTML = `
+                    ${shift?.tenCa}: ${thongtin} <strong> ${shift.trangThai} </strong>
+                `;
+                shiftsDiv.appendChild(shiftDiv);
+            });
+
+            cardBody.appendChild(shiftsDiv);
+            cardBody.querySelector('button').style.display = 'none'; // Ẩn nút "Tạo ca"
+
+            // Hiển thị radio button sau khi tạo ca
+            const div1 = document.createElement("div");
+            div1.className = "text-end"
+            const radioButton = document.createElement("input");
+            radioButton.type = "radio";
+            radioButton.name = `shiftRadio`;
+            radioButton.value = date;
+            radioButton.id = date;
+            radioButton.className = "form-check-input me-2";
+            div1.append(radioButton)
+            cardBody.prepend(div1);
+            // Bắt sự kiện click lên card
+            cardBody.onclick = () => {
+                // Đánh dấu radio và mở modal khi nhấn vào div
+                radioButton.checked = true;
+                const modalBody = document.getElementById("shiftModalBody");
+
+                modalBody.innerHTML = `<h5>Ngày: ${date}</h5>`;
+                // Thêm ngày vào modal
+                shifts.forEach((shift, index) => {
+                    const shiftDetail = document.createElement("div");
+                    shiftDetail.innerHTML = `<input type="radio" class="form-check-input ms-5" name="caLam" id="caLam" onclick="showCaLam(${shift.id})"> ${shift.tenCa}`;
+                    if (index === 0) {
+                        shiftDetail.querySelector("input").checked = true;
+                        showCaLam(shift.id);
+                    }
+                    modalBody.appendChild(shiftDetail);
+                });
+                $.ajax({
+                    url: "http://localhost:8080/api" + "/caLam/employee",
+                    type: "GET",
+                    success: function (data) {
+                        const list = document.getElementById("listEmployee")
+                        list.innerHTML = ``
+                        data.forEach(employee => {
+                            let listEmployee = document.createElement("tr");
+                            listEmployee.innerHTML = `
+                                    <th scope="row"><input type="radio" id="r${employee?.id}" class="form-check-input" name="nv" onclick="addEmployeeToCaLam(${employee?.id})"></th>
+                                    <td>${employee?.employeeCode}</td>
+                                    <td>${employee?.name}</td>
+                        `;
+                            list.append(listEmployee);
+                        })
+                    },
+                    error: function (error) {
+                        console.log(error)
+                    }
+                })
+                const shiftModal = new bootstrap.Modal(document.getElementById('shiftModal'));
+                shiftModal.show();
+
+            };
+        }
+        let idCaLamCT = -1;
+        function showCaLam(id) {
+            idCaLamCT = id;
+            $.ajax({
+                url: "http://localhost:8080/api" + "/caLam/caLamCt/" + id,
+                type: "GET",
+                success: function (data) {
+                    const tbody = document.getElementById('listEmployee');
+                    const radios = tbody.querySelectorAll('input[type="radio"]');
+                    const radio = document.getElementById("r"+ data?.employees[0]?.id);
+                    if (radio !== null) {
+                        radio.checked = true;
+                    } else {
+                        radios.forEach(radio => radio.checked = false)
+                    }
+
+
+                    const dateCheck = data?.calam.ngayLam;
+                    const [day, month, year] = dateCheck.split('/');
+                    const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+
+
+                    const startCa1 = new Date(`${formattedDate}T07:00:00`); // 7:00 AM
+                    const endCa1 = new Date(`${formattedDate}T12:00:00`); // 12:00 PM
+                    const startCa2 = new Date(`${formattedDate}T12:00:00`);  // 12:00 PM
+                    const endCa2 = new Date(`${formattedDate}T17:00:00`);    // 5:00 PM
+                    const startCa3 = new Date(`${formattedDate}T17:00:00`);  // 12:00 PM
+                    const endCa3 = new Date(`${formattedDate}T22:00:00`);    // 5:00 PM
+                    // Lấy thời gian hiện tại
+                    const now = new Date();
+                    switch (data.tenCa) {
+                        case "Ca 1":
+                            radios.forEach(radio => {
+                                if (now >= endCa1) {
+                                    radio.disabled = true; // Disable radio nếu thời gian trong khoảng 7:00 AM - 12:00 PM
+                                } else if (now > startCa1 && now < endCa1 && data.trangThai === "Đã nhận ca" || data.trangThai === "Đã bàn giao ca") {
+                                    radio.disabled = true;
+                                } else if (now > startCa1 && now < endCa1 && data.trangThai === "Trống" || data.trangThai === "Chưa nhận ca") {
+                                    radio.disabled = false;
+                                } else if (now < startCa1) {
+                                    radio.disabled = false;
+                                }
+                            });
+                            break;
+                        case "Ca 2":
+                            radios.forEach(radio => {
+                                if (now >= endCa2) {
+                                    radio.disabled = true; // Disable radio nếu thời gian trong khoảng 7:00 AM - 12:00 PM
+                                } else if (now > startCa2 && now < endCa2 && data.trangThai === "Trống" || data.trangThai === "Chưa nhận ca") {
+                                    radio.disabled = false;
+                                } else if (now > startCa2 && now < endCa2 && data.trangThai === "Đã nhận ca" || data.trangThai === "Đã bàn giao ca") {
+                                    radio.disabled = true;
+                                } else if (now < startCa2) {
+                                    radio.disabled = false;
+                                }
+                            });
+                            break;
+                        case "Ca 3":
+                            radios.forEach(radio => {
+                                if (now >= endCa3) {
+                                    radio.disabled = true; // Disable radio nếu thời gian trong khoảng 7:00 AM - 12:00 PM
+                                } else if (now > startCa3 && now < endCa3 && data.trangThai === "Trống" || data.trangThai === "Chưa nhận ca") {
+                                    radio.disabled = false;
+                                } else if (now > startCa3 && now < endCa3 && data.trangThai === "Đã nhận ca" || data.trangThai === "Đã bàn giao ca") {
+                                    radio.disabled = true;
+                                } else if (now < startCa3) {
+                                    radio.disabled = false;
+                                }
+                            });
+                            break;
+
+                        default:
+                            break;
+                    }
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            })
+
+        }
+        function addEmployeeToCaLam(idEmployee) {
+
+            const employee = document.getElementById("r" + idEmployee);
+            $.ajax({
+                url: "http://localhost:8080/api/caLam/" + idCaLamCT + "/" + idEmployee,
+                type: "PUT",
+                success: function (data) {
+                    if (data.trangThai === "Trống") {
+                        employee.checked = false;
+                    }
+                    loading();
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            })
+        }
+
+        function createShiftExcel() {
+            Swal.fire({
+                title: 'Download template tạo ca làm!',
+                html: '<div class="row">\n' +
+                    '        <div class="col-5">\n' +
+                    '            <input type="date" class="form-control" id="dateStart">\n' +
+                    '        </div>\n' +
+                    '        <div class="col-2 text-center mt-2">\n' +
+                    '            <strong>Đến</strong></div>\n' +
+                    '        <div class="col-5">\n' +
+                    '            <input type="date" class="form-control" id="dateEnd">\n' +
+                    '        </div>\n' +
+                    '    </div>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Xác nhận',
+                cancelButtonText: 'Hủy',
+                preConfirm: () => {
+                    // Thực hiện kiểm tra điều kiện trước khi cho phép đóng hộp thoại
+                    const startDateStr = document.getElementById('dateStart').value;
+                    const endDateStr = document.getElementById('dateEnd').value;
+                    console.log(startDateStr, endDateStr);
+                    if (!startDateStr || !endDateStr) {
+                        Swal.showValidationMessage("Vui lòng chọn cả ngày bắt đầu và ngày kết thúc.");
+                        return false;
+                    }
+
+                    const startDate = new Date(startDateStr);
+                    const endDate = new Date(endDateStr);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    if (startDate <= today) {
+                        Swal.showValidationMessage("Ngày bắt đầu phải lớn hơn ngày hiện tại.");
+                        return false;
+                    }
+
+                    if (endDate <= startDate) {
+                        Swal.showValidationMessage("Ngày kết thúc phải lớn hơn ngày bắt đầu.");
+                        return false;
+                    }
+                    return { startDate, endDate };
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    const { startDate, endDate } = result.value;
+
+                    // Tạo dữ liệu cho Excel
+                    const data = [];
+                    data.push(["Ngày làm việc", "Ca làm", "ID nhân viên"]);
+
+                    for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+                        const dateString = date.toLocaleDateString('en-GB');
+                        data.push([dateString, "Ca 1"]);
+                        data.push([dateString, "Ca 2"]);
+                        data.push([dateString, "Ca 3"]);
+                    }
+
+                    const workbook = XLSX.utils.book_new();
+                    const worksheet = XLSX.utils.aoa_to_sheet(data);
+                    XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sách");
+
+                    XLSX.writeFile(workbook, "Danh_sach_Ca.xlsx");
+                } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+                    console.log("Đã nhấn nút Hủy");
+                }
+            });
+        }
+
+        let file = null;
+
+        function chooseFile(){
+            file = event.target.files[0];
+        }
+
+        function ConvertShift(){
+            if (!file) {
+                showToast("Vui lòng chọn một file trước!", "error");
+            }else {
+                Swal.fire({
+                    title: 'Xác nhận tạo ca làm',
+                    html: 'Bạn có chắc chắn tạo ca làm không ?<br><strong>Lưu ý</strong> : Hệ thống sẽ <strong>ghi đè</strong> tất cả ca làm nếu ca làm bao gồm cả những ca <strong>đã tạo trước đó</strong>.',
+                    icon: 'warning',
+                    showCancelButton: true,       // Hiển thị nút "Hủy"
+                    confirmButtonText: 'Xác nhận', // Nút xác nhận đăng xuất
+                    cancelButtonText: 'Hủy'        // Nút hủy
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, {type: 'array'});
+                            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                            const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+                            const dataArray = jsonData.map((row, index) => {
+                                if (row.length < 3 || row.length > 4 || index === 0) return null;
+                                const ngayLam = row[0];
+                                let dayWork;
+                                if (typeof ngayLam === 'number' && ngayLam > 40000) {
+                                    dayWork = XLSX.SSF.format("dd/MM/yyyy", ngayLam);
+                                    const today = XLSX.SSF.format("dd/MM/yyyy", new Date());
+                                    if (dayWork <= today) {
+                                        return null;
+                                    }
+                                } else if (typeof ngayLam === 'string') {
+                                    if (isValidDate(ngayLam)) {
+                                        dayWork = ngayLam;
+                                    } else {
+                                        return null;
+                                    }
+                                }
+                                const caLam = row[1];
+                                if (!["Ca 1", "Ca 2", "Ca 3"].includes(caLam)) return null;
+                                const shiftName = caLam;
+
+                                const idNhanVien = row[2];
+                                if (isNaN(idNhanVien)) return null;
+                                const idEmployee = Number(idNhanVien);
+
+                                return {dayWork, shiftName, idEmployee};
+                            }).filter(item => item);
+
+                            // console.log("Dữ liệu đã xử lý:", dataArray);
+
+                            createShift(dataArray);
+                        };
+                        reader.readAsArrayBuffer(file);
+                    }
+                });
+            }
+        }
+        function isValidDate(dateString) {
+            const [day, month, year] = dateString.split('/').map(Number);
+
+            const date = new Date(year, month - 1, day);
+            const today = new Date();
+            return (
+                date.getFullYear() === year &&
+                date.getMonth() === month - 1 &&
+                date.getDate() === day && date > today
+            );
+        }
+        function createShift(dataArray){
+            $.ajax({
+                url: '/api/caLam/saveListCaLam',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(dataArray),
+                success: function() {
+                    loading();
+                    showToast("Tạo ca thành công", "success");
+                },
+                error: function(error) {
+                    console.error("Lỗi khi gửi dữ liệu:", error);
+                }
+            });
+        }
+
+        function showToast(message, status) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: status,
+                title: message
+            });
+        }
+    </script>
+</head>
+
+<body onload="loading()">
+<div class="container-fluid mt-4" layout:fragment="content">
+    <h1 class="mb-5">Danh sách ca làm</h1>
+    <div class="row mb-3">
+        <div class="col-2">
+            <label for="year-select" class="form-label">Năm:</label>
+            <select id="year-select" class="form-select"></select>
+        </div>
+        <div class="col-2">
+            <label for="month-select" class="form-label">Tháng:</label>
+            <select id="month-select" class="form-select">
+                <option value="0">Tháng 1</option>
+                <option value="1">Tháng 2</option>
+                <option value="2">Tháng 3</option>
+                <option value="3">Tháng 4</option>
+                <option value="4">Tháng 5</option>
+                <option value="5">Tháng 6</option>
+                <option value="6">Tháng 7</option>
+                <option value="7">Tháng 8</option>
+                <option value="8">Tháng 9</option>
+                <option value="9">Tháng 10</option>
+                <option value="10">Tháng 11</option>
+                <option value="11">Tháng 12</option>
+            </select>
+        </div>
+        <div class="col-5 d-flex">
+            <div class="">
+                <label>Tạo ca từ excel:</label>
+                <input type="file" onchange="chooseFile()" class="form-control col-8" id="fileInput" accept=".xlsx, .xls">
+            </div>
+            <div class="">
+                <label for="" class="col-12"> </label>
+                <button class="btn btn-primary" onclick="ConvertShift()">Xác nhận</button>
+            </div>
+        </div>
+        <div class="col-3">
+            <label for="" class="col-12"></label>
+            <button class="btn btn-primary" onclick="createShiftExcel()">Template tạo ca</button>
+        </div>
+    </div>
+
+    <div class="row" id="date-grid"></div>
+    <!-- Modal -->
+    <div class="modal fade" id="shiftModal" tabindex="-1" aria-labelledby="shiftModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="shiftModalLabel">Thông tin ca làm việc</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex" id="shiftModalBody">
+                    </div>
+                    <div class="mt-4">
+                        <table class="table">
+                            <thead class="table-dark">
+                            <tr>
+                                <th scope="col">Chọn</th>
+                                <th scope="col">Mã nhân viên</th>
+                                <th scope="col">Tên nhân viên</th>
+                            </tr>
+                            </thead>
+                            <tbody id="listEmployee">
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                            onclick="loading()">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

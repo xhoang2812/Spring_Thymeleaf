@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{admin/index}"
+      xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <meta content="IE=edge" http-equiv="X-UA-Compatible">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Quản lý hình ảnh</title>
+  <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet"/>
+  <style>
+    /*body {*/
+    /*  opacity: 0;*/
+    /*  transition: opacity 0.5s ease-in-out;*/
+    /*}*/
+    /*body.show {*/
+    /*  opacity: 1;*/
+    /*}*/
+    input{
+      border: none;
+      border-bottom: 1px solid;
+      height: 30px;
+      width: 200px;
+    }
+
+  </style>
+</head>
+
+<body onload="loading()">
+<div layout:fragment="content" class="container-fluid p-4">
+  <h3 style="font-weight: 600"><i class="fa-solid fa-rectangle-list" ></i> Danh sách ca làm <span id="nameNV"></span></h3>
+  <div class="mt-5">
+    <h5 style="font-weight: 600"><i class="fa-solid fa-filter"></i> Lọc</h5>
+    <input type="date" onchange="filter()" id="from"> Đến
+    <input type="date" onchange="filter()" id="to">
+  </div>
+  <div class="row d-flex mt-3" id="listCL">
+
+  </div>
+  <script>
+    function loading(){
+      // setTimeout(() => {
+      //   $.ajax({
+      //     url: "/api/vouchers/userData",
+      //     method: "GET",
+      //     success: function (data) {
+      //       console.log(data)
+      //
+      //     },
+      //     error: function (error) {
+      //       console.log(error)
+      //     }
+      //   })
+      // }, 300);
+      const today = new Date();
+
+      const dateStart = new Date(today);
+      dateStart.setDate(today.getDate() - 1);
+
+      const dateEnd = new Date(today);
+      dateEnd.setFullYear(today.getFullYear() + 10);
+
+      const data = {
+        dateStart : dateStart,
+        dateEnd : dateEnd
+      }
+
+      $.ajax({
+        url :"/api/caLam/checkCL",
+        method : "POST",
+        contentType: "application/json",
+        data: JSON.stringify(data),
+        success : function (data){
+          console.log(data)
+          const list = document.getElementById("listCL");
+          data.forEach(item => {
+             list.innerHTML += `<div class="col-3 p-2">
+      <div class="card border-0 shadow">
+        <div class="card-body">
+          <p style="font-weight: 600">${item.calam.ngayLam} <sup>${item.thoiGianBatDauCa} - ${item.thoiGianKetThucCa}</sup></p>
+          <p>${item.tenCa}: ${item.employees[0].employeeCode} - ${item.employees[0].name}</p>
+        </div>
+      </div>
+    </div>`;
+          })
+        },
+        error : function (error){
+          console.log(error)
+        }
+      })
+    }
+
+    function filter(){
+      let fromDate = document.getElementById("from").value;
+      let toDate = document.getElementById("to").value;
+      const today = new Date();
+      if(fromDate === ""){
+        fromDate = new Date(today);
+        fromDate.setDate(today.getDate() - 1);
+      }else if(toDate === ""){
+        toDate = new Date(today);
+        toDate.setFullYear(today.getFullYear() + 10);
+      }
+
+      const data = {
+        dateStart : fromDate,
+        dateEnd : toDate
+      }
+      $.ajax({
+        url :"/api/caLam/checkCL",
+        method : "POST",
+        contentType: "application/json",
+        data: JSON.stringify(data),
+        success : function (data){
+          console.log(data)
+          const list = document.getElementById("listCL");
+          list.innerHTML = ``;
+          data.forEach(item => {
+            list.innerHTML += `<div class="col-3 p-2">
+      <div class="card border-0 shadow">
+        <div class="card-body">
+          <p style="font-weight: 600">${item.calam.ngayLam} <sup>${item.thoiGianBatDauCa} - ${item.thoiGianKetThucCa}</sup></p>
+          <p>${item.tenCa}: ${item.employees[0].employeeCode} - ${item.employees[0].name}</p>
+        </div>
+      </div>
+    </div>`;
+          })
+        },
+        error : function (error){
+          console.log(error)
+        }
+      })
+    }
+  </script>
+
+</div>
+</body>
+</html>

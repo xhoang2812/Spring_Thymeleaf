@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+          integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        .upload-box {
+            width: 120px;
+            height: 120px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            margin: 0 auto;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-box:hover {
+            border-color: #888;
+        }
+
+        .upload-box input[type="file"] {
+            opacity: 0;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .upload-box .plus-sign {
+            font-size: 40px;
+            color: #ccc;
+            display: block;
+        }
+
+        .spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ccc;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        #imageContainer {
+            position: relative;
+            display: inline-block;
+        }
+
+        #imageContainer img {
+            max-width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .delete-icon {
+            position: absolute;
+            top: -22px;
+            right: -10px;
+            width: 24px;
+            height: 24px;
+            background-color: #f44336;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .delete-icon:hover {
+            background-color: #d32f2f;
+        }
+        .textarea-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+
+        }
+
+        .textarea-container label {
+            position: absolute;
+            left: 20px;
+            top: -10px;
+            background-color: #fff;
+            padding: 0 10px;
+            font-size: 14px;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        textarea {
+            width: 80%;
+            height: 150px;
+            padding: 15px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            outline: none;
+            background-color: #f9f9f9;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            resize: none; /* Tắt khả năng thay đổi kích thước */
+        }
+
+        textarea:focus {
+            border-color: #4CAF50;
+            background-color: #fff;
+            box-shadow: 0 0 8px rgba(72, 206, 106, 0.4);
+        }
+
+        textarea:focus + label,
+        textarea:not(:placeholder-shown) + label {
+            top: -15px;
+            left: 20px;
+            font-size: 12px;
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body onload="loading()">
+<div class="container-fluid" layout:fragment="content">
+    <h1>Hoàn tiền</h1>
+    <div class="d-flex mt-5 justify-content-around">
+        <div class="card border-0 shadow col-5">
+            <div class="card-body">
+                <div class="col-12">
+                    <h4 class="text-center">Thông tin hoàn tiền của khách hàng</h4>
+                    <div class="d-flex mt-4">
+                        <div class="col-5" id="customer-info">
+
+                        </div>
+                        <div class="col-6">
+                            <img id="img" src="" width="300px" alt="Không có ảnh">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-0 shadow col-5">
+            <div class="card-body">
+                <div class="col-12">
+                    <h4 class="text-center">Minh chứng hoàn tiền</h4>
+                    <div class="d-flex mt-4">
+                        <div class="col-1"></div>
+                        <div class="col-5">
+                            <div class="textarea-container">
+                                <textarea id="message" placeholder=" "  required></textarea>
+                                <label for="message">Ghi chú</label>
+                            </div>
+
+                        </div>
+                        <div class="col-6">
+                            <div id="upload-div" style="float: left;">
+                                <div class="upload-box">
+                                    <input type="file" id="imageUpload" accept="image/*" onchange="uploadImage()">
+                                    <span class="plus-sign">+</span>
+                                    <div class="spinner" id="spinner"></div>
+                                </div>
+                            </div>
+                            <p id="status"></p>
+                            <div id="imageContainer"></div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button class="btn btn-dark me-5 mt-5 col-4" onclick="submitForm()">Xác nhận</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const cloudName = 'dbe1h6ajz'; // Thay YOUR_CLOUD_NAME bằng cloud_name của bạn
+        const uploadPreset = 'hws3gmku'; // Thay YOUR_UPLOAD_PRESET bằng upload_preset từ Cloudinary
+        const trade = JSON.parse(sessionStorage.getItem('trade'));
+        function loading(){
+            const customer = document.getElementById("customer-info");
+            customer.innerHTML = renderUserInfo(trade);
+            document.getElementById("img").src = trade.qrInfo;
+        }
+
+        function renderUserInfo(trade){
+            const row = `<p>Ngân hàng: ${trade.nameBank}</p>
+                    <p>Số tài khoản: ${trade.bankInfo}</p>
+                    <p>Người nhận: ${trade.userInfo}</p>
+                    <p>Email: ${trade.email}</p>
+                    <p>Số điện thoại: ${trade.phoneInfo}</p>`;
+            return row;
+        }
+
+
+
+        function submitForm(){
+            const img = document.getElementById("img-pay");
+            const message = document.getElementById("message");
+            const imageContainer = document.getElementById("upload-div");
+            if(img !== null){
+                const url = img.src;
+                Swal.fire({
+                    title: 'Xác nhận huỷ voucher',
+                    html: 'Bạn có chắc chắn xác nhận đã hoàn tiền cho khách không?<br><strong>Lưu ý</strong> : Hệ thống sẽ <strong>gửi email</strong> thông báo đến khách hàng và hoá đơn không thể <strong>chỉnh sửa</strong> được hoặc <strong>trả hàng</strong> được nữa.',
+                    icon: 'warning',
+                    showCancelButton: true,       // Hiển thị nút "Hủy"
+                    confirmButtonText: 'Xác nhận', // Nút xác nhận đăng xuất
+                    cancelButtonText: 'Hủy'        // Nút hủy
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "/api/returnProduct/returnMoneySuccess/" + trade.id + "?url=" + url + "&message=" + message.value.trim(),
+                            method : "GET",
+                            success : function (){
+                                window.location.href = '/bill';
+                            }
+                        })
+                    }
+                });
+            }
+            else {
+                imageContainer.style.border = '1px solid red';
+                showToast("Vui lòng thêm ảnh minh chứng hoàn tiền", "warning")
+            }
+
+        }
+
+        function uploadImage() {
+            const imageFile = document.getElementById("imageUpload").files[0];
+            const status = document.getElementById("status");
+            const imageContainer = document.getElementById("imageContainer");
+            const spinner = document.getElementById("spinner");
+            const plusSign = document.querySelector(".plus-sign");
+            const uploadDiv = document.getElementById("upload-div");
+
+            if (!imageFile) {
+                status.textContent = "Vui lòng chọn một ảnh để tải lên!";
+                return;
+            }
+
+            spinner.style.display = "block";
+            plusSign.style.display = "none";
+            imageContainer.innerHTML = "";
+
+            const formData = new FormData();
+            formData.append("file", imageFile);
+            formData.append("upload_preset", uploadPreset);
+
+            axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            })
+                .then(response => {
+                    const url = response.data.secure_url;
+                    status.textContent = "";
+                    spinner.style.display = "none";
+                    plusSign.style.display = "block";
+                    uploadDiv.style.display = "none";
+
+                    imageContainer.innerHTML = `
+                        <img src="${url}" style="margin-top: -14px" height="400px" width="200px" id="img-pay" alt="Uploaded Image" onclick="window.open('${url}', '_blank')" />
+                        <button class="delete-icon" onclick="deleteImage()">×</button>
+                    `;
+                })
+                .catch(error => {
+                    console.error("Lỗi khi tải lên:", error);
+                    status.textContent = "Tải lên thất bại!";
+                    spinner.style.display = "none";
+                    plusSign.style.display = "block";
+                });
+        }
+
+        function deleteImage() {
+            const imageContainer = document.getElementById("imageContainer");
+            const uploadDiv = document.getElementById("upload-div");
+
+            // Xóa nội dung ảnh
+            imageContainer.innerHTML = "";
+
+            // Hiển thị lại ô upload
+            uploadDiv.style.display = "block";
+        }
+        function showToast(message, status) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: status,
+                title: message
+            });
+        }
+    </script>
+</div>
+</body>
+</html>

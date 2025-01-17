@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Quản lý khuyến mãi</title>
+
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+    <link href="/css/voucher.css" rel="stylesheet"/>
+    <script src="/js/voucher.js" defer></script>
+</head>
+<body>
+<div layout:fragment="content" class="container-fluid" id="contentVoucher">
+    <div id="toastContainer" class="toast-container"></div>
+
+    <h1 style="font-weight: 700">Voucher</h1>
+
+    <div class="mt-5">
+        <div class="row justify-content-center">
+            <div class="col-12">
+
+                <div class="card border-0 shadow">
+                    <div class="card-body">
+                        <h5 style="font-weight: 600"><i class="fa-solid fa-rectangle-list" ></i> Danh sách phiếu giảm giá</h5>
+                        <div class="text-end">
+                            <button onclick="createVoucherPage()"
+                                    class="btn bg-black text-white"><i class="fa-solid fa-folder-plus"></i>
+                                Thêm
+                            </button>
+                        </div>
+                        <div class="filter-container mt-3 text-center">
+                                <label for="minDiscount" style="font-weight: 700">Tối thiểu:</label>
+                                <input type="number" style="border: none; border-bottom: 1px solid;width: 15%" id="minDiscount" placeholder="Nhập giảm giá tối thiểu">
+
+                            <label for="maxDiscount" class="ms-4" style="font-weight: 700">Tối đa:</label>
+                            <input type="number" style="border: none; border-bottom: 1px solid;width: 15%" id="maxDiscount" placeholder="Nhập giảm giá tối đa">
+
+                            <label for="startDate" class="ms-4" style="font-weight: 700">Ngày bắt đầu:</label>
+                            <input type="date" id="startDate" style="border: none; border-bottom: 1px solid; width: 15%;">
+
+                            <label for="endDate" class="ms-4" style="font-weight: 700">Ngày kết thúc:</label>
+                            <input type="date" id="endDate" style="border: none; border-bottom: 1px solid; width: 15%;">
+
+                            <button id="applyFilter" class="btn btn-dark ms-4 mb-3">Lọc</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="multi-filter-select" class="table table-hover mb-0">
+                                <thead class="table-dark">
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Mã giảm giá</th>
+                                    <th scope="col">Tên Mã Giảm Giá</th>
+                                    <th scope="col">Giá Trị Giảm</th>
+                                    <th scope="col">Đơn hàng tối thiểu</th>
+                                    <th scope="col">Giảm tối đa</th>
+                                    <th scope="col">Số lượng</th>
+                                    <th scope="col">Đã dùng</th>
+                                    <th scope="col">Ngày bắt đầu</th>
+                                    <th scope="col">Ngày kết thúc</th>
+                                    <th scope="col">Tình trạng</th>
+                                    <th scope="col">Chế độ</th>
+                                    <th scope="col">Trạng thái</th>
+                                    <th scope="col">Hoạt động</th>
+                                </tr>
+                                </thead>
+                                <tbody class="line-high-table text-center" id="listVoucher">
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <!-- Thêm thư viện jsPDF để xuất PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <title>Chi tiết giao ca</title>
+    <script>
+        function exportToExcel() {
+            // Đảm bảo rằng bảng hoặc các trường dữ liệu tồn tại
+            const magiaoca = document.getElementById("magiaoca");
+            const tenca = document.getElementById("tenca");
+            const thoigianvaoca = document.getElementById("thoigianvaoca");
+            const thoigianketthucca = document.getElementById("thoigianketthucca");
+            const maNhanVienHienTai = document.getElementById("maNhanVienHienTai");
+            const nhanVienHienTai = document.getElementById("nhanVienHienTai");
+            const dienThoai = document.getElementById("dienThoai");
+            const tienmatdauca = document.getElementById("tienmatdauca");
+            const tienphatsinh = document.getElementById("tienphatsinh");
+            const slhoadondathanhtoan = document.getElementById("slhoadondathanhtoan");
+            const slhoadonchuathanhtoan = document.getElementById("slhoadonchuathanhtoan");
+            const tienmattrongca = document.getElementById("tienmattrongca");
+            const chuyenkhoantrongca = document.getElementById("chuyenkhoantrongca");
+            const ghichu = document.getElementById("ghichu");
+            const tinhtrang = document.getElementById("tinhtrang");
+            const trangthai = document.getElementById("trangthai");
+            const xacnhantienmat = document.getElementById("xacnhantienmat");
+            const xacnhantienchuyenkhoan = document.getElementById("xacnhantienchuyenkhoan");
+            const sotienthucnhan = document.getElementById("sotienthucnhan");
+            const sotienconthieu = document.getElementById("sotienconthieu");
+            const nguoinhanbangiao = document.getElementById("nguoinhanbangiao");
+
+            // Kiểm tra tất cả các trường trước khi tiến hành xuất Excel
+            if (
+                magiaoca && tenca && thoigianvaoca && thoigianketthucca &&
+                maNhanVienHienTai && nhanVienHienTai && dienThoai && tienmatdauca &&
+                tienphatsinh && slhoadondathanhtoan && slhoadonchuathanhtoan &&
+                tienmattrongca && chuyenkhoantrongca && ghichu && tinhtrang && trangthai &&
+                xacnhantienmat && xacnhantienchuyenkhoan && sotienthucnhan && sotienconthieu
+            ) {
+                // Tạo dữ liệu để xuất
+                let csvContent = "\uFEFF"; // BOM cho UTF-8
+
+                // Tiêu đề cột
+                csvContent += "Tên trường;Dữ liệu\n";
+
+                // Thêm từng dòng dữ liệu với tên trường và giá trị tương ứng
+                const addRow = (fieldName, value) => {
+                    csvContent += `"${fieldName}";"${String(value)}"\n`; // Chuyển đổi giá trị thành chuỗi
+                };
+
+                addRow("Mã giao ca", magiaoca.value);
+                addRow("Tên ca", tenca.value);
+                addRow("Thời gian nhận ca", thoigianvaoca.value);
+                addRow("Thời gian kết ca", thoigianketthucca.value);
+                addRow("Mã nhân viên", maNhanVienHienTai.value);
+                addRow("Nhân viên ca hiện tại", nhanVienHienTai.value);
+                addRow("Điện thoại", dienThoai.value);
+                addRow("Số tiền mặt đầu ca", tienmatdauca.value);
+                addRow("Số tiền phát sinh", tienphatsinh.value);
+                addRow("Số hóa đơn đã thanh toán", slhoadondathanhtoan.value);
+                addRow("Số hóa đơn chưa thanh toán", slhoadonchuathanhtoan.value);
+                addRow("Tổng tiền mặt trong ca", tienmattrongca.value);
+                addRow("Tổng tiền chuyển khoản trong ca", chuyenkhoantrongca.value);
+
+                addRow("Người nhận bàn giao", nguoinhanbangiao.value);
+                addRow("Xác nhận tiền mặt trong ca", xacnhantienmat.value);
+                addRow("Xác nhận tiền chuyển khoản trong ca", xacnhantienchuyenkhoan.value);
+                addRow("Tổng tiền mặt bàn giao", sotienthucnhan.value);
+                addRow("Số tiền còn thiếu", sotienconthieu.value);
+                addRow("Ghi chú", ghichu.value);
+                addRow("Tình trạng", tinhtrang.value);
+                addRow("Trạng thái", trangthai.value);
+
+                // Tạo tên file dựa trên tên ca
+                const fileName = `GiaoCa_${tenca.value}.csv`.replace(/[^a-zA-Z0-9_-]/g, "_"); // Thay thế ký tự không hợp lệ
+
+                // Tạo một đối tượng link để tải file
+                const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", fileName);
+
+                // Kích hoạt tải xuống
+                link.click();
+            } else {
+                alert("Vui lòng kiểm tra lại các trường dữ liệu trước khi xuất Excel.");
+            }
+        }
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+
+            // Tạo đối tượng PDF
+            const doc = new jsPDF();
+
+            // Tải font và sử dụng
+            fetch('/assets/fonts/DejaVuSans.ttf')
+                .then(response => response.arrayBuffer())
+                .then(buffer => {
+                    const fontData = btoa(
+                        new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+                    );
+                    doc.addFileToVFS("DejaVuSans.ttf", fontData);
+                    doc.addFont("DejaVuSans.ttf", "DejaVuSans", "normal");
+                    doc.setFont("DejaVuSans");
+
+                    // Lấy dữ liệu từ biểu mẫu
+                    const fieldsLeft = [
+                        { label: "-Mã giao ca", value: document.getElementById("magiaoca").value },
+                        { label: "-Tên ca", value: document.getElementById("tenca").value },
+                        { label: "-Thời gian nhận ca", value: document.getElementById("thoigianvaoca").value },
+                        { label: "-Thời gian kết ca", value: document.getElementById("thoigianketthucca").value },
+                        { label: "-Mã nhân viên", value: document.getElementById("maNhanVienHienTai").value },
+                        { label: "-Nhân viên ca hiện tại", value: document.getElementById("nhanVienHienTai").value },
+                        { label: "-Điện thoại", value: document.getElementById("dienThoai").value },
+                        { label: "-Số tiền mặt đầu ca", value: document.getElementById("tienmatdauca").value },
+                        { label: "-Số tiền phát sinh", value: document.getElementById("tienphatsinh").value },
+                        { label: "-Tổng tiền mặt trong ca", value: document.getElementById("tienmattrongca").value },
+                        { label: "-Tổng tiền chuyển khoản trong ca", value: document.getElementById("chuyenkhoantrongca").value },
+                        { label: "-Tổng số hóa đơn đã thanh toán", value: document.getElementById("slhoadondathanhtoan").value },
+                    ];
+
+                    const fieldsRight = [
+                        { label: "-Người nhận bàn giao", value: document.getElementById("nguoinhanbangiao").value },
+                        { label: "-Tổng số hóa đơn chưa thanh toán", value: document.getElementById("slhoadonchuathanhtoan").value },
+                        { label: "-Xác nhận tiền mặt trong ca", value: document.getElementById("xacnhantienmat").value },
+                        { label: "-Xác nhận tiền chuyển khoản trong ca", value: document.getElementById("xacnhantienchuyenkhoan").value },
+                        { label: "-Tổng số tiền mặt bàn giao", value: document.getElementById("sotienthucnhan").value },
+                        { label: "-Số tiền còn thiếu", value: document.getElementById("sotienconthieu").value },
+                        { label: "-Ghi chú", value: document.getElementById("ghichu").value },
+                        { label: "-Tình trạng", value: document.getElementById("tinhtrang").value },
+                        { label: "-Trạng thái", value: document.getElementById("trangthai").value },
+                    ];
+
+                    // Thêm tiêu đề
+                    doc.setFontSize(18);
+                    doc.text("Chi tiết giao ca", 105, 20, { align: "center" });
+
+                    // Thiết lập vị trí và dòng cách
+                    let yLeft = 30;
+                    let yRight = 30;
+                    const marginLeft = 20;
+                    const marginRight = 110;
+                    const lineSpacing = 10;
+                    const maxWidth = 80; // Chiều rộng tối đa cho mỗi cột (px)
+
+                    doc.setFontSize(12);
+
+                    // Hiển thị dữ liệu cột trái
+                    fieldsLeft.forEach(field => {
+                        const wrappedLabel = doc.splitTextToSize(`${field.label}:`, maxWidth);
+                        const wrappedValue = doc.splitTextToSize(field.value || "", maxWidth);
+
+                        doc.text(wrappedLabel, marginLeft, yLeft);
+                        yLeft += lineSpacing;
+                        wrappedValue.forEach(line => {
+                            doc.text(line, marginLeft + 10, yLeft); // Lùi vào 10px cho dữ liệu
+                            yLeft += lineSpacing;
+                        });
+                    });
+
+                    // Hiển thị dữ liệu cột phải
+                    fieldsRight.forEach(field => {
+                        const wrappedLabel = doc.splitTextToSize(`${field.label}:`, maxWidth);
+                        const wrappedValue = doc.splitTextToSize(field.value || "", maxWidth);
+
+                        doc.text(wrappedLabel, marginRight, yRight);
+                        yRight += lineSpacing;
+                        wrappedValue.forEach(line => {
+                            doc.text(line, marginRight + 10, yRight); // Lùi vào 10px cho dữ liệu
+                            yRight += lineSpacing;
+                        });
+                    });
+
+                    // Lưu file PDF
+                    doc.save('chitietgiaoca.pdf');
+                })
+                .catch(error => {
+                    console.error("Không tải được font:", error);
+                });
+        }
+
+        // function exportToPDF() {
+        //     const {jsPDF} = window.jspdf;
+        //
+        //     // Tạo đối tượng PDF
+        //     const doc = new jsPDF();
+        //
+        //     // Nhúng font DejaVuSans
+        //     doc.addFileToVFS("DejaVuSans.ttf", /* Nhúng dữ liệu font tại đây */);
+        //     doc.addFont("DejaVuSans.ttf", "DejaVuSans", "normal");
+        //     doc.setFont("DejaVuSans");
+        //
+        //     // Lấy các phần tử từ biểu mẫu
+        //     const magiaoca = document.getElementById("magiaoca");
+        //     const tenca = document.getElementById("tenca");
+        //     const thoigianvaoca = document.getElementById("thoigianvaoca");
+        //     const thoigianketthucca = document.getElementById("thoigianketthucca");
+        //     const maNhanVienHienTai = document.getElementById("maNhanVienHienTai");
+        //     const nhanVienHienTai = document.getElementById("nhanVienHienTai");
+        //     const dienThoai = document.getElementById("dienThoai");
+        //     const tienmatdauca = document.getElementById("tienmatdauca");
+        //     const tienphatsinh = document.getElementById("tienphatsinh");
+        //     const slhoadondathanhtoan = document.getElementById("slhoadondathanhtoan");
+        //     const slhoadonchuathanhtoan = document.getElementById("slhoadonchuathanhtoan");
+        //     const tienmattrongca = document.getElementById("tienmattrongca");
+        //     const chuyenkhoantrongca = document.getElementById("chuyenkhoantrongca");
+        //     const ghichu = document.getElementById("ghichu");
+        //     const tinhtrang = document.getElementById("tinhtrang");
+        //     const trangthai = document.getElementById("trangthai");
+        //     const xacnhantienmat = document.getElementById("xacnhantienmat");
+        //     const xacnhantienchuyenkhoan = document.getElementById("xacnhantienchuyenkhoan");
+        //     const sotienthucnhan = document.getElementById("sotienthucnhan");
+        //     const sotienconthieu = document.getElementById("sotienconthieu");
+        //
+        //     // Kiểm tra xem tất cả các phần tử có tồn tại không
+        //     if (!magiaoca || !tenca || !thoigianvaoca || !thoigianketthucca ||
+        //         !maNhanVienHienTai || !nhanVienHienTai || !dienThoai || !tienmatdauca ||
+        //         !tienphatsinh || !slhoadondathanhtoan || !slhoadonchuathanhtoan ||
+        //         !tienmattrongca || !chuyenkhoantrongca || !ghichu || !tinhtrang ||
+        //         !trangthai || !xacnhantienmat || !xacnhantienchuyenkhoan ||
+        //         !sotienthucnhan || !sotienconthieu) {
+        //         alert("Một hoặc nhiều phần tử không tồn tại.");
+        //         return;
+        //     }
+        //
+        //     // Thêm tiêu đề
+        //     doc.setFontSize(18);
+        //     doc.text("Chi tiết giao ca", 20, 20);
+        //
+        //     // Thêm dữ liệu vào PDF
+        //     doc.setFontSize(12);
+        //     doc.text(`Mã giao ca: ${magiaoca.value}`, 20, 30);
+        //     doc.text(`Tên ca: ${tenca.value}`, 20, 40);
+        //     doc.text(`Thời gian nhận ca: ${thoigianvaoca.value}`, 20, 50);
+        //     doc.text(`Thời gian kết ca: ${thoigianketthucca.value}`, 20, 60);
+        //     doc.text(`Mã nhân viên: ${maNhanVienHienTai.value}`, 20, 70);
+        //     doc.text(`Nhân viên ca hiện tại: ${nhanVienHienTai.value}`, 20, 80);
+        //     doc.text(`Điện thoại: ${dienThoai.value}`, 20, 90);
+        //     doc.text(`Số tiền mặt đầu ca: ${tienmatdauca.value}`, 20, 100);
+        //     doc.text(`Số tiền phát sinh: ${tienphatsinh.value}`, 20, 110);
+        //     doc.text(`Tổng số hóa đơn đã thanh toán: ${slhoadondathanhtoan.value}`, 20, 120);
+        //     doc.text(`Tổng số hóa đơn chưa thanh toán: ${slhoadonchuathanhtoan.value}`, 20, 130);
+        //     doc.text(`Tổng tiền mặt trong ca: ${tienmattrongca.value}`, 20, 140);
+        //     doc.text(`Tổng tiền chuyển khoản trong ca: ${chuyenkhoantrongca.value}`, 20, 150);
+        //     doc.text(`Ghi chú: ${ghichu.value}`, 20, 160);
+        //     doc.text(`Tình trạng: ${tinhtrang.value}`, 20, 170);
+        //     doc.text(`Trạng thái: ${trangthai.value}`, 20, 180);
+        //     doc.text(`Xác nhận tiền mặt trong ca: ${xacnhantienmat.value}`, 20, 190);
+        //     doc.text(`Xác nhận tiền chuyển khoản trong ca: ${xacnhantienchuyenkhoan.value}`, 20, 200);
+        //     doc.text(`Tổng số tiền mặt bàn giao: ${sotienthucnhan.value}`, 20, 210);
+        //     doc.text(`Số tiền còn thiếu: ${sotienconthieu.value}`, 20, 220);
+        //
+        //     // Lưu file PDF
+        //     doc.save('chitietgiaoca.pdf');
+        // }
+
+
+        function formatCurrency(elementId) {
+            const element = document.getElementById(elementId);
+            const value = parseInt(element.value.replace(/,/g, ''));
+            if (!isNaN(value)) {
+                element.value = value.toLocaleString('en-US') + ' VND';
+            }
+        }
+
+        window.onload = function () {
+            formatCurrency('tienmatdauca');
+            formatCurrency('tienphatsinh');
+            formatCurrency('tienmattrongca');
+            formatCurrency('chuyenkhoantrongca');
+            formatCurrency('xacnhantienmat');
+            formatCurrency('xacnhantienchuyenkhoan');
+            formatCurrency('sotienthucnhan');
+            formatCurrency('sotienconthieu');
+        };
+    </script>
+    <style>
+        /* Thiết kế cho modal (form xác nhận) */
+        .modal {
+            display: none; /* Ẩn đi mặc định */
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Nền tối khi mở modal */
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 400px; /* Tăng kích thước */
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.3s; /* Thêm hiệu ứng */
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content h4 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .modal-content input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        /* Đặt hai nút cùng hàng ngang */
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .modal-content button {
+            padding: 12px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            flex: 1;
+            margin: 0 5px;
+        }
+
+        .modal-content button.cancel {
+            background-color: #6c757d;
+        }
+
+        .modal-content button:hover {
+            background-color: #0056b3;
+        }
+
+        .modal-content button.cancel:hover {
+            background-color: #5a6268;
+        }
+
+        #errorMsg {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Responsive thiết kế cho màn hình nhỏ hơn */
+        @media (max-width: 600px) {
+            .modal-content {
+                width: 90%;
+            }
+
+            .modal-content h4 {
+                font-size: 20px;
+            }
+
+            .modal-buttons {
+                flex-direction: column;
+            }
+
+            .modal-content button {
+                margin: 10px 0; /* Đưa nút xuống dòng nếu màn hình nhỏ */
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5" layout:fragment="content">
+    <h3 class="text-center mb-4" th:text="'Chi tiết giao ca của ' + ${giaoCaCt.tenca}"></h3>
+    <div class="text-center mb-4">
+        <button type="button" class="btn btn-success" onclick="exportToExcel()">Xuất Excel</button>
+        <button type="button" class="btn btn-danger" onclick="exportToPDF()">Xuất PDF</button>
+    </div>
+    <form>
+        <div class="row">
+            <!-- Giao Dịch Trong Ca Column -->
+            <div class="col-md-6">
+                <h5 class="text-center">Giao Dịch Trong Ca</h5>
+                <div class="row">
+                    <div class="mb-3 col-6">
+                        <label for="magiaoca" class="form-label">Mã giao ca</label>
+                        <input type="text" class="form-control" id="magiaoca" name="magiaoca"
+                               th:value="${giaoCaCt.magiaoca}"
+                               readonly>
+                    </div>
+                    <div class="mb-3 col-6">
+                        <label for="tenca" class="form-label">Tên ca</label>
+                        <input type="text" class="form-control" id="tenca" name="tenca" th:value="${giaoCaCt.tenca}"
+                               readonly>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="mb-3 col-6">
+                        <label for="thoigianvaoca" class="form-label">Thời gian nhận ca</label>
+                        <input type="text" class="form-control" id="thoigianvaoca" name="thoigianvaoca"
+                               th:value="${#temporals.format(giaoCaCt.thoigianvaoca, 'HH:mm:ss dd-MM-yyyy')}" readonly>
+                    </div>
+                    <div class="mb-3 col-6">
+                        <label for="thoigianketthucca" class="form-label">Thời gian kết ca</label>
+                        <input type="text" class="form-control" id="thoigianketthucca" name="thoigianketthucca"
+                               th:value="${#temporals.format(giaoCaCt.thoigianketthucca, 'HH:mm:ss dd-MM-yyyy')}"
+                               readonly>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="mb-3 col-4">
+                        <label for="maNhanVienHienTai" class="form-label">Mã nhân viên</label>
+                        <input type="text" class="form-control" id="maNhanVienHienTai"
+                               th:value="${giaoCaCt.employee.employeeCode}"
+                               readonly>
+                    </div>
+                    <div class="mb-3 col-4">
+                        <label for="nhanVienHienTai" class="form-label">Nhân viên ca hiện tại</label>
+                        <input type="text" class="form-control" id="nhanVienHienTai"
+                               th:value="${giaoCaCt.employee.name}" readonly>
+                    </div>
+                    <div class="mb-3 col-4">
+                        <label for="dienThoai" class="form-label">Điện thoại</label>
+                        <input type="text" class="form-control" id="dienThoai" th:value="${giaoCaCt.employee.phone}"
+                               readonly>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="mb-3 col-6">
+                        <label for="tienmatdauca" class="form-label">Số tiền mặt đầu ca (1)</label>
+                        <input type="text" class="form-control" name="tienmatdauca" id="tienmatdauca"
+                               th:value="${giaoCaCt.tienmatdauca}" readonly>
+                    </div>
+                    <div class="mb-3 col-6">
+                        <label for="tienphatsinh" class="form-label">Số tiền phát sinh (2)</label>
+                        <input type="text" class="form-control" id="tienphatsinh" name="tienphatsinh"
+                               th:value="${giaoCaCt.tienphatsinh}" readonly>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="mb-3 col-6">
+                        <label for="slhoadondathanhtoan" class="form-label">Tổng số hóa đơn đã thanh toán</label>
+                        <input type="text" class="form-control" id="slhoadondathanhtoan"
+                               th:value="${giaoCaCt.slhoadondathanhtoan}" readonly>
+                    </div>
+                    <div class="mb-3 col-6">
+                        <label for="slhoadonchuathanhtoan" class="form-label">Tổng số hóa đơn chưa thanh toán</label>
+                        <input type="text" class="form-control" id="slhoadonchuathanhtoan"
+                               th:value="${giaoCaCt.slhoadonchuathanhtoan}" readonly>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="mb-3 col-6">
+                        <label for="tienmattrongca" class="form-label">Tổng tiền mặt trong ca (3)</label>
+                        <input type="text" class="form-control" id="tienmattrongca" name="tienmattrongca"
+                               th:value="${giaoCaCt.tienmattrongca}"
+                               readonly>
+                    </div>
+                    <div class="mb-3 col-6">
+                        <label for="chuyenkhoantrongca" class="form-label">Tổng tiền chuyển khoản trong ca (4)</label>
+                        <input type="text" class="form-control" id="chuyenkhoantrongca" name="chuyenkhoantrongca"
+                               th:value="${giaoCaCt.chuyenkhoantrongca}"
+                               readonly>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="ghichu" class="form-label">Ghi chú</label>
+                    <textarea class="form-control" id="ghichu" name="ghichu" rows="3" th:text="${giaoCaCt.ghichu}"
+                              readonly></textarea>
+                </div>
+            </div>
+
+            <!-- Bàn Giao Ca Column -->
+            <div class="col-md-6">
+                <h5 class="text-center">Bàn Giao Ca</h5>
+                <div class="mb-3">
+                    <label for="nguoinhanbangiao" class="label-control">Người nhận bàn giao</label>
+                    <input type="text" class="form-control mt-2" id="nguoinhanbangiao" name=nguoinhanbangiao""
+                           th:value="${giaoCaCt.nhan_vien_ban_giao}" readonly>
+                </div>
+
+                <!--                <div class="mb-3">-->
+                <!--                    <label for="trangthai" class="form-label">Trạng thái</label>-->
+                <!--                    <input type="text" class="form-control" id="trangthai" name="trangthai"-->
+                <!--                           th:value="${giaoCaCt.trang_thai.getDescription()}" readonly>-->
+                <!--                </div>-->
+                <div class="row">
+                    <div class="mb-3 col-6">
+                        <label for="tinhtrang" class="form-label">Tình trạng</label>
+                        <input type="text" class="form-control" id="tinhtrang" name="tinhtrang"
+                               th:value="${giaoCaCt.lichSuGiaoCa}" readonly>
+                    </div>
+                    <div class="mb-3 col-6">
+                        <label for="trangthai" class="form-label">Trạng thái</label>
+                        <input type="text" class="form-control" id="trangthai" name="trangthai"
+                               th:value="${giaoCaCt.trang_thai.getDescription()}" readonly>
+                    </div>
+
+                </div>
+                <div class="mb-3">
+                    <label for="xacnhantienmat" class="form-label">Xác nhận tiền mặt trong ca (5)</label>
+                    <input type="text" class="form-control" id="xacnhantienmat" name="xacnhantienmat"
+                           th:value="${giaoCaCt.xacnhantienmat}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="xacnhantienchuyenkhoan" class="form-label">Xác nhận tiền chuyển khoản trong ca
+                        (6)</label>
+                    <input type="text" class="form-control" id="xacnhantienchuyenkhoan" name="xacnhantienchuyenkhoan"
+                           th:value="${giaoCaCt.xacnhantienchuyenkhoan}" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label for="sotienthucnhan" class="form-label">Tổng số tiền mặt bàn giao (1)+(3)-(2)</label>
+                    <input type="text" class="form-control" id="sotienthucnhan" name="sotienthucnhan"
+                           th:value="${giaoCaCt.sotienthucnhan}"
+                           readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label for="sotienconthieu" class="form-label">Số tiền còn thiếu (5)+(6)-(3)-(4)</label>
+                    <input type="text" class="form-control" id="sotienconthieu" name="sotienconthieu"
+                           th:value="${giaoCaCt.sotienconthieu}" readonly>
+                </div>
+
+                <div>
+                    <a href="/lichsu-giaoca" class="btn btn-primary mt-4">Quay lại</a>
+                </div>
+            </div>
+        </div>
+    </form>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+</body>
+</html>

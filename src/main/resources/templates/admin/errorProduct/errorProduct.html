@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div class="" layout:fragment="content">
+        <main class="content px-3 py-4">
+            <div class="container-fluid">
+                <div class="mb-3">
+                    <h3 class="fw-bold fs-4 mb-3">Danh sách màu săc</h3>
+                    <div class="row">
+                        <div class="col-12 table-responsive">
+                            <table class="table table-hover" id="example">
+                                <thead class="table-dark">
+                                <tr>
+                                    <th scope="col" class="text-center">STT</th>
+                                    <th class="text-center">Ảnh</th>
+                                    <th scope="col" class="text-center"> Sản phẩm</th>
+                                    <th scope="col" class="text-center">Số lượng lỗi</th>
+                                </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                <tr th:each="list, i : ${errorProducts}" data-bs-toggle="modal" data-bs-target="#exampleModal" th:data-id="${list.productDetail.id}" th:reason="${list.reason}" onclick="errorDetail(this.getAttribute('data-id'))">
+                                    <td class="text-center" th:text="${i.index + 1}"></td>
+                                    <td><img style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; border: 1px solid #ccc;"
+                                             th:src="@{'/hinh-anh/test/' + ${list.productDetail.image.url1}}"></td>
+                                    <td th:text="${list.productDetail.product.name + ' [ ' + list.productDetail.color.name + ' - ' + list.productDetail.size.name + ' ] '}"></td>
+                                    <td th:text="${list.quantity}" class="text-center"></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-scrollable modal-xl ">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="hideModal()"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-12 table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col" class="text-center">STT</th>
+                                            <th class="text-center">Ảnh</th>
+                                            <th scope="col" class="text-center"> Sản phẩm</th>
+                                            <th scope="col" class="text-center">Lỗi</th>
+                                            <th scope="col" class="text-center">Thông tin trả hàng</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="detail">
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <script>
+            $('#example').DataTable({
+                layout: {
+                    topStart: {
+                        buttons: ['copy', 'excel', 'pdf', 'colvis']
+                    }
+                }
+            });
+            function errorDetail(id){
+                $.ajax({
+                    url: "/api/errorProduct/"+id,
+                    method: "GET",
+                    success: function (data){
+                        console.log(data)
+                        const detail = document.getElementById("detail");
+                        let i = 1;
+                        data.forEach(item => {
+                            const row = `<tr>
+                                            <td class="text-center">${i++}</td>
+                                            <td><img style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; border: 1px solid #ccc;"
+                                                     src="/hinh-anh/test/${item.tradeProduct.billDetail.productDetail.image.url1}"></td>
+                                            <td style="min-width: 200px"><strong>${item.tradeProduct.billDetail.productDetail.product.name} <sup>x1</sup> </strong> <br> ${item.tradeProduct.billDetail.productDetail.color.name} - ${item.tradeProduct.billDetail.productDetail.size.name}</td>
+                                            <td>${item.description}</td>
+                                            <td>Trả hàng từ hóa đơn <strong>#${item.tradeProduct.billDetail.bill.id}</strong> lúc ${formatDate(new Date(item.createDate))}</td>
+                                            </tr>`;
+                            detail.innerHTML += row;
+                        })
+                    }
+                })
+            }
+            function hideModal(){
+                document.getElementById('detail').innerHTML = ``;
+            }
+            function formatDate(date) {
+                let hours = date.getHours().toString().padStart(2, '0');
+                let minutes = date.getMinutes().toString().padStart(2, '0');
+                let seconds = date.getSeconds().toString().padStart(2, '0');
+                let milliseconds = date.getMilliseconds().toString().padStart(3, '0');
+
+                let day = date.getDate().toString().padStart(2, '0');
+                let month = (date.getMonth() + 1).toString().padStart(2, '0');
+                let year = date.getFullYear();
+
+                return `${hours}:${minutes}:${seconds}.${milliseconds} ${day}/${month}/${year}`;
+            }
+        </script>
+    </div>
+</body>
+</html>

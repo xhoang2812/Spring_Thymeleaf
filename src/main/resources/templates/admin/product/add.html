@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{admin/index}"
+      xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý sản phẩm</title>
+    <style>
+        body {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        body.show {
+            opacity: 1;
+        }
+    </style>
+    <script defer>
+        function loading() {
+            setTimeout(() => {
+                $.ajax({
+                    url: "/api/vouchers/userData",
+                    method: "GET",
+                    success: function (data) {
+                        console.log(data)
+                        if (data === "") {
+                            sessionStorage.setItem("notificationForMap", "Bạn không phải là Admin");
+                            window.location.href = "/";
+                        } else {
+                            document.body.classList.add('show');
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error)
+                    }
+                })
+            }, 300);
+        }
+    </script>
+</head>
+<body onload="loading()">
+<div class="container-fluid" layout:fragment="content">
+    <form enctype="multipart/form-data" onsubmit="return valid(event)" th:action="@{/san-pham/store}" th:id="form-add"
+          th:method="POST" th:object="${data}">
+        <div class="card">
+            <div class="card-header">
+                <div style="text-align: center">
+                    <h1>Thêm mới sản phẩm</h1>
+                </div>
+            </div>
+            <div class="row card-body">
+                <div class="col-3 mb-3">
+                    <label class="form-label">Mã sản phẩm</label>
+                    <input class="form-control" th:disabled="true" type="text">
+                </div>
+                <div class="col-3 mb-3">
+                    <label class="form-label">Tên sản phẩm</label>
+                    <input class="form-control" onchange="updatePreviewTable()" th:field="*{name}" th:id="nameSP"
+                           type="text">
+                </div>
+                <div class="col-3 mb-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select class="form-select" style="height: 41px" th:field="*{status}">
+                        <option th:value="1">Hoạt động</option>
+                        <option th:value="0">Ngừng hoạt động</option>
+                    </select>
+                </div>
+                <div class="col-3 mb-3">
+                    <label class="form-label">Giới tính</label>
+                    <select class="form-select" style="height: 41px" th:field="*{gender}">
+                        <option th:value="Nam">Nam</option>
+                        <option th:value="Nữ">Nữ</option>
+                        <option th:value="Unisex">Unisex</option>
+                    </select>
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">Mô tả</label>
+                    <textarea class="form-control" th:field="*{description}" th:id="moTaSP" type="text"></textarea>
+                </div>
+                <div class="col-6 d-flex mb-3">
+                    <div class="flex-grow-1 me-3">
+                        <label class="form-label">Kiểu dáng</label>
+                        <select class="form-select" th:field="*{style}">
+                            <option th:each="list : ${listStyle}" th:utext="${list.name}" th:value="${list.id}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="mt-4">
+                        <button class="btn btn-primary" data-bs-target="#kieuDangModal" data-bs-toggle="modal"
+                                type="button">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-6 d-flex mb-3">
+                    <div class="flex-grow-1 me-3">
+                        <label class="form-label">Chất liệu</label>
+                        <select class="form-select" th:field="*{material}">
+                            <option th:each="list : ${listMaterial}" th:utext="${list.name}" th:value="${list.id}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="mt-4">
+                        <button class="btn btn-primary" data-bs-target="#chatLieuModal" data-bs-toggle="modal"
+                                type="button">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-6 d-flex mb-3">
+                    <div class="flex-grow-1 me-3">
+                        <label class="form-label">Danh mục</label>
+                        <select class="form-select" th:field="*{category}">
+                            <option th:each="list : ${listCategory}" th:utext="${list.name}" th:value="${list.id}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="mt-4">
+                        <button class="btn btn-primary" data-bs-target="#danhMucModal" data-bs-toggle="modal"
+                                type="button">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-6 d-flex mb-3">
+                    <div class="flex-grow-1 me-3">
+                        <label class="form-label">Thương hiệu</label>
+                        <select class="form-select" th:field="*{brand}">
+                            <option th:each="list : ${listBrand}" th:utext="${list.name}" th:value="${list.id}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="mt-4">
+                        <button class="btn btn-primary" data-bs-target="#thuongHieuModal" data-bs-toggle="modal"
+                                type="button">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div style="text-align: left">
+                    <h3>Chọn màu sắc và kích cỡ</h3>
+                </div>
+            </div>
+            <div class="card-body row" th:object="${productVariant}">
+                <div class="col-6 d-flex mb-3">
+                    <div class="flex-grow-1 me-3">
+                        <label class="form-label">Kích thước</label>
+                        <select class="form-control chosen-select1" data-placeholder="Chọn kích thước..."
+                                multiple onchange="updatePreviewTable()" th:field="*{size}">
+                            <option th:each="list : ${listSize}" th:utext="${list.name}" th:value="${list.id}"></option>
+                        </select>
+                    </div>
+                    <div class="mt-4">
+                        <button class="btn btn-primary" data-bs-target="#kichThuocModal" data-bs-toggle="modal"
+                                type="button">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-6 d-flex mb-3">
+                    <div class="flex-grow-1 me-3">
+                        <label class="form-label">Màu sắc</label>
+                        <select class="form-control chosen-select2" data-placeholder="Chọn màu sắc..."
+                                multiple onchange="updatePreviewTable()" th:field="*{color}">
+                            <option th:each="list : ${listColor}" th:utext="${list.name}"
+                                    th:value="${list.id}"></option>
+                        </select>
+                    </div>
+                    <div class="mt-4">
+                        <button class="btn btn-primary" data-bs-target="#mauSacModal" data-bs-toggle="modal"
+                                type="button">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header row">
+                <div class="col-6">
+                    <h3>Danh sách sản phẩm chi tiết </h3>
+                </div>
+                <div class="mt-3 col-6" style="text-align: end">
+                    <button class="btn btn-primary" data-bs-target="#thuocTinhSpctModal" data-bs-toggle="modal"
+                            type="button">
+                        Thêm chung thuộc tính
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered" id="previewTable" style="table-layout: fixed">
+                    <thead>
+                    <tr>
+                        <th scope="col" style="width: 6%">STT</th>
+                        <th scope="col" style="width: 20%">Tên sản phẩm</th>
+                        <th scope="col" style="width: 15%">Giá bán</th>
+                        <th scope="col" style="width: 15%">Số lượng</th>
+                        <th scope="col" style="width: 15%">Trọng lượng</th>
+                        <th scope="col" style="width: 5%"></th>
+                        <th scope="col" style="width: 30%">Ảnh</th>
+                        <!-- Thêm các cột khác tương ứng với form của bạn -->
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
+                    </tbody>
+                </table>
+                <div class="row">
+                    <div class="col-6">
+                        <a class="btn btn-warning" th:href="@{/san-pham/hien-thi}">Quay lại</a>
+                    </div>
+                    <div class="col-6" style="text-align: end">
+                        <button class="btn btn-success" type="submit">Hoàn thành</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+
+    <!-- Modal kiểu dáng -->
+    <div aria-hidden="true" aria-labelledby="kieuDangModalLabel" class="modal fade" id="kieuDangModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="kieuDangModalLabel">Thêm nhanh kiểu dáng</h5>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <form onsubmit="return validStyle(event)" th:action="@{/san-pham/add-fastly-style}"
+                              th:method="POST" th:object="${style}" th:id="form-add-style">
+                            <div>
+                                <label class="form-label">Tên kiểu dáng</label>
+                                <input class="form-control" th:field="*{name}" th:id="nameStyle" type="text">
+                            </div>
+                            <div class="mt-3" style="text-align: center">
+                                <button class="btn btn-dark" type="submit">Thêm</button>
+                                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal chat lieu -->
+    <div aria-hidden="true" aria-labelledby="chatLieuModalLabel" class="modal fade" id="chatLieuModal"
+         tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="chatLieuModalLabel">Thêm nhanh chất liệu</h5>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <form onsubmit="return validMaterial(event)" th:action="@{/san-pham/add-fastly-material}"
+                              th:method="POST" th:object="${material}" th:id="form-add-material">
+                            <div>
+                                <label class="form-label">Tên chất liệu</label>
+                                <input class="form-control" th:field="*{name}" th:id="nameMaterial" type="text">
+                            </div>
+                            <div class="mt-3" style="text-align: center">
+                                <button class="btn btn-dark" type="submit">Thêm</button>
+                                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal danh mục -->
+    <div aria-hidden="true" aria-labelledby="danhMucModalLabel" class="modal fade" id="danhMucModal"
+         tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="danhMucModalLabel">Thêm nhanh danh mục</h5>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <form onsubmit="return validCategory(event)" th:action="@{/san-pham/add-fastly-category}"
+                              th:method="POST" th:object="${category}" th:id="form-add-category">
+                            <div>
+                                <label class="form-label">Tên danh mục</label>
+                                <input class="form-control" th:field="*{name}" th:id="nameCate" type="text">
+                            </div>
+                            <div class="mt-3" style="text-align: center">
+                                <button class="btn btn-dark" type="submit">Thêm</button>
+                                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal thương hiệu-->
+    <div aria-hidden="true" aria-labelledby="thuongHieuModalLabel" class="modal fade" id="thuongHieuModal"
+         tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="thuongHieuModalLabel">Thêm nhanh thương hiệu</h5>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <form onsubmit="return validBrand(event)" th:action="@{/san-pham/add-fastly-brand}"
+                              th:method="POST" th:object="${brand}" th:id="form-add-brand">
+                            <div>
+                                <label class="form-label">Tên thương hiệu</label>
+                                <input class="form-control" th:field="*{name}" th:id="nameBrand" type="text">
+                            </div>
+                            <div class="mt-3" style="text-align: center">
+                                <button class="btn btn-dark" type="submit">Thêm</button>
+                                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal màu sắc -->
+    <div aria-hidden="true" aria-labelledby="mauSacModalLabel" class="modal fade" id="mauSacModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mauSacModalLabel">Thêm nhanh màu sắc</h5>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <form onsubmit="return validColor(event)" th:action="@{/san-pham/add-fastly-color}"
+                              th:method="POST" th:object="${color}" th:id="form-add-color">
+                            <div>
+                                <label class="label-control">Tên màu sắc</label>
+                                <input class="form-control" th:field="*{name}" th:id="nameColor" type="text">
+                            </div>
+                            <div class="mt-3" style="   text-align: center">
+                                <button class="btn btn-dark" type="submit">Thêm</button>
+                                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal kích thước -->
+    <div aria-hidden="true" aria-labelledby="kichThuocModalLabel" class="modal fade" id="kichThuocModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="kichThuocModalLabel">Thêm nhanh kích thước</h5>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <form onsubmit="return validSize(event)" th:action="@{/san-pham/add-fastly-size}"
+                              th:method="POST" th:object="${size}" th:id="form-add-size">
+                            <div>
+                                <label class="label-control">Tên kích thước</label>
+                                <input class="form-control" th:field="*{name}" th:id="nameSize" type="text">
+                            </div>
+                            <div class="mt-3" style="text-align: center">
+                                <button class="btn btn-dark" type="submit">Thêm</button>
+                                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Chung giá -->
+    <div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade" id="thuocTinhSpctModal"
+         tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Thêm chung giá, số lượng, trọng lượng</h5>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <div class="modal-body">
+                    <form onsubmit="return validModal(event)" th:id="form-add-chungTT">
+                        <div class="mb-3">
+                            <label class="form-label">Giá</label>
+                            <input class="form-control" th:id="spctGia" type="text">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Số lượng</label>
+                            <input class="form-control" th:id="spctSoLuong" type="text">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Trọng lượng</label>
+                            <input class="form-control" th:id="spctTrongLuong" type="text">
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                            <button class="btn btn-primary" type="submit">Thêm</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $('#size').chosen({no_results_text: "Không tìm được kích cỡ: "});
+        $('#color').chosen({no_results_text: "Không tìm được màu sắc: "});
+    </script>
+
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            let form = document.getElementById("form-add");
+            let previewTableBody = document.querySelector("#previewTable tbody");
+            window.updatePreviewTable = function () {
+                previewTableBody.innerHTML = "";  // Xóa nội dung bảng hiện tại
+                let productName = document.getElementById("nameSP").value;
+                let sizeSelect = form.querySelector(".chosen-select1");
+                let selectedSizes = Array.from(sizeSelect.selectedOptions).map(option => option.text);
+                const rowspanByColor = {};
+                let colorSelect = form.querySelector(".chosen-select2");
+                let selectedColors = Array.from(colorSelect.selectedOptions).map(option => option.text);
+                selectedColors.forEach(function (color) {
+                    if (!rowspanByColor[color]) {
+                        rowspanByColor[color] = 0;
+                    }
+                    selectedSizes.forEach(function (size) {
+                        let newRow = previewTableBody.insertRow();
+                        let rowNumber = previewTableBody.rows.length;
+                        newRow.setAttribute('data-size', size);
+                        newRow.setAttribute('data-color', color);
+                        console.log(color, size)
+
+                        let cell1 = newRow.insertCell(0);
+                        let cell2 = newRow.insertCell(1);
+                        let cell3 = newRow.insertCell(2);
+                        let cell4 = newRow.insertCell(3);
+                        let cell5 = newRow.insertCell(4);
+                        let cell6 = newRow.insertCell(5);
+
+                        if (rowspanByColor[color] === 0) {
+                            let cell7 = newRow.insertCell(6);  // Ảnh
+                            //Check xem có chưa nếu chưa có tạo file mới
+                            let inputFile =
+                                "<div class='row'>\n" +
+                                "<div class='col-4'>\n" +
+                                "        <div class='d-flex justify-content-center mb-4'>\n" +
+                                "            <img id='selectedAvatar1_" + rowNumber + "'  src='/assets/img/placeholder-avatar.jpg\'\n" +
+                                "                class='rounded-circle' style='width: 100px; height: 100px; object-fit: cover;'/>\n" +
+                                "        </div>\n" +
+                                "        <div class='d-flex justify-content-center'> \n" +
+                                "            <div data-mdb-ripple-init class='btn btn-secondary btn-rounded btn-sm'>\n" +
+                                "                <label class='form-label text-white m-1' for='img1_" + rowNumber + "'>Choose file</label>\n" +
+                                "                <input  name='img1[]' type='file' class='form-control d-none' id='img1_" + rowNumber + "'\n" +
+                                "                    onchange='displaySelectedImage(event, \"selectedAvatar1_" + rowNumber + "\")' />\n" +
+                                "            </div>\n" +
+                                "        </div>\n" +
+                                "    </div>" +
+                                "<div class='col-4'>\n" +
+                                "        <div class='d-flex justify-content-center mb-4'>\n" +
+                                "            <img id='selectedAvatar2_" + rowNumber + "' src='/assets/img/placeholder-avatar.jpg\'\n" +
+                                "                class='rounded-circle' style='width: 100px; height: 100px; object-fit: cover;'/>\n" +
+                                "        </div>\n" +
+                                "        <div class='d-flex justify-content-center'> \n" +
+                                "            <div data-mdb-ripple-init class='btn btn-secondary btn-rounded btn-sm'>\n" +
+                                "                <label class='form-label text-white m-1' for='img2_" + rowNumber + "'>Choose file</label>\n" +
+                                "                <input name='img2[]' type='file' class='form-control d-none' id='img2_" + rowNumber + "'\n" +
+                                "                    onchange='displaySelectedImage(event, \"selectedAvatar2_" + rowNumber + "\")' />\n" +
+                                "            </div>\n" +
+                                "        </div>\n" +
+                                "    </div>" +
+                                "<div class='col-4'>\n" +
+                                "        <div class='d-flex justify-content-center mb-4'>\n" +
+                                "            <img id='selectedAvatar3_" + rowNumber + "' src='/assets/img/placeholder-avatar.jpg\'\n" +
+                                "                class='rounded-circle' style='width: 100px; height: 100px; object-fit: cover;'/>\n" +
+                                "        </div>\n" +
+                                "        <div class='d-flex justify-content-center'> \n" +
+                                "            <div data-mdb-ripple-init class='btn btn-secondary btn-rounded btn-sm'>\n" +
+                                "                <label class='form-label text-white m-1' for='img3_" + rowNumber + "'>Choose file</label>\n" +
+                                "                <input name='img3[]' type='file' class='form-control d-none' id='img3_" + rowNumber + "'\n" +
+                                "                    onchange='displaySelectedImage(event, \"selectedAvatar3_" + rowNumber + "\")' />\n" +
+                                "            </div>\n" +
+                                "        </div>\n" +
+                                "    </div>" +
+                                "    </div>"
+                            cell7.innerHTML = inputFile;
+                            let rowspan = selectedSizes.length;
+                            cell7.rowSpan = rowspan;
+                        } else {
+                            cell7 = newRow.insertCell(6);
+                            cell7.innerHTML = '';
+                        }
+
+                        // Gán giá trị vào các ô trong bảng
+                        cell1.innerHTML = previewTableBody.rows.length + "";  // STT tự động
+                        cell2.innerHTML = productName + " [ " + size + " - " + color + " ] ";  // Tên sản phẩm với size và color
+                        cell3.innerHTML = "<input type='text'  name='price[]' class='form-control' placeholder='Giá bán' >";
+                        cell4.innerHTML = "<input type='text' name='quantity[]' class='form-control' placeholder='Số lượng' >";
+                        cell5.innerHTML = "<input type='text' name='weight[]' class='form-control' placeholder='Trọng lượng' >";
+                        cell6.innerHTML = "<input type='hidden' name='deleted[]' value='false'><a><i class='fa-solid fa-trash' onclick='removeRow(this)'></i></a>";
+                        rowspanByColor[color]++;
+                    });
+                });
+                updateLabelAndInputIds();
+            }
+            window.removeRow = function (link) {
+                let row = link.closest('tr');
+                let color = row.getAttribute('data-color');
+                let size = row.getAttribute('data-size');
+                let imgCell = row.cells[6];
+                let nextRow = row.nextElementSibling;
+
+                if (imgCell.innerHTML.trim() !== '') {
+                    if (nextRow && nextRow.getAttribute('data-color') === color) {
+                        if (nextRow.cells.length > 6) {
+                            nextRow.cells[6].innerHTML = imgCell.innerHTML;
+                            nextRow.cells[6].rowSpan = Math.max(row.cells[6].rowSpan - 1, 1);
+                            imgCell.innerHTML = '';
+                        }
+                    }
+                    console.log(`Chuyển dữ liệu hình ảnh từ dòng ${color + size} sang dòng tiếp theo.`);
+                } else {
+                    let colorCell = Array.from(previewTableBody.rows).find(r => r.getAttribute('data-color') === color
+                        && r.style.display !== 'none' && r.cells[6].rowSpan > 1);
+                    if (colorCell) {
+                        colorCell.cells[6].rowSpan -= 1;
+                    }
+                    console.log(`Xóa dòng ${color + size} không có nội dung hình ảnh.`);
+                }
+
+                console.log(color, size);
+                hideRow(row)
+                updateRowNumbers();
+                showSuccesss("Xóa biến thể thành công");
+            };
+
+            function hideRow(row) {
+                row.style.display = 'none'; // Ẩn hàng đã xóa
+                // Đặt các giá trị input về null
+                const priceInput = row.querySelector("input[name='price[]']");
+                const quantityInput = row.querySelector("input[name='quantity[]']");
+                const weightInput = row.querySelector("input[name='weight[]']");
+                const input1 = row.querySelector("input[name='img1[]']");
+                const input2 = row.querySelector("input[name='img2[]']");
+                const input3 = row.querySelector("input[name='img3[]']");
+
+                if (input1) input1.remove();
+                if (input2) input2.remove();
+                if (input3) input3.remove();
+
+                if (priceInput) priceInput.value = "";
+                if (quantityInput) quantityInput.value = "";
+                if (weightInput) weightInput.value = "";
+
+                // const img1 = row.querySelector("img[id^='selectedAvatar1_']");
+                // const img2 = row.querySelector("img[id^='selectedAvatar2_']");
+                // const img3 = row.querySelector("img[id^='selectedAvatar3_']");
+                //
+                // // Đặt lại ảnh về mặc định
+                // img1.src = '/assets/img/placeholder-avatar.jpg';
+                // img2.src = '/assets/img/placeholder-avatar.jpg';
+                // img3.src = '/assets/img/placeholder-avatar.jpg';
+
+            }
+
+
+            function updateLabelAndInputIds() {
+                document.querySelectorAll('#previewTable tbody tr').forEach((row, rowIndex) => {
+                    rowIndex += 1;
+                    // Cập nhật id và for cho từng ô ảnh
+                    let img1Input = row.querySelector('input[id^="img1_"]');
+                    let img2Input = row.querySelector('input[id^="img2_"]');
+                    let img3Input = row.querySelector('input[id^="img3_"]');
+
+                    if (img1Input) {
+                        img1Input.id = `img1_${rowIndex}`;
+                        let img1Label = row.querySelector(`label[for^="img1_"]`);
+                        if (img1Label) img1Label.setAttribute('for', `img1_${rowIndex}`);
+                    }
+
+                    if (img2Input) {
+                        img2Input.id = `img2_${rowIndex}`;
+                        let img2Label = row.querySelector(`label[for^="img2_"]`);
+                        if (img2Label) img2Label.setAttribute('for', `img2_${rowIndex}`);
+                    }
+
+                    if (img3Input) {
+                        img3Input.id = `img3_${rowIndex}`;
+                        let img3Label = row.querySelector(`label[for^="img3_"]`);
+                        if (img3Label) img3Label.setAttribute('for', `img3_${rowIndex}`);
+                    }
+
+                    let img1Tag = row.querySelector(`img[id^="selectedAvatar1_"]`);
+                    let img2Tag = row.querySelector(`img[id^="selectedAvatar2_"]`);
+                    let img3Tag = row.querySelector(`img[id^="selectedAvatar3_"]`);
+
+                    if (img1Tag) {
+                        img1Tag.id = `selectedAvatar1_${rowIndex}`;
+                    }
+                    if (img2Tag) {
+                        img2Tag.id = `selectedAvatar2_${rowIndex}`;
+                    }
+                    if (img3Tag) {
+                        img3Tag.id = `selectedAvatar3_${rowIndex}`;
+                    }
+                });
+            }
+
+            function updateRowNumbers() {
+                let rows = previewTableBody.querySelectorAll("tr");
+                let currentRowNumber = 1; // Đặt STT bắt đầu từ 1
+                rows.forEach(function (row) {
+                    if (row.style.display !== 'none') {
+                        row.cells[0].innerHTML = currentRowNumber;  // Cập nhật lại STT
+                        currentRowNumber++;
+                    }
+                });
+            }
+
+        });
+    </script>
+
+
+    <script>
+        function displaySelectedImage(event, elementId) {
+            const selectedImage = document.getElementById(elementId);
+            const fileInput = event.target;
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    selectedImage.src = e.target.result;
+                };
+
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        }
+
+        function validModal(event) {
+            event.preventDefault(); // Ngăn hành vi mặc định của form
+
+            const gia = document.getElementById('spctGia').value.trim();
+            const soLuong = document.getElementById('spctSoLuong').value.trim();
+            const trongLuong = document.getElementById('spctTrongLuong').value.trim();
+            let previewTableBody = document.querySelector("#previewTable tbody");
+
+            const MAX_INT = 2147483647;
+            const MAX_DOUBLE = 1.7976931348623157e+308;
+
+            let isValid = true;
+
+
+            if (!soLuong) {
+                showErrors("Số lượng không được để trống!");
+                $('#spctSoLuong').focus();
+                isValid = false;
+            } else if (isNaN(soLuong) || Number(soLuong) <= 0) {
+                showErrors("Số lượng phải là số nguyên dương!");
+                $('#spctSoLuong').focus();
+                isValid = false;
+            } else if (Number(soLuong) > MAX_INT) {
+                showErrors("Số lượng quá lớn!");
+                $('#spctSoLuong').focus();
+                isValid = false;
+            }
+
+            // Kiểm tra giá
+            if (!gia) {
+                showErrors("Đơn giá không được để trống!");
+                $('#spctGia').focus();
+                isValid = false;
+            } else if (isNaN(gia) || Number(gia) <= 0) {
+                showErrors("Đơn giá phải là một số dương!");
+                $('#spctGia').focus();
+                isValid = false;
+            } else if (Number(gia) > MAX_DOUBLE) {
+                $('#spctGia').focus();
+                showErrors("Đơn giá quá lớn!");
+                isValid = false;
+            }
+
+            // Kiểm tra trọng lượng
+            if (!trongLuong) {
+                showErrors("Trọng lượng không được để trống!");
+                $('#spctTrongLuong').focus();
+                isValid = false;
+            } else if (isNaN(trongLuong) || Number(trongLuong) <= 0) {
+                showErrors("Trọng lượng phải là một số dương!");
+                $('#spctTrongLuong').focus();
+                isValid = false;
+            } else if (Number(trongLuong) > MAX_DOUBLE) {
+                showErrors("Trọng lượng quá lớn!");
+                $('#spctTrongLuong').focus();
+                isValid = false;
+            }
+
+            // Nếu tất cả đều hợp lệ, cập nhật giá trị cho bảng preview
+            if (isValid) {
+                var rows = previewTableBody.querySelectorAll("tr");
+
+                rows.forEach(function (row) {
+                    if (row.style.display !== 'none') { // Chỉ cập nhật các dòng không ẩn
+                        row.cells[2].querySelector('input[name="price[]"]').value = gia; // Sửa lại biến từ price
+                        row.cells[3].querySelector('input[name="quantity[]"]').value = soLuong; // Sửa lại biến từ quantity
+                        row.cells[4].querySelector('input[name="weight[]"]').value = trongLuong; // Sửa lại biến từ weight
+                    }
+                });
+
+                // Đóng modal sau khi cập nhật
+                var modal = bootstrap.Modal.getInstance(document.getElementById('thuocTinhSpctModal'));
+                modal.hide();
+            }
+
+            return isValid; // Trả về trạng thái hợp lệ
+        }
+
+        async function valid(event) {
+            event.preventDefault();
+
+            const nameSPField = document.getElementById('nameSP');
+            const nameSPValue = nameSPField.value.trim();
+            const moTaSPField = document.getElementById('moTaSP');
+            const moTaSPValue = moTaSPField.value.trim();
+            const rowsImage = document.querySelectorAll('#previewTable tbody tr');
+            const rows = document.querySelectorAll("#previewTable tbody tr");
+            const selectElementSize = document.querySelector(".chosen-select1");
+            const selectedOptionsSize = Array.from(selectElementSize.selectedOptions);
+            const selectElementColor = document.querySelector(".chosen-select2");
+            const selectedOptionsColor = Array.from(selectElementColor.selectedOptions);
+            const MAX_INT = 2147483647;
+            const MAX_DOUBLE = 1.7976931348623157e+308;
+
+            let isValid = true;
+
+            if (selectedOptionsSize.length === 0) {
+                showErrors("Chọn ít nhất một kích thước hoặc thêm nếu trống!");
+                isValid = false;
+            }
+            if (selectedOptionsColor.length === 0) {
+                showErrors("Chọn ít nhất một màu sắc hoặc thêm nếu trống!");
+                isValid = false;
+            }
+
+            if (nameSPValue === "") {
+                showErrors("Tên sản phẩm không được để trống!");
+                nameSPField.focus();
+                isValid = false;
+
+            } else if (moTaSPValue === "") {
+                showErrors("Mô tả sản phẩm không được để trống!");
+                moTaSPField.focus();
+                isValid = false;
+            }
+
+
+            rowsImage.forEach((row, rowIndex) => {
+                for (let i = 1; i <= 3; i++) {
+                    const inputFile = row.querySelector(`input[id^="img${i}_"]`);
+                    if (inputFile && inputFile.files.length === 0) {
+                        showErrors('Chọn ảnh cho tất cả biến thể');
+                        isValid = false;
+                        break;
+                    }
+                }
+            });
+
+            rows.forEach(row => {
+                if (row.style.display === "none") {
+                    return;
+                }
+                const priceInput = row.querySelector("input[name='price[]']");
+                const quantityInput = row.querySelector("input[name='quantity[]']");
+                const weightInput = row.querySelector("input[name='weight[]']");
+
+                console.log("Giá:", priceInput.value, "Số lượng:", quantityInput.value, "Trọng lượng:", weightInput.value);
+
+                if (!priceInput || priceInput.value.trim() === "") {
+                    showErrors("Giá không được trống");
+                    priceInput.focus();
+                    isValid = false;
+                } else if (isNaN(priceInput.value) || priceInput.value < 0) {
+                    showErrors("Giá bán phải là số dương");
+                    priceInput.focus();
+                    isValid = false;
+                }else if (priceInput.value > MAX_DOUBLE) {
+                    showErrors("Giá bán quá lớn");
+                    priceInput.focus();
+                    isValid = false;
+                }
+
+
+                if (!quantityInput || quantityInput.value.trim() === "") {
+                    showErrors("Số lượng không được trống");
+                    quantityInput.focus();
+                    isValid = false;
+                } else if (isNaN(quantityInput.value) || quantityInput.value < 0) {
+                    showErrors("Số lượng phải là số nguyên dương");
+                    quantityInput.focus();
+                    isValid = false;
+                }else if (quantityInput.value > MAX_INT) {
+                    showErrors("Số lượng quá lớn");
+                    quantityInput.focus();
+                    isValid = false;
+                }
+
+                // Kiểm tra trọng lượng
+                if (!weightInput || weightInput.value.trim() === "") {
+                    showErrors("Trọng lượng không được trống")
+                    weightInput.focus();
+                    isValid = false;
+                } else if (isNaN(weightInput.value) || weightInput.value < 0) {
+                    showErrors("Trọng lượng phải là số dương");
+                    weightInput.focus();
+                    isValid = false;
+                }else if (weightInput.value > MAX_DOUBLE) {
+                    showErrors("Trọng lượng quá lớn");
+                    weightInput.focus();
+                    isValid = false;
+                }
+            });
+
+
+            if (isValid) {
+                const result = await Swal.fire({
+                    title: 'Bạn có chắc chắn muốn hoàn thành?',
+                    text: "Hành động này không thể hoàn tác!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Hủy'
+                });
+
+                if (result.isConfirmed) {
+                    document.getElementById('form-add').submit();
+                } else {
+                    console.log('User canceled the submission.');
+                    return false; // Prevent form submission
+                }
+            }
+        }
+
+        async function validMaterial(event) {
+            event.preventDefault();
+            const nameMaterialField = document.getElementById('nameMaterial');
+            const nameMaterialValue = nameMaterialField.value.trim();
+            let isValid = true;
+            if (!nameMaterialValue) {
+                showErrors("Tên chất liệu không được để trống!");
+                nameMaterialField.focus();
+                isValid = false;
+            }
+            if (isValid) {
+                const result = await Swal.fire({
+                    title: 'Bạn có chắc chắn muốn hoàn thành?',
+                    text: "Hành động này không thể hoàn tác!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Hủy'
+                });
+
+                if (result.isConfirmed) {
+                    document.getElementById('form-add-material').submit();
+                } else {
+                    console.log('User canceled the submission.');
+                    return false; // Prevent form submission
+                }
+            }
+        }
+
+        async function validStyle(event) {
+            event.preventDefault();
+            const nameStyleField = document.getElementById('nameStyle');
+            const nameStyleValue = nameStyleField.value.trim();
+            let isValid = true;
+            if (!nameStyleValue) {
+                showErrors("Tên kiểu dáng không được để trống!");
+                nameStyleField.focus();
+                isValid = false;
+            }
+            if (isValid) {
+                const result = await Swal.fire({
+                    title: 'Bạn có chắc chắn muốn hoàn thành?',
+                    text: "Hành động này không thể hoàn tác!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Hủy'
+                });
+
+                if (result.isConfirmed) {
+                    document.getElementById('form-add-style').submit();
+                } else {
+                    console.log('User canceled the submission.');
+                    return false; // Prevent form submission
+                }
+            }
+        }
+
+        async function validCategory(event) {
+            event.preventDefault();
+            const nameCateField = document.getElementById('nameCate');
+            const nameCateValue = nameCateField.value.trim();
+            let isValid = true;
+            if (!nameCateValue) {
+                showErrors("Tên danh mục không được để trống!");
+                nameCateField.focus();
+                isValid = false;
+            }
+            if (isValid) {
+                const result = await Swal.fire({
+                    title: 'Bạn có chắc chắn muốn hoàn thành?',
+                    text: "Hành động này không thể hoàn tác!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Hủy'
+                });
+
+                if (result.isConfirmed) {
+                    document.getElementById('form-add-category').submit();
+                } else {
+                    console.log('User canceled the submission.');
+                    return false; // Prevent form submission
+                }
+            }
+        }
+
+        async function validBrand(event) {
+            event.preventDefault();
+            const nameBrandField = document.getElementById('nameBrand');
+            const nameBrandValue = nameBrandField.value.trim();
+            let isValid = true;
+            if (!nameBrandValue) {
+                showErrors("Tên thương hiệu không được để trống!");
+                isValid = false;
+            }
+            if (isValid) {
+                const result = await Swal.fire({
+                    title: 'Bạn có chắc chắn muốn hoàn thành?',
+                    text: "Hành động này không thể hoàn tác!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Hủy'
+                });
+
+                if (result.isConfirmed) {
+                    document.getElementById('form-add-brand').submit();
+                } else {
+                    console.log('User canceled the submission.');
+                    return false; // Prevent form submission
+                }
+            }
+        }
+
+        async function validSize(event) {
+            event.preventDefault();
+            const nameField = document.getElementById("nameSize");
+            const nameValue = nameField.value.trim();
+            let isValid = true;
+
+            if (!nameValue) {
+                showErrors("Tên kích thước không được để trống!");
+                isValid = false;
+            }
+            if (isValid) {
+                const result = await Swal.fire({
+                    title: 'Bạn có chắc chắn muốn hoàn thành?',
+                    text: "Hành động này không thể hoàn tác!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Hủy'
+                });
+
+                if (result.isConfirmed) {
+                    document.getElementById('form-add-size').submit();
+                } else {
+                    console.log('User canceled the submission.');
+                    return false; // Prevent form submission
+                }
+            }
+        }
+
+        async function validColor(event) {
+            event.preventDefault();
+            const nameField = document.getElementById("nameColor");
+            const nameValue = nameField.value.trim();
+            let isValid = true;
+
+            if (!nameValue) {
+                showErrors("Tên màu sắc không được để trống!");
+                isValid = false;
+            }
+            if (isValid) {
+                const result = await Swal.fire({
+                    title: 'Bạn có chắc chắn muốn hoàn thành?',
+                    text: "Hành động này không thể hoàn tác!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Hủy'
+                });
+
+                if (result.isConfirmed) {
+                    document.getElementById('form-add-color').submit();
+                } else {
+                    console.log('User canceled the submission.');
+                    return false; // Prevent form submission
+                }
+            }
+        }
+    </script>
+    <script>
+        function showErrors(messsages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messsages
+            });
+        }
+
+        function showSuccesss(messsages1) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "success",
+                title: messsages1
+            });
+        }
+
+        [[${tenKieuDangTonTai} == true]] ? showErrors('Tên kiểu dáng đã tồn tại!') : '';
+
+        [[${tenChatLieuTonTai} == true]] ? showErrors('Tên chất liệu đã tồn tại!') : '';
+
+        [[${tenThuongHieuTonTai} == true]] ? showErrors('Tên thương hiệu đã tồn tại!') : '';
+
+        [[${tenMauTonTai} == true]] ? showErrors('Tên màu sắc đã tồn tại!') : '';
+
+        [[${tenSizeTontai} == true]] ? showErrors('Tên kích thước đã tồn tại!') : '';
+
+        [[${tenDangMucTonTai} == true]] ? showErrors('Tên danh mục đã tồn tại!') : '';
+
+        [[${tenTonTai} == true]] ? showErrors('Tên sản phẩm đã tồn tại!') : '';
+
+        [[${createSuccess1} == true]] ? showSuccesss('Thêm thành công') : '';
+
+    </script>
+</div>
+</body>
+</html>

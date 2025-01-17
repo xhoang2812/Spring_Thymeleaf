@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{admin/index}"
+      xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Nội Quy Cửa Hàng</title>
+    <style>
+        /* Reset CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        Body Styling
+        body {
+            background-color: #f9f9f9;
+            color: #333;
+            display: flex;
+            /*justify-content: center;*/
+            /*align-items: center;*/
+            min-height: 100vh;
+        }
+
+        /* Main Container */
+        /*.container {*/
+        /*    width: 100%;*/
+        /*    max-width: 1200px;*/
+        /*    padding: 2rem;*/
+        /*    background-color: #fff;*/
+        /*    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);*/
+        /*    border-radius: 8px;*/
+        /*    margin: auto;*/
+        /*}*/
+        /*.card {*/
+        /*    max-width: 800px;*/
+        /*    padding: 2rem;*/
+        /*    justify-content: center; !* căn giữa theo chiều ngang *!*/
+        /*    align-items: center;*/
+        /*    background-color: #fff;*/
+        /*    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);*/
+        /*    border-radius: 8px;*/
+        /*}*/
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 2rem;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin: auto;
+            display: flex;
+            justify-content: center; /* căn giữa theo chiều ngang */
+            align-items: center; /* căn giữa theo chiều dọc nếu container có chiều cao */
+        }
+
+        .card {
+            max-width: 800px;
+            width: 100%; /* Đảm bảo thẻ card co dãn theo kích thước của container */
+            padding: 2rem;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        /* Header */
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Rules List */
+        .rules {
+            list-style-type: decimal;
+            padding-left: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .rules li {
+            margin-bottom: 0.8rem;
+        }
+
+        /* Section Styling */
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            color: #555;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #777;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <main class="content px-3 py-4">
+        <div class="container-fluid">
+            <div class="container">
+                <div class="card">
+                    <h1>Nội Quy Cửa Hàng</h1>
+
+                    <p class="section-title">1. Quy Định Chung</p>
+                    <ul class="rules">
+                        <li>A. Nhân viên phải có thái độ tôn trọng, nhiệt tình với khách hàng.</li>
+                        <li>B. Không sử dụng điện thoại di động khi đang làm việc trừ trường hợp khẩn cấp.</li>
+                        <li>C. Không hút thuốc, ăn uống hoặc làm việc riêng tại quầy bán hàng.</li>
+                        <li>D. Giữ gìn vệ sinh chung, đảm bảo khu vực làm việc luôn sạch sẽ, gọn gàng.</li>
+                    </ul>
+
+                    <p class="section-title">2. Quy Định Về Bảo Quản Hàng Hóa</p>
+                    <ul class="rules">
+                        <li>A. Hàng hóa cần được sắp xếp gọn gàng, sạch sẽ và đúng vị trí.</li>
+                        <li>B. Không làm hỏng hoặc thất lạc hàng hóa trong cửa hàng.</li>
+                        <li>C. Kiểm tra số lượng và chất lượng hàng hóa mỗi ngày, báo cáo ngay khi phát hiện vấn đề.
+                        </li>
+                        <li>D. Nhân viên không tự ý mang hàng hóa ra khỏi cửa hàng nếu không có sự đồng ý của quản lý.
+                        </li>
+                    </ul>
+
+                    <p class="section-title">3. Quy Định Về Thời Gian Và Ca Làm Việc</p>
+                    <ul class="rules">
+                        <li>A. Mỗi ngày có 3 ca làm việc như sau:
+                            <ul style="list-style-type: disc; padding-left: 2rem;">
+                                <li>Ca 1: từ 7h00 đến 12h00</li>
+                                <li>Ca 2: từ 12h00 đến 17h00</li>
+                                <li>Ca 3: từ 17h00 đến 22h00</li>
+                            </ul>
+                        </li>
+                        <li>B. Thời gian đi làm muộn là quá 15 phút tính từ lúc thời gian bắt đầu ca. Ví dụ ca 1 thời
+                            gian vào ca là 7h00 thì thời gian được tính là đi làm muộn là từ 7h15 trở đi.
+                        </li>
+                        <li>C. Nhân viên phải làm đúng ca được phân công và có mặt trước giờ làm việc ít nhất 15 phút.
+                        </li>
+                        <li>D. Việc đi trễ hoặc nghỉ làm phải có lý do và báo trước cho quản lý.</li>
+                        <li>E. Nhân viên không được giao ca sớm, gian lận thời gian trong máy tính để giao ca và thời
+                            gian giao ca là từ thời gian hết ca làm việc trở
+                            đi. Ví dụ ca 1 thời gian hết ca là 12h00 thì thời gian được giao ca là từ 12h00 trở đi.
+                        </li>
+                        <li>F. Nhân viên cần xin phép và được quản lý phê duyệt nếu cần rời khỏi chỗ làm trong thời gian
+                            làm việc.
+                        </li>
+                        <li>G. Nếu nhân viên làm mất, hoặc thiếu tiền trong ca thì phải chịu trách nhiệm phải bù ngay
+                            lúc kết thúc ca.
+                        </li>
+                    </ul>
+
+                    <p class="section-title">4. Quy Định Về Thái Độ Và Cách Ứng Xử</p>
+                    <ul class="rules">
+                        <li>A. Giữ thái độ lịch sự, thân thiện khi giao tiếp với khách hàng và đồng nghiệp.</li>
+                        <li>B. Tránh tranh cãi, to tiếng hoặc tạo ra môi trường làm việc không thoải mái.</li>
+                        <li>C. Không được phép nói xấu khách hàng hoặc đồng nghiệp dưới bất kỳ hình thức nào.</li>
+                        <li>D. Lắng nghe ý kiến góp ý và cải thiện hiệu quả công việc.</li>
+                    </ul>
+                    <p class="section-title">5. Quy Định Về An Toàn Và Bảo Mật</p>
+                    <ul class="rules">
+                        <li>A. Không được chia sẻ thông tin nhạy cảm của cửa hàng với người ngoài.</li>
+                        <li>B. Luôn kiểm tra và đảm bảo các thiết bị an toàn như hệ thống báo cháy, cửa thoát hiểm.</li>
+                        <li>C. Báo cáo ngay các trường hợp khẩn cấp hoặc tình huống đáng ngờ cho quản lý.</li>
+                        <li>D. Không tự ý sửa chữa hoặc thay đổi thiết bị trong cửa hàng mà không có sự đồng ý của quản
+                            lý.
+                        </li>
+                    </ul>
+                    <p class="section-title">6. Chính sách trả hàng</p>
+                    <ul class="rules">
+                        <li>A. Thời gian trả hàng
+                            <ul>
+                                <li>- Đơn tại cửa hàng: 07 ngày từ ngày mua hàng. Quá thời hạn 7 ngày không hỗ trợ trả
+                                    hàng.
+                                </li>
+                                <li>- Đơn online: 07 ngày từ khi đơn hàng giao thành công. Quá thời hạn 7 ngày không hỗ
+                                    trợ trả hàng.
+                                </li>
+                            </ul>
+                        </li>
+                        <li>B. Các trường hợp được trả hàng
+                            <ul>
+                                <li>- Đơn tại cửa hàng: 07 ngày từ ngày mua hàng và chứng minh được sản phẩm của cửa hàng qua hóa đơn. Quá thời hạn 7 ngày không hỗ trợ trả
+                                    hàng.
+                                </li>
+                                <li>- Đơn online: 07 ngày từ khi đơn hàng giao thành công và chứng minh được sản phẩm của cửa hàng qua hóa đơn,  cung cấp được video xác
+                                    thực sản phẩm của cửa hàng khi mở . Quá thời hạn 7 ngày không hỗ trợ trả hàng.
+                                </li>
+                            </ul>
+                        </li>
+                        <li>C. Chính sách trả hàng.
+                            <ul>
+                                <li>- Khách hàng được trả hàng trong trường hợp sản phẩm hoặc đơn hàng có phát sinh lỗi
+                                    được xác nhận từ cửa hàng
+                                </li>
+                                <li>- Sản phẩm lỗi do sản xuất: rách, bẩn, trầy xước, bung cúc, hỏng khóa, lỗi đường
+                                    may, lỗi chất liệu, mốc bẩn, loang màu, hoen gỉ, gãy rụng...
+                                </li>
+                                <li>- Giao sai/ thiếu sản phẩm so với đơn đặt hàng: màu sắc, size, số lượng, loại sản
+                                    phẩm.
+                                </li>
+                                <li>- Hoàn tiền qua tài khoản ngân hàng mà khách hàng cung cấp (1-3 ngày)</li>
+                                <li>- Nếu hóa đơn có voucher thì sẽ được tính theo quy định của cửa hàng(Bỏ voucher nếu
+                                    tiền hóa đơn không đủ để áp dụng, Vẫn sẽ áp dụng voucher nếu hóa đơn đủ điều kiện và
+                                    tính theo giá hiện tại của hóa đơn để áp dụng voucher)
+                                </li>
+                            </ul>
+                        </li>
+                        <li>D. Điều kiện của sản phẩm
+                            <ul>
+                                <li>- Sản phẩm còn nguyên vẹn,  đầy đủ tem mác, phụ kiện, hộp, túi, quà tặng đi kèm.
+                                </li>
+                                <li>- Sản phẩm chưa chỉnh sửa, chưa sử dụng, chưa giặt ủi, không có mùi lạ, không bị hư hỏng do tác động bên ngoài.
+                                </li>
+                                <li>-Sản phẩm được sử dụng và bảo quản theo đúng hướng dẫn của cửa hàng.
+                                </li>
+                            </ul>
+                        </li>
+                        <li>E.Chi phí trả hàng:
+                            <ul>
+                                <li>- Trả theo nhu cầu: Khách hàng thanh toán phí ship hàng đối với đơn online.
+                                </li>
+                                <li>- Trả do lỗi từ cửa hàng: Khách hàng không cần thanh toán phí ship trả hàng đối với đơn online.
+                                </li>
+
+                            </ul>
+                        </li>
+                        <li>F. Cách thức trả hàng:
+                            <ul>
+                                <li>- Đối với đơn hàng online:
+                                    <ul>
+                                        <li>B1: Khách hàng liên hệ với cửa hàng qua hotline hoặc mạng xã hội.</li>
+                                        <li>B2: Khách hàng cung cấp hình ảnh/ video sản phẩm  trả theo yêu cầu từ cửa hàng.</li>
+                                        <li>B3: Khách hàng gửi lại sản phẩm trả cho cửa hàng theo hướng dẫn.</li>
+                                        <li>B4: Sau khi nhận hàng cửa hàng tiến hành xử lý yêu cầu trả hàng và hoàn tiền qua tài khoản ngân hàng do khách hàng cung cấp từ (1-3 ngày) làm việc.</li>
+                                        <li>B5: Cửa hàng sẽ hoàn tiền qua tài khoản ngân hàng do khách .</li>
+                                        <li>Lưu ý: Khách hàng tự ý gửi hàng về đổi mà không thông qua sự xác nhận của nhân viên xử lý khiếu nại thì mọi vấn đề liên quan sản phẩm đó cửa hàng không chịu trách nhiệm.</li>
+                                    </ul>
+                                </li>
+
+                                <li>- Đối với đơn hàng khách mua tại cửa hàng:
+                                    <ul>
+                                        <li>
+                                            B1: Khách mua tại cửa hàng nào sẽ mang trực tiếp sản phẩm + hóa đơn qua cửa hàng đó để được hỗ trợ trả sản phẩm.
+                                        </li>
+                                        <li>
+                                            B2: Khách hàng cung cấp tài khoản ngân hàng nhận tiền và chờ hoàn tiền từ (1-3 ngày) làm việc.
+                                        </li>
+                                    </ul>
+                                </li>
+
+                            </ul>
+                        </li>
+
+                    </ul>
+                    <h2 class="text-center">Cảm ơn sự hợp tác của quý khách hàng và nhân viên!</h2>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

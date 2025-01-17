@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thông Báo Đơn Hàng Chờ Hoàn Tiền</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      color: #333;
+    }
+    .email-container {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    .header {
+      background-color: #4CAF50;
+      color: white;
+      text-align: center;
+      padding: 10px 0;
+    }
+    .content {
+      margin-top: 20px;
+    }
+    .order-info {
+      border: 1px solid #ddd;
+      padding: 10px;
+      background-color: #fff;
+    }
+    .order-info th, .order-info td {
+      padding: 8px;
+      text-align: left;
+    }
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 12px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+<div class="email-container">
+  <div class="header">
+    <h2>Thông Báo: Đơn Hàng Đang Chờ Hoàn Tiền</h2>
+  </div>
+
+  <div class="content">
+    <p>Chào Quản trị viên,</p>
+    <p>Đơn hàng dưới đây đang chờ hoàn tiền. Vui lòng xem xét và xử lý:</p>
+
+    <table class="order-info">
+      <tr>
+        <th>Mã Đơn Hàng</th>
+        <td th:text="${'#' + bill.id}"></td>
+      </tr>
+      <tr>
+        <th>Khách Hàng</th>
+        <td th:text="${bill.customer == null ? 'Khách lẻ' : bill.customer.name}"></td>
+      </tr>
+      <tr>
+        <th>Email</th>
+        <td th:text="${trade.email}"></td>
+      </tr>
+      <tr>
+        <th>Số Tiền Hoàn</th>
+        <td th:utext="${#numbers.formatDecimal(trade.payMoney, 0, 'POINT', 0, 'POINT') + ' VND'}"></td>
+      </tr>
+      <tr>
+        <th>Trạng Thái Đơn Hàng</th>
+        <td>Đang Chờ Hoàn Tiền</td>
+      </tr>
+    </table>
+
+    <p>Vui lòng xử lý yêu cầu hoàn tiền này càng sớm càng tốt.</p>
+  </div>
+
+  <div class="footer">
+    <p>Trân trọng, <br> Hệ thống Quản lý Đơn Hàng</p>
+  </div>
+</div>
+</body>
+</html>

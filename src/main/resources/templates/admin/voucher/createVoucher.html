@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+>
+<head>
+    <meta charset="UTF-8">
+    <title>Create Voucher</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css">
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+    <script src="/js/createVoucher.js" defer></script>
+    <style>
+        .form-control {
+            border: 0.09rem solid black;
+        }
+        .card {
+            border-radius: .5rem;
+        }
+        table td,
+        table th {
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .form-control {
+            margin-top: 4px;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            visibility: hidden;
+            max-width: 300px;
+            background-color: #333;
+            color: #fff;
+            border-radius: 5px;
+            padding: 16px;
+            position: relative;
+            font-size: 17px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeInOut 5s ease forwards;
+        }
+
+        .toast .close {
+            cursor: pointer;
+            font-size: 20px;
+            margin-left: 10px;
+            color: #fff;
+        }
+
+        #countdown {
+            margin-left: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #4caf50;
+        }
+
+        .progress {
+            width: 100%;
+            height: 4px;
+            background-color: #4caf50;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            animation: progressBar 5s linear;
+        }
+
+        @keyframes progressBar {
+            from {
+                width: 100%;
+            }
+            to {
+                width: 0%;
+            }
+        }
+
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .toast.show {
+            visibility: visible;
+        }
+    </style>
+</head>
+<body onload="dataCustomer()">
+<div layout:fragment="content" class="container-fluid">
+    <div id="toastContainer" class="toast-container"></div>
+    <div class="row d-flex p-5 justify-content-around">
+        <div class="card border-0 shadow col-6">
+            <div class="card-body">
+                <h1 class="text-center">Thêm mới phiếu giảm giá</h1>
+                <form id="myForm" action="">
+                    <div class="template-add-voucher p-3 row">
+                        <div class="text-end">
+                            <input class="" id="formVoucher" value="true" name="formVoucher" checked type="radio"
+                                   onclick="showPage()"> Công khai /
+                            <input class="" id="formVoucher1" value="false" name="formVoucher" type="radio"
+                                   onclick="showPage()"> Riêng tư
+                        </div>
+                        <div class="textfield-container col-12">
+                            <label>Mã giảm giá</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="code" name="code">
+                                <button class="btn btn-dark" onclick="randomCode(event)" style="margin-top: 0.26rem">Random
+                                </button>
+                            </div>
+                        </div>
+                        <div class="textfield-container col-12">
+                            <label>Tên mã giảm giá</label>
+                            <input class="form-control" id="name" name="name" placeholder=" " type="text">
+                        </div>
+                        <div class="textfield-container col-6">
+                            <label>Giá trị giảm</label>
+                            <div class="d-flex justify-content-between">
+                                <div class="col-8">
+                                    <input class="form-control" id="discount" onchange="setMaximumReduction()" name="discount" placeholder=" "
+                                           type="number">
+                                </div>
+                                <div class="col-6 ms-2 radio-voucher">
+                                    <div class="mt-2">
+                                        <input id="styleVoucher" onclick="checkStyle()" name="styleVoucher" checked value="true"
+                                               type="radio">%
+                                    </div>
+                                    <div class="">
+                                        <input id="styleVoucher1" onclick="checkStyle()" name="styleVoucher" value="false"
+                                               type="radio"> VND
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="textfield-container col-6">
+                            <label>Số lượng</label>
+                            <input class="form-control" id="quantity" name="quantity" placeholder=" "
+                                   type="number">
+                        </div>
+                        <div class="textfield-container col-6">
+                            <label>Đơn giá tối thiểu</label>
+                            <input class="form-control" id="minimumOrder" name="minimumOrder" type="number">
+                        </div>
+                        <div class="textfield-container col-6">
+                            <label>Ngày bắt đầu</label>
+                            <input class="form-control" id="dateStart" name="dateStart" placeholder=" "
+                                   type="datetime-local">
+                        </div>
+                        <div class="textfield-container col-6">
+                            <label>Giảm tối đa</label>
+                            <input class="form-control" id="maximumReduction" name="maximumReduction" placeholder=" "
+                                   type="number">
+                        </div>
+                        <div class="textfield-container col-6">
+                            <label>Ngày kết thúc</label>
+                            <input class="form-control" id="dateEnd" name="dateEnd" placeholder=" "
+                                   type="datetime-local">
+                        </div>
+                        <div class="textfield-container col-12">
+                            <label>Mô tả</label>
+                            <input class="form-control" id="description" name="description" placeholder=" "
+                                   type="text">
+                        </div>
+                    </div>
+                    <div class="text-end me-3">
+                        <button class="btn bg-black text-white" onclick="closePage()" type="button">Đóng</button>
+                        <button class="btn bg-black text-white" onclick="createVoucher()" type="button">Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="card col-5 border-0 shadow text-center" style="display: none" id="listUser">
+            <h1>Danh sách khách hàng</h1>
+            <div class="card-body">
+
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 mt-3" id="customerTable">
+                        <thead class="table-dark">
+                        <tr>
+                            <th scope="col"><input type="checkbox">All</th>
+                            <th scope="col">ID</th>
+                            <th scope="col">Họ tên</th>
+                            <th scope="col">Số điện thoại</th>
+                            <th scope="col">Email</th>
+                        </tr>
+                        </thead>
+                        <tbody id="listCustomer">
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

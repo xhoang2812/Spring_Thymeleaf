@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Trả hàng</title>
+
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <link href="/css/returnProduct.css" rel="stylesheet" />
+  <script src="/js/returnProduct.js" defer></script>
+</head>
+
+<body onload="loading()">
+<div layout:fragment="content" class="container-fluid">
+  <div id="toastContainer" class="toast-container"></div>
+  <h1>Trả hàng</h1>
+  <div class="mt-5">
+    <div class="row justify-content-center mt-5">
+      <div class="col-12">
+        <div class="card border-0 shadow customer-infor">
+          <div class="card-body">
+            <h5><i class="fa-solid fa-user"></i> Thông tin khách hàng</h5>
+          </div>
+          <div class="card-body row" id="customer-info">
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mt-5">
+    <div class="mt-4">
+      <div class="row justify-content-center">
+        <div class="col-12">
+          <div class="card border-0 shadow">
+            <div class="card-body">
+              <h5><i class="fa-solid fa-rectangle-list"></i> Thông tin đơn hàng</h5>
+              <div class="text-end">
+                <button class="btn bg-black text-white" onclick="returnAll()" id="btn-returnAll">
+                  <i class="fa-solid fa-reply-all"></i> Hoàn trả tất cả
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="multi-filter-select" class="table table-hover mb-0">
+                  <thead class="table-dark text-center">
+                  <tr>
+                    <th scope="col">STT</th>
+                    <th scope="col">Ảnh</th>
+                    <th scope="col">Thông tin sản phẩm</th>
+                    <th scope="col">Số lượng</th>
+                    <th scope="col">Tổng tiền</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col">Hoạt động</th>
+                  </tr>
+                  </thead>
+                  <tbody class="line-high-table" id="listProductDetail">
+
+
+
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row justify-content-center">
+      <div class="col-8">
+        <div class="col-12" id="listProductTrade">
+
+        </div>
+        <div class="col-12" style="display: none" id="product-trade">
+          <div class="card border-0 shadow">
+            <div class="card-body">
+              <h5><i class="fa-solid fa-code-compare"></i> Sản phẩm</h5>
+            </div>
+            <div class="card-body row">
+              <div class="table-responsive">
+                <table id="multi-filter-select" class="table table-hover mb-0">
+                  <thead class="table-dark text-center">
+                  <tr>
+                    <th scope="col">STT</th>
+                    <th scope="col">Ảnh</th>
+                    <th scope="col">Thông tin sản phẩm</th>
+                    <th scope="col">Màu sắc</th>
+                    <th scope="col">Số lượng</th>
+                    <th scope="col">Tổng tiền</th>
+                    <th scope="col">Hoạt động</th>
+                  </tr>
+                  </thead>
+                  <tbody class="line-high-table" id="listVoucher">
+                  <tr>
+                    <td class="text-center">1</td>
+                    <td class="text-center"><img
+                            src="https://chodole.com/cdn/shop/products/CDL5_1_1024x1024.jpg?v=1586758906"
+                            style="height: 30px;" class="img-fluid" alt=""></td>
+                    <td>
+                      <p>Áo cộc tay mùa đông [ M - Yellow ] <br> <span
+                              class="text-danger">100.000
+                                                        VND</span> <span
+                              class="text-decoration-line-through">200.000VND</span></p>
+                    </td>
+                    <td class="text-center"><button class="btn btn-warning w-50"></button></td>
+                    <td class="text-center"><input type="number" style="max-width: 150px;"
+                                                   value="1" class="form-control"></td>
+                    <td class="text-center">200.000 VND</td>
+                    <td class="text-center">
+                      <button class="btn btn-danger"><i
+                              class="fa-solid fa-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-center">2</td>
+                    <td class="text-center"><img
+                            src="https://chodole.com/cdn/shop/products/CDL5_1_1024x1024.jpg?v=1586758906"
+                            style="height: 30px;" class="img-fluid" alt=""></td>
+                    <td>
+                      <p>Áo cộc tay mùa đông [ M - Yellow ] <br> <span
+                              class="text-danger">100.000
+                                                        VND</span> <span
+                              class="text-decoration-line-through">200.000VND</span></p>
+                    </td>
+                    <td class="text-center"><button class="btn btn-warning w-50"></button></td>
+                    <td class="text-center"><input style="max-width: 150px;" type="number"
+                                                   value="1" class="form-control"></td>
+                    <td class="text-center">200.000 VND</td>
+                    <td class="text-center">
+                      <button class="btn btn-danger"><i
+                              class="fa-solid fa-trash"></i></button>
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card border-0 shadow pay-infor">
+          <div class="card-body">
+            <h5><i class="fa-solid fa-money-check-dollar"></i> Thông tin thanh toán</h5>
+          </div>
+          <div class="card-body row" id="pay-infor">
+
+          </div>
+          <div class="card-body row">
+            <div class="col-6">
+              <p>Tổng tiền thanh toán:</p>
+            </div>
+            <div class="col-6">
+              <span id="totalPay"></span>
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="card border-0 shadow pay-infor">
+            <div class="card-body">
+              <h5><i class="fa-solid fa-money-check-dollar"></i> Thông tin hoàn tiền</h5>
+            </div>
+            <div class="card-body row" id="bank-info">
+              <div class="col-5">
+                <p>Ngân hàng:</p>
+              </div>
+              <div class="col-7">
+                <input class="w-100" list="bankLists" onchange="renderQRCode()" id="bankName" name="bankName" placeholder="Chọn ngân hàng">
+                <datalist id="bankLists">
+
+                </datalist>
+              </div>
+              <div class="col-5">
+                <p>Số tài khoản:</p>
+              </div>
+              <div class="col-7">
+                <input class="w-100" onchange="renderQRCode()" type="text" placeholder="Số tài khoản">
+              </div>
+              <div class="col-5">
+                <p>Người nhận:</p>
+              </div>
+              <div class="col-7">
+                <input class="w-100" type="text" placeholder="Tên người nhận">
+              </div>
+              <div class="col-5">
+                <p>Email:</p>
+              </div>
+              <div class="col-7">
+                <input class="w-100" type="text" placeholder="Email">
+              </div>
+              <div class="col-5">
+                <p>Số điện thoại:</p>
+              </div>
+              <div class="col-7">
+                <input class="w-100" type="text" placeholder="Số điện thoại">
+              </div>
+              <!--            <div class="">-->
+              <!--              <div class="">-->
+              <!--                <input type="text" placeholder="Tên ngân hàng">-->
+              <!--                <input type="text" placeholder="Số tài khoản">-->
+              <!--              </div>-->
+              <!--              <div class="mt-3">-->
+              <!--                <input type="text" placeholder="Tên người nhận">-->
+              <!--                <input type="text" placeholder="Email">-->
+              <!--              </div>-->
+              <!--            </div>-->
+              <div class="mt-3">
+                <p>QR code thanh toán:</p>
+                <div id="imageContainer" class="new-image-container col-12 text-center">
+
+                </div>
+              </div>
+            </div>
+            <div class="card-body row">
+              <div class="text-center">
+                <button class="btn btn-success w-50 mt-4" id="btnSubmitTrade" onclick="submitForm()">Xác nhận</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-8"></div>
+
+      
+    </div>
+  </div>
+
+<!--  &lt;!&ndash; Modal &ndash;&gt;-->
+<!--  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">-->
+<!--    <div class="modal-dialog">-->
+<!--      <div class="modal-content">-->
+<!--        <div class="modal-header">-->
+<!--          <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>-->
+<!--          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>-->
+<!--        </div>-->
+<!--        <div class="modal-body">-->
+<!--          ...-->
+<!--        </div>-->
+<!--        <div class="modal-footer">-->
+<!--          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>-->
+<!--          <button type="button" class="btn btn-primary">Save changes</button>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+
+  <!-- Modal parse quantity-->
+  <div class="modal fade" id="exampleModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Nhập số lượng</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="resetQuantity()"></button>
+        </div>
+        <div class="modal-body">
+          <input type="number" class="form-control" oninput="checkQuantity()" id="quantity">
+          <span style="color: red" id="errorQuantity"></span>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-dark" data-bs-dismiss="modal" onclick="resetQuantity()">Đóng</button>
+          <button type="button" class="btn btn-dark" data-bs-dismiss="modal" id="btnAddProductDetailToListTrade" onclick="addBillDetailToTrade()" disabled>Xác nhận</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!--  &lt;!&ndash; Modal parse product details error&ndash;&gt;-->
+<!--  <div class="modal fade" id="exampleModal1" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="exampleModalLabel1" aria-hidden="true">-->
+<!--    <div class="modal-dialog modal-dialog-centered modal-xl ">-->
+<!--      <div class="modal-content">-->
+<!--        <div class="modal-header">-->
+<!--          <h5 class="modal-title" id="exampleModalLabel1">Nhập số lượng</h5>-->
+<!--          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="resetQuantity()"></button>-->
+<!--        </div>-->
+<!--        <div class="modal-body table-responsive">-->
+<!--          <table class="table table-hover" id="table-error-product">-->
+<!--            <thead class="table-dark">-->
+<!--            <tr>-->
+<!--              <th>Hinh anh</th>-->
+<!--              <th>Sản phẩm</th>-->
+<!--              <th>Số lượng trả</th>-->
+<!--              <th>Số lượng lỗi</th>-->
+<!--              <th>Mô tả</th>-->
+<!--            </tr>-->
+<!--            </thead>-->
+<!--            <tbody id="listErrorProduct">-->
+
+<!--            </tbody>-->
+<!--          </table>-->
+
+<!--        </div>-->
+<!--        <div class="modal-footer">-->
+<!--          <button type="button" class="btn btn-dark" data-bs-dismiss="modal" onclick="resetQuantity()">Đóng</button>-->
+<!--          <button class="btn btn-dark" id="btn-errorProductDetail" data-bs-dismiss="modal" onclick="addErrorProduct()">Xác nhận</button>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+</div>
+</body>
+
+</html>

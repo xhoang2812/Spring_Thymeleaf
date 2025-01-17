@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Chi tiết nhân viên</title>
+    <style>
+        .rounded-box {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .rounded-box h5 {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <main class="container px-3 py-4">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="fw-bold fs-4 mb-3">Thông tin chi tiết của nhân viên: <span th:text="${employee.name}"></span>
+                </h3>
+                <form>
+                    <div class="rounded-box">
+                        <h5>Thông tin chi tiết</h5>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Số điện thoại</label>
+                            <input type="text" id="phone" name="phone" class="form-control" th:value="${employee.phone}"
+                                   readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="text" id="email" name="email" class="form-control" th:value="${employee.email}"
+                                   readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" id="username" name="username" class="form-control"
+                                   th:value="${employee.username}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Địa chỉ</label>
+                            <input type="text" id="address" name="address" class="form-control"
+                                   th:value="${employee.ward} + ' - ' + ${employee.district} + ' - ' + ${employee.province}"
+                                   readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dateCreate" class="form-label">Ngày tạo</label>
+                            <input type="text" id="dateCreate" name="dateCreate" class="form-control"
+                                   th:value="${#dates.format(employee.dateCreate, 'dd/MM/yyyy HH:mm:ss')}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dateUpdate" class="form-label">Ngày sửa</label>
+                            <input type="text" id="dateUpdate" name="dateUpdate" class="form-control"
+                                   th:value="${#dates.format(employee.dateUpdate, 'dd/MM/yyyy HH:mm:ss')}" readonly>
+                        </div>
+                    </div>
+                    <a href="/employee/display" class="btn btn-secondary">Quay lại</a>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

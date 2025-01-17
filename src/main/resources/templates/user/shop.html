@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorate="~{user/index}"
+      xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách sản phẩm</title>
+</head>
+<body layout:fragment="content">
+<!-- Breadcrumb Section Begin -->
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>Sản phẩm</h4>
+                    <div class="breadcrumb__links">
+                        <a th:href="@{/home}">Trang chủ</a>
+                        <span>Sản phẩm</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb Section End -->
+
+<!-- Shop Section Begin -->
+<section class="shop spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="shop__sidebar">
+                    <div class="shop__sidebar__search">
+                        <form>
+                            <input name="timTheoTen" placeholder="Search..." type="text">
+                            <button type="button"><span class="icon_search"></span></button>
+                        </form>
+                    </div>
+                    <div class="shop__sidebar__accordion">
+                        <div class="accordion" id="accordionExample">
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-target="#collapseFour" data-toggle="collapse">Kích cỡ</a>
+                                </div>
+                                <div class="collapse show" data-parent="#accordionExample" id="collapseFour">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__categories"
+                                             style="overflow-y: auto; max-height: 200px;">
+                                            <div th:each="list : ${sizes}">
+                                                <label class="btn me-5">
+                                                    <input name="sizeId" th:utext="${list.name}"
+                                                           th:value="${list.id}"
+                                                           type="checkbox">
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-target="#collapseFive" data-toggle="collapse">Màu sắc</a>
+                                </div>
+                                <div class="collapse show" data-parent="#accordionExample" id="collapseFive">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__categories"
+                                             style="overflow-y: auto; max-height: 200px;">
+                                            <div th:each="list : ${colors}">
+                                                <label class="btn">
+                                                    <input name="colorId" th:utext="${list.name}"
+                                                           th:value="${list.id}" type="checkbox">
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-target="#collapseOne" data-toggle="collapse">Danh mục</a>
+                                </div>
+                                <div class="collapse show" data-parent="#accordionExample" id="collapseOne">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__categories"
+                                             style="overflow-y: auto; max-height: 200px;">
+                                            <div th:each="list : ${categories}">
+                                                <label class="btn">
+                                                    <input name="categoryId" th:utext="${list.name}"
+                                                           th:value="${list.id}" type="checkbox">
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-target="#collapseTwo" data-toggle="collapse">Thương hiệu</a>
+                                </div>
+                                <div class="collapse show" data-parent="#accordionExample" id="collapseTwo">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__categories"
+                                             style="overflow-y: auto; max-height: 200px;">
+                                            <div th:each="list : ${brands}">
+                                                <label class="btn">
+                                                    <input name="brandId" th:utext="${list.name}"
+                                                           th:value="${list.id}" type="checkbox">
+                                                </label>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-target="#collapseThree" data-toggle="collapse">Kiểu dáng</a>
+                                </div>
+                                <div class="collapse show" data-parent="#accordionExample" id="collapseThree">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__categories"
+                                             style="overflow-y: auto; max-height: 200px;">
+                                            <div th:each="list : ${styles}">
+                                                <label class="btn">
+                                                    <input name="styleId" th:utext="${list.name}"
+                                                           th:value="${list.id}" type="checkbox">
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-target="#collapseSix" data-toggle="collapse">Chất liệu</a>
+                                </div>
+                                <div class="collapse show" data-parent="#accordionExample" id="collapseSix">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__categories"
+                                             style="overflow-y: auto; max-height: 200px;">
+                                            <!--                                            <ul class="nice-scroll">-->
+                                            <div th:each="list : ${materials}">
+                                                <label class="btn">
+                                                    <input name="materialId" th:utext="${list.name}"
+                                                           th:value="${list.id}" type="checkbox">
+                                                </label>
+                                            </div>
+                                            <!--                                            </ul>-->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-9">
+                <div class="shop__product__option">
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="shop__product__option__left" th:id="show-page">
+
+                            </div>
+                        </div>
+                        <div class="col-3">
+
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-sm-6">
+                            <div class="shop__product__option__right">
+                                <p>Sắp xếp theo giá</p>
+                                <select name="sort" class="form-control">
+                                    <option value="null">Mặc định</option>
+                                    <option value=asc>Thấp -> Cao</option>
+                                    <option value="desc">Cao -> Thấp</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" id="productList">
+
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="product__pagination" id="pagination">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Shop Section End -->
+
+<script>
+    const checkboxes = document.querySelectorAll('input[name="categoryId"]');
+    checkboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', function () {
+            if (this.checked) {
+                checkboxes.forEach((cb) => {
+                    if (cb !== this) {
+                        cb.checked = false;
+                    }
+                });
+            }
+        });
+    });
+
+    const checkboxes1 = document.querySelectorAll('input[name="brandId"]');
+    checkboxes1.forEach((checkbox1) => {
+        checkbox1.addEventListener('change', function () {
+            if (this.checked) {
+                checkboxes1.forEach((cb1) => {
+                    if (cb1 !== this) {
+                        cb1.checked = false;
+                    }
+                });
+            }
+        });
+    });
+
+    const checkboxes2 = document.querySelectorAll('input[name="styleId"]');
+    checkboxes2.forEach((checkbox2) => {
+        checkbox2.addEventListener('change', function () {
+            if (this.checked) {
+                checkboxes2.forEach((cb) => {
+                    if (cb !== this) {
+                        cb.checked = false;
+                    }
+                });
+            }
+        });
+    });
+
+    const checkboxes3 = document.querySelectorAll('input[name="materialId"]');
+    checkboxes3.forEach((checkbox3) => {
+        checkbox3.addEventListener('change', function () {
+            if (this.checked) {
+                checkboxes3.forEach((cb) => {
+                    if (cb !== this) {
+                        cb.checked = false;
+                    }
+                });
+            }
+        });
+    });
+
+    const checkboxes4 = document.querySelectorAll('input[name="sizeId"]');
+    checkboxes4.forEach((checkbox4) => {
+        checkbox4.addEventListener('change', function () {
+            if (this.checked) {
+                checkboxes4.forEach((cb) => {
+                    if (cb !== this) {
+                        cb.checked = false;
+                    }
+                });
+            }
+        });
+    });
+
+    const checkboxes5 = document.querySelectorAll('input[name="colorId"]');
+    checkboxes5.forEach((checkbox5) => {
+        checkbox5.addEventListener('change', function () {
+            if (this.checked) {
+                checkboxes5.forEach((cb) => {
+                    if (cb !== this) {
+                        cb.checked = false;
+                    }
+                });
+            }
+        });
+    });
+
+
+    $(document).ready(function () {
+        getAllProductAndFilter();
+        $('input[name="categoryId"], input[name="brandId"], input[name="styleId"], input[name="materialId"], ' +
+            'input[name="sizeId"],input[name="colorId"],select[name="sort"]').on('change', function () {
+            getAllProductAndFilter();
+        });
+        $('input[name="timTheoTen"]').on('input', function () {
+            getAllProductAndFilter();
+        });
+        $('#pagination').on('click', 'a', function (event) {
+            event.preventDefault()
+            $('a.active').removeClass('active');
+            $(this).addClass('active');
+            getAllProductAndFilter();
+        });
+    });
+
+    function getAllProductAndFilter() {
+        let selectedCate = $('input[name="categoryId"]:checked').val() || null;
+        let selectedBrand = $('input[name="brandId"]:checked').val() || null;
+        let selectedStyle = $('input[name="styleId"]:checked').val() || null;
+        let selectedMate = $('input[name="materialId"]:checked').val() || null;
+        let selectedSize = $('input[name="sizeId"]:checked').val() || null;
+        let selectedColor = $('input[name="colorId"]:checked').val() || null;
+        let selectedSort = $('select[name="sort"]').val() || null;
+        let selectedTimTheoTen = $('input[name="timTheoTen"]').val() || null;
+        let selectedPage = $('a.active').attr('value') || 0;
+
+        console.log("selectedCate: " + selectedCate)
+        console.log("selectedBrand: " + selectedBrand)
+        console.log("selectedStyle: " + selectedStyle)
+        console.log("selectedMate: " + selectedMate)
+        console.log("selectedSize: " + selectedSize)
+        console.log("selectedColor: " + selectedColor)
+        console.log("selectedSort: " + selectedSort)
+        console.log("selectedTimTheoTen: " + selectedTimTheoTen)
+        console.log("selectedPage: " + selectedPage)
+        $.ajax({
+            url: "/home/api/shop",
+            type: "GET",
+            data: {
+                brandId: selectedBrand,
+                styleId: selectedStyle,
+                materialId: selectedMate,
+                sizeId: selectedSize,
+                colorId: selectedColor,
+                categoryId: selectedCate,
+                sort: selectedSort,
+                timTheoTen: selectedTimTheoTen,
+                page: selectedPage
+
+            },
+            success: function (data) {
+                console.log(data)
+                const productList = $('#productList');
+                productList.empty();
+                if (data.length === 0) {
+                    productList.append(`<p>Không tìm thấy sản phẩm nào.</p>`)
+                } else {
+                    $.each(data.content, function (index, product) {
+                        console.log(index, product)
+                        let productCard = `
+            <div class="col-lg-4 col-md-6 col-sm-6">
+                <div class="product__item sale">
+                    <div class="product__item__pic set-bg" data-setbg="/home/flim-image/${product.productImage}">
+
+                        <ul class="product__hover">
+                            <li><a href="#"><img alt="" src="/user/img/icon/heart.png"></a></li>
+                            <li><a href="#"><img alt="" src="/user/img/icon/compare.png"><span>Compare</span></a></li>
+                            <li><a href="#"><img alt="" src="/user/img/icon/search.png"></a></li>
+                        </ul>
+                    </div>
+                    <div class="product__item__text">
+                        <h6>${product.productName}</h6>
+                        <a class="add-cartInCounter" href="/home/shop-detail/${product.productID}">Xem sản phẩm</a>
+                        <h5>${new Intl.NumberFormat().format(product.productMaxPrice)} VND</h5>
+                        <hr>
+                        <div class="rating">
+                            <p class="text-dark">Kho: ${new Intl.NumberFormat().format(product.productSumQuantity)} sản phẩm</p>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+                        productList.append(productCard);
+                    });
+                    $('.set-bg').each(function () {
+                        var bg = $(this).data('setbg');
+                        $(this).css('background-image', 'url(' + bg + ')');
+                    });
+                }
+
+                let pagination = $('#pagination');
+                pagination.empty();
+                for (let i = 0; i < data.totalPages; i++) {
+                    let page = i + 1;
+                    let pageLink = `<a href="#" value="${i}" ${data.number === i ? 'class="active"' : ''}>${page}</a>`;
+                    pagination.append(pageLink);
+                }
+
+                let showing = $('#show-page')
+                showing.empty();
+                let showPage = `<p>Hiển thị ${data.numberOfElements} trong tổng số ${data.totalElements} sản phẩm</p>`;
+                showing.append(showPage);
+            },
+            error: function (error) {
+                console.log(error)
+            }
+        });
+
+    }
+
+    function showError(messsages1) {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+            }
+        });
+        Toast.fire({
+            icon: "error",
+            title: messsages1
+        });
+    }
+
+    [[${spInactive} == true]] ? showError("Sản phẩm bạn chọn mua đã tạm dừng kinh doanh") : "";
+</script>
+</body>
+</html>

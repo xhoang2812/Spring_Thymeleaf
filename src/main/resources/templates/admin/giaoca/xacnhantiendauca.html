@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="vn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận số tiền đầu ca</title>
+    <link rel="stylesheet" href="/assets/css/kaiadmin.min.css"/>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        /* Reset CSS mặc định */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f9f9f9;
+            color: #333;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        body.show {
+            opacity: 1;
+        }
+
+        h1 {
+            font-size: 40px;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 600px;
+            max-width: 90%;
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            font-size: 18px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        input {
+            padding: 15px;
+            font-size: 18px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #0072ff;
+            outline: none;
+            box-shadow: 0 0 8px rgba(0, 114, 255, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 48%;
+        }
+
+        button.xac-nhan {
+            background-color: #28a745;
+            color: white;
+        }
+
+        button.xac-nhan:hover {
+            background-color: #218838;
+        }
+
+        button.huy-bo {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        button.huy-bo:hover {
+            background-color: #c82333;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 32px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            input {
+                font-size: 16px;
+                padding: 12px;
+            }
+
+            button {
+                font-size: 16px;
+                padding: 12px;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // window.addEventListener('DOMContentLoaded', () => {
+        //     const notification = document.getElementById("error");
+        //     // if (notification) {
+        //     //     setTimeout(() => {
+        //     //         notification.style.display = "none";
+        //     //     }, 2000);
+        //     // }
+        //     const  perror = document.getElementById("error-text");
+        //     console.log(perror.innerText)
+        //     showErrors(perror.innerText)
+        // });
+        //
+        // function showErrors(messsages) {
+        //     const Toast = Swal.mixin({
+        //         toast: true,
+        //         position: "top-end",
+        //         showConfirmButton: false,
+        //         timer: 3000,
+        //         timerProgressBar: true,
+        //         didOpen: (toast) => {
+        //             toast.onmouseenter = Swal.stopTimer;
+        //             toast.onmouseleave = Swal.resumeTimer;
+        //         }
+        //     });
+        //     Toast.fire({
+        //         icon: "error",
+        //         title: messsages
+        //     });
+        // }
+        window.addEventListener('DOMContentLoaded', () => {
+            const notification = document.getElementById("error");
+            const perror = document.getElementById("error-text");
+            console.log(perror.innerText)
+            if (perror.innerText.trim() !== "") {
+                setTimeout(() => {
+                    notification.style.display = "none";
+                }, 2000);
+                console.log(perror.innerText);
+                showErrors(perror.innerText);
+            }
+        });
+
+        function showErrors(messages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messages
+            });
+        }
+    </script>
+    <style>
+        body {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        body.show {
+            opacity: 1;
+        }
+    </style>
+    <script defer>
+        function loading(){
+            setTimeout(() => {
+                $.ajax({
+                    url: "/api/vouchers/userData",
+                    method: "GET",
+                    success: function (data) {
+                        console.log(data)
+                        if (data === "") {
+                            document.body.classList.add('show');
+                        }else {
+                            sessionStorage.setItem("notificationForMap","Bạn không phải là Admin");
+                            window.location.href = "/";
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error)
+                    }
+                })
+            }, 300);
+        }
+    </script>
+</head>
+<body onload="loading()">
+<form th:action="@{/xacnhantien}" method="post" onsubmit="return xacNhan()">
+    <div class="container">
+
+        <h1 th:text="'Xin chào nhân viên: ' + ${user.employeeCode+ '-' +user.name} + '!'"></h1>
+
+        <!--        Hiển thị lỗi nhập sai xác nhận tiền-->
+        <div style="display: none" th:if="${error}" id="error" class="alert alert-danger" role="alert">
+            <p th:text="${error}" id="error-text"></p>
+        </div>
+
+        <label for="tienmatdauca">Vui lòng nhập số tiền đầu ca:</label><br>
+        <input type="number" min="0" id="tienmatdauca" name="tienmatdauca" required
+               placeholder="Nhập số tiền..."/><br>
+        <div class="button-group">
+            <button class="xac-nhan" type="submit">Xác nhận</button>
+            <button class="huy-bo" type="button" onclick="huyBo()">Hủy</button>
+        </div>
+    </div>
+</form>
+
+<script>
+    function xacNhan() {
+        // Lấy giá trị từ ô nhập số tiền
+        var tienmatdauca = document.getElementById('tienmatdauca').value;
+
+        // Hiện lên hộp thoại xác nhận
+        var xacNhan = confirm('Bạn có muốn xác nhận tiền đầu ca là ' + tienmatdauca + ' VND không?');
+
+        // Nếu người dùng bấm OK, form sẽ được submit, ngược lại thì không làm gì cả
+        return xacNhan;
+    }
+
+    function huyBo() {
+        // Hiện lên hộp thoại xác nhận khi hủy
+        var huyBo = confirm('Bạn có muốn hủy thao tác xác nhận tiền đầu ca và sẽ đăng xuất khỏi hệ thống không?');
+
+        // Nếu người dùng bấm Có, chuyển hướng đến trang /logout
+        if (huyBo) {
+            window.location.href = '/logout';
+        }
+        // Nếu bấm Không, không làm gì cả
+    }
+
+</script>
+<script>
+    document.addEventListener("keydown", function (e) {
+        // Kiểm tra nếu phím nhấn là F5 hoặc Ctrl+R
+        if (e.key === "F5" || (e.ctrlKey && e.key === "r")) {
+            e.preventDefault(); // Ngăn hành vi tải lại mặc định
+            // Chuyển hướng đến trang khác, ví dụ "/other-page"
+            window.location.href = "/xacnhantien";
+        }
+    });
+</script>
+</body>
+</html>

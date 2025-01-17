@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{admin/index}"
+      xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý sản phẩm chi tiết</title>
+    <style>
+        body {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        body.show {
+            opacity: 1;
+        }
+    </style>
+    <script defer>
+        function loading(){
+            setTimeout(() => {
+                $.ajax({
+                    url: "/api/vouchers/userData",
+                    method: "GET",
+                    success: function (data) {
+                        console.log(data)
+                        if (data === "") {
+                            sessionStorage.setItem("notificationForMap","Bạn không phải là Admin");
+                            window.location.href = "/";
+                        }else {
+                            document.body.classList.add('show');
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error)
+                    }
+                })
+            }, 300);
+        }
+    </script>
+</head>
+<body onload="loading()">
+<div class="card" layout:fragment="content" style="padding: 0 10px">
+    <div class="card-header">
+        <div style="text-align: center">
+            <h3>Thêm mới sản phẩm chi tiết</h3>
+        </div>
+    </div>
+    <div class="card-body">
+        <form class="row" enctype="multipart/form-data" onsubmit="return valid()"
+              th:action="@{/san-pham/store-product-variant}" th:method="POST">
+            <div class="mt-3 mb-3" style="text-align: end">
+                <button class="btn btn-primary" data-bs-target="#exampleModal" data-bs-toggle="modal" type="button">
+                    Thêm chung thuộc tính
+                </button>
+                <button class="btn btn-dark" type="submit">Hoàn thành</button>
+            </div>
+            <table class="table  table-bordered" style="table-layout: fixed">
+                <thead class="table-dark">
+                <tr>
+                    <th scope="col" style="width: 80px">STT</th>
+                    <th scope="col" style="width: 200px">Tên sản phẩm</th>
+                    <th scope="col" style="width: 200px">Giá bán</th>
+                    <th scope="col" style="width: 200px">Số lượng</th>
+                    <th scope="col" style="width: 200px">Trọng lượng</th>
+                    <!--                    <th scope="col"></th>-->
+                    <th scope="col">Ảnh</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="list, iterStat : ${listProductVariantByIdProduct}">
+                    <th scope="row" th:utext="${iterStat.index + 1}"></th>
+                    <td th:utext="${list.product.name +  ' [ ' + list.size.name + ' + ' + list.color.name +' ]'}">
+                    </td>
+                    <input name="spctId[]" th:value="${list.id}" type="hidden"/>
+                    <input name="countIdColor" th:value="${countIdColor.get(0)}" type="hidden"/>
+                    <td>
+                        <input class="form-control price" name="price[]"
+                               placeholder="Nhập giá" th:id="price" th:value="${list.price}" type="text"/>
+                    </td>
+                    <td>
+                        <input class="form-control price" name="quantity[]"
+                               placeholder="Nhập số lượng" th:id="quantity" th:value="${list.quantity}" type="text"/>
+                    </td>
+                    <td>
+                        <input class="form-control price" name="weight[]"
+                               placeholder="Nhập trọng lượng" th:id="weight" th:value="${list.weight}" type="text"/>
+                    </td>
+                    <!--                    <td>-->
+                    <!--                        <a>-->
+                    <!--                            <i class="fa-solid fa-trash" onclick="deleteById(this.getAttribute('data-id'), this, this.getAttribute('data-color-id'))" th:data-color-id="${list.color.id}"-->
+                    <!--                               th:data-id="${list.id}"></i>-->
+                    <!--                        </a>-->
+                    <!--                    </td>-->
+                    <td th:if="${iterStat.first or list.color.id != listProductVariantByIdProduct[iterStat.index - 1].color.id}"
+                        th:rowspan="${countIdColor.get(0)}">
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="d-flex justify-content-center mb-4">
+                                    <img class="rounded-circle"
+                                         th:id="'selectedAvatar1_' + ${iterStat.index}"
+                                         src="/assets/img/placeholder-avatar.jpg"
+                                         style="width: 100px; height: 100px; object-fit: cover;"/>
+                                </div>
+                                <div class="d-flex justify-content-center">
+                                    <div class="btn btn-secondary btn-rounded btn-sm" data-mdb-ripple-init>
+                                        <label class="form-label text-white m-1" th:for="'img1_' +  ${iterStat.index}">Choose file</label>
+                                        <input class="form-control d-none" th:id="'img1_' +  ${iterStat.index}" name="img1[]" th:data-index="${iterStat.index}"
+                                               onchange="displaySelectedImage(event, 'selectedAvatar1_'+ this.getAttribute('data-index'))"
+                                               type="file"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="d-flex justify-content-center mb-4">
+                                    <img class="rounded-circle"
+                                         th:id="'selectedAvatar2_' + ${iterStat.index}"
+                                         src="/assets/img/placeholder-avatar.jpg"
+                                         style="width: 100px; height: 100px; object-fit: cover;"/>
+                                </div>
+                                <div class="d-flex justify-content-center">
+                                    <div class="btn btn-secondary btn-rounded btn-sm" data-mdb-ripple-init>
+                                        <label class="form-label text-white m-1" th:for="'img2_' +  ${iterStat.index}">Choose file</label>
+                                        <input class="form-control d-none" th:id="'img2_' +  ${iterStat.index}" name="img2[]" th:data-index="${iterStat.index}"
+                                               onchange="displaySelectedImage(event, 'selectedAvatar2_' + this.getAttribute('data-index'))"
+                                               type="file"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="d-flex justify-content-center mb-4">
+                                    <img class="rounded-circle"
+                                         th:id="'selectedAvatar3_' + ${iterStat.index}"
+                                         src="/assets/img/placeholder-avatar.jpg"
+                                         style="width: 100px; height: 100px; object-fit: cover;"/>
+                                </div>
+                                <div class="d-flex justify-content-center">
+                                    <div class="btn btn-secondary btn-rounded btn-sm" data-mdb-ripple-init>
+                                        <label class="form-label text-white m-1" th:for="'img3_' +  ${iterStat.index}">Choose file</label>
+                                        <input class="form-control d-none" th:id="'img3_' +  ${iterStat.index}" name="img3[]" th:data-index="${iterStat.index}"
+                                               onchange="displaySelectedImage(event, 'selectedAvatar3_' + this.getAttribute('data-index'))"
+                                               type="file"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+
+    <!-- Modal Chung giá -->
+    <div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade" id="exampleModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Thêm chung giá, số lượng, trọng lượng</h5>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <div class="modal-body">
+                    <form onsubmit="return validModal(event)">
+                        <div class="mb-3">
+                            <label class="form-label">Giá</label>
+                            <input class="form-control" th:id="spctGia" type="text">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Số lượng</label>
+                            <input class="form-control" th:id="spctSoLuong" type="text">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Trọng lượng</label>
+                            <input class="form-control" th:id="spctTrongLuong" type="text">
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                            <button class="btn btn-primary" type="submit">Thêm</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        function displaySelectedImage(event, elementId) {
+            const selectedImage = document.getElementById(elementId);
+            const fileInput = event.target;
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    selectedImage.src = e.target.result;
+                };
+
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        }
+
+        function showErrors(messsages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messsages
+            });
+        }
+
+
+        function valid() {
+
+            const MAX_INT = 2147483647;
+            const MAX_DOUBLE = 1.7976931348623157e+308;
+
+            let quantities = document.getElementsByName('quantity[]');
+            let prices = document.getElementsByName('price[]');
+            let weights = document.getElementsByName('weight[]');
+            let img1Inputs = document.getElementsByName('img1[]');
+            let img2Inputs = document.getElementsByName('img2[]');
+            let img3Inputs = document.getElementsByName('img3[]');
+
+            let isValid = true;
+
+            for (let i = 0; i < quantities.length; i++) {
+                let quantity = quantities[i].value;
+                let price = prices[i].value;
+                let weight = weights[i].value;
+
+
+                if (!quantity || !price || !weight) {
+                    showErrors('Vui lòng nhập đầy đủ giá trị tại dòng ' + (i + 1));
+                    return false;
+                }
+
+                if (!isPositiveInteger(quantity)) {
+                    showErrors('Số lượng tại dòng ' + (i + 1) + ' phải là số nguyên dương!');
+                    isValid = false;
+                } else if (Number(quantity) > MAX_INT) {
+                    showErrors('Số lượng tại dòng ' + (i + 1) + ' quá lơn!');
+                    isValid = false;
+                }
+
+                if (!isPositiveNumber(price)) {
+                    showErrors('Giá tại dòng ' + (i + 1) + ' phải là số dương!');
+                    isValid = false;
+                } else if (Number(price) > MAX_DOUBLE) {
+                    showErrors('Giá tại dòng ' + (i + 1) + ' quá lơn!');
+                    isValid = false;
+                }
+
+                if (!isPositiveNumber(weight)) {
+                    showErrors('Trọng lượng tại dòng ' + (i + 1) + ' phải là số dương!');
+                    isValid = false;
+                } else if (Number(weight) > MAX_DOUBLE) {
+                    showErrors('Trọng lượng tại dòng ' + (i + 1) + ' quá lơn!');
+                    isValid = false;
+                }
+            }
+
+            for (let i = 0; i < img1Inputs.length; i++) {
+                if (!img1Inputs[i].files || img1Inputs[i].files.length === 0) {
+                    showErrors('Vui lòng chọn ảnh 1 tại dòng ' + (i + 1));
+                    isValid = false;
+                }
+            }
+
+
+            for (let i = 0; i < img2Inputs.length; i++) {
+                if (!img2Inputs[i].files || img2Inputs[i].files.length === 0) {
+                    showErrors('Vui lòng chọn ảnh 2 tại dòng ' + (i + 1));
+                    isValid = false;
+                }
+            }
+
+
+            for (let i = 0; i < img3Inputs.length; i++) {
+                if (!img3Inputs[i].files || img3Inputs[i].files.length === 0) {
+                    showErrors('Vui lòng chọn ảnh 3 tại dòng ' + (i + 1));
+                    isValid = false;
+                }
+            }
+            return isValid;
+        }
+
+        function isPositiveInteger(value) {
+            let num = Number(value);
+            return Number.isInteger(num) && num > 0;
+        }
+
+        function isPositiveNumber(value) {
+            let num = Number(value);
+            return !isNaN(num) && num > 0;
+        }
+
+        function validModal(event) {
+
+            event.preventDefault();
+
+
+            const gia = document.getElementById('spctGia').value.trim();
+            const soLuong = document.getElementById('spctSoLuong').value.trim();
+            const trongLuong = document.getElementById('spctTrongLuong').value.trim();
+
+            const MAX_INT = 2147483647;
+            const MAX_DOUBLE = 1.7976931348623157e+308;
+
+            let isValid = true;
+
+
+            if (!soLuong) {
+                showErrors("Số lượng không được để trống!");
+                isValid = false;
+            } else if (isNaN(soLuong) || Number(soLuong) <= 0) {
+                showErrors("Số lượng phải là số nguyên dương!");
+                isValid = false;
+            } else if (Number(soLuong) > MAX_INT) {
+                showErrors("Số lượng quá lớn!");
+                isValid = false;
+            }
+
+
+            if (!gia) {
+                showErrors("Đơn giá không được để trống!");
+                isValid = false;
+            } else if (isNaN(gia) || Number(gia) <= 0) {
+                showErrors("Đơn giá phải là một số dương!");
+                isValid = false;
+            } else if (Number(gia) > MAX_DOUBLE) {
+                showErrors("Đơn giá quá lớn!");
+                isValid = false;
+            }
+
+
+            if (!trongLuong) {
+                showErrors("Trọng lượng không được để trống!");
+                isValid = false;
+            } else if (isNaN(trongLuong) || Number(trongLuong) <= 0) {
+                showErrors("Trọng lượng phải là một số dương!");
+                isValid = false;
+            } else if (Number(trongLuong) > MAX_DOUBLE) {
+                showErrors("Trọng lượng quá lớn!");
+                isValid = false;
+            }
+
+
+            if (isValid) {
+
+                const priceInputs = document.querySelectorAll('input[name="price[]"]');
+                const quantityInputs = document.querySelectorAll('input[name="quantity[]"]');
+                const weightInputs = document.querySelectorAll('input[name="weight[]"]');
+
+
+                priceInputs.forEach(input => input.value = gia);
+                quantityInputs.forEach(input => input.value = soLuong);
+                weightInputs.forEach(input => input.value = trongLuong);
+
+
+                const modal = document.querySelector('.modal');
+                const bootstrapModal = bootstrap.Modal.getInstance(modal);
+                bootstrapModal.hide();
+            }
+
+            return isValid;
+        }
+
+        function updateRowspan(colorId) {
+
+            const rows = document.querySelectorAll('tr[data-color-id="' + colorId + '"]');
+
+            if (rows.length > 0) {
+                // Xác định cột chứa rowspan
+                let rowspanCell = null;
+                rows.forEach(function (row) {
+                    const rowspanCells = row.querySelectorAll('[data-rowspan]');
+                    if (rowspanCells.length > 0 && !rowspanCell) {
+                        rowspanCell = rowspanCells[0];
+                    }
+                });
+
+                if (rowspanCell) {
+                    rowspanCell.setAttribute('rowspan', rows.length);
+                }
+            }
+        }
+
+        function deleteById(id, element, colorId) {
+            $.ajax({
+                type: "DELETE",
+                url: "/san-pham-chi-tiet/delete-product-variant/" + id,
+                success: function (response) {
+                    Swal.fire({
+                        title: "Xóa thành công!",
+                        icon: "success"
+                    });
+
+                    // Xóa hàng hiện tại
+                    const row = $(element).closest('tr');
+                    row.remove();
+
+                    // Sau khi xóa, cập nhật lại rowspan cho các hàng có cùng colorId
+                    updateRowspan(colorId);
+                },
+                error: function (error) {
+                    console.log("Error: " + JSON.stringify(error));
+                    Swal.fire({
+                        title: "Xóa thất bại!",
+                        text: "Đã xảy ra lỗi khi xóa sản phẩm.",
+                        icon: "error"
+                    });
+                }
+            });
+        }
+
+    </script>
+    <!--    <script type="text/javascript">-->
+    <!--        $(document).ready(function () {-->
+    <!--            function updateSelectedImages() {-->
+    <!--                var selectedValue = $('#image-select').val();  // Lấy giá trị đã chọn từ select box-->
+    <!--                var selectedOption = $('#image-select option[value="' + selectedValue + '"]'); // Tìm option tương ứng-->
+
+    <!--                // Lấy các giá trị của data-url từ option được chọn-->
+    <!--                var imageUrl1 = selectedOption.attr('data-url1');-->
+    <!--                var imageUrl2 = selectedOption.attr('data-url2');-->
+    <!--                var imageUrl3 = selectedOption.attr('data-url3');-->
+
+    <!--                // In ra console để kiểm tra xem các URL có đúng không-->
+    <!--                console.log('Image URL 1:', imageUrl1);-->
+    <!--                console.log('Image URL 2:', imageUrl2);-->
+    <!--                console.log('Image URL 3:', imageUrl3);-->
+
+    <!--                // Cập nhật src của ảnh, đảm bảo URL hợp lệ-->
+    <!--                if (imageUrl1) {-->
+    <!--                    $('#selectedImage1').attr('src', '/san-pham-chi-tiet/test/' + imageUrl1).show();-->
+    <!--                } else {-->
+    <!--                    $('#selectedImage1').hide();-->
+    <!--                }-->
+
+    <!--                if (imageUrl2) {-->
+    <!--                    $('#selectedImage2').attr('src', '/san-pham-chi-tiet/test/' + imageUrl2).show();-->
+    <!--                } else {-->
+    <!--                    $('#selectedImage2').hide();-->
+    <!--                }-->
+
+    <!--                if (imageUrl3) {-->
+    <!--                    $('#selectedImage3').attr('src', '/san-pham-chi-tiet/test/' + imageUrl3).show();-->
+    <!--                } else {-->
+    <!--                    $('#selectedImage3').hide();-->
+    <!--                }-->
+    <!--            }-->
+
+    <!--            // Gọi hàm khi trang load-->
+    <!--            updateSelectedImages();-->
+
+    <!--            // Gọi lại hàm khi người dùng thay đổi select box-->
+    <!--            $('#image-select').change(function () {-->
+    <!--                updateSelectedImages();-->
+    <!--            });-->
+    <!--        });-->
+    <!--    // function validHinhAnh() {-->
+    <!--    // const nameField = document.getElementById("maHinhAnh");-->
+    <!--    // const fileInput1 = document.getElementById('avatarFile1');-->
+    <!--    // const fileInput2 = document.getElementById('avatarFile2');-->
+    <!--    // const fileInput3 = document.getElementById('avatarFile3');-->
+    <!--    // const nameValue = nameField.value.trim();-->
+    <!--    // let isValid = true;-->
+    <!--    //-->
+    <!--    // if (!nameValue) {-->
+    <!--    // showErrors("Mã hình ảnh không được để trống!");-->
+    <!--    // isValid = false;-->
+    <!--    // } else if (!nameValue.startsWith("HA")) {-->
+    <!--    // showErrors("Mã hình ảnh phải bắt đầu với 'HA'!");-->
+    <!--    // isValid = false;-->
+    <!--    // } else if (!fileInput1.files.length) {-->
+    <!--    // showErrors("Ảnh 1 không được để trống!");-->
+    <!--    // isValid = false;-->
+    <!--    // } else if (!fileInput2.files.length) {-->
+    <!--    // showErrors("Ảnh 2 không được để trống!");-->
+    <!--    // isValid = false;-->
+    <!--    // } else if (!fileInput3.files.length) {-->
+    <!--    // showErrors("Ảnh 3 không được để trống!");-->
+    <!--    // isValid = false;-->
+    <!--    // }-->
+    <!--    // return isValid;-->
+    <!--    // }-->
+    <!--    </script>-->
+
+    <!--    <script>-->
+    <!--        $(document).ready(() => {-->
+    <!--            const avatarFiles = [-->
+    <!--                {fileInput: $("#avatarFile1"), preview: $("#avatarPreview1")},-->
+    <!--                {fileInput: $("#avatarFile2"), preview: $("#avatarPreview2")},-->
+    <!--                {fileInput: $("#avatarFile3"), preview: $("#avatarPreview3")}-->
+    <!--            ];-->
+
+    <!--            avatarFiles.forEach(({fileInput, preview}) => {-->
+    <!--                fileInput.change(function (e) {-->
+    <!--                    const file = e.target.files[0];-->
+    <!--                    if (file) {-->
+    <!--                        const imgURL = URL.createObjectURL(file);-->
+    <!--                        preview.attr("src", imgURL).css("display", "block");-->
+
+    <!--                        // Giải phóng URL khi không cần nữa-->
+    <!--                        preview.on('load', () => {-->
+    <!--                            URL.revokeObjectURL(imgURL);-->
+    <!--                        });-->
+    <!--                    }-->
+    <!--                });-->
+    <!--            });-->
+    <!--        });-->
+    <!--    </script>-->
+
+</div>
+</body>
+</html>

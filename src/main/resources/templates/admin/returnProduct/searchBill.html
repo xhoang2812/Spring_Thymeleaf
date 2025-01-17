@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script>
+        function search() {
+            const key = document.getElementById("idBill").value;
+            if (key.trim() === "") {
+                console.log("ngu")
+            } else {
+                $.ajax({
+                    url: "/api/returnProduct/bill/" + key,
+                    method: "GET",
+                    success: function (data) {
+                        console.log(data)
+                        if (data === null) {
+                            showToast("Hoá đơn không tồn tại !", "warning");
+                        } else {
+                            if (data.id === -1) {
+                                showToast("Hoá đơn đã áp dụng voucher nên không thể trả hàng !", "warning");
+                            } else if (data.id === -2) {
+                                showToast("Hoá đơn đang trong giai đoạn xử lý khác nên không thể trả hàng !", "warning");
+                            } else if (data.id === -3) {
+                                showToast("Tất cả sản phẩm của hoá đơn đều mua trong đợt giảm giá không thể trả hàng !", "warning");
+                            } else if (data.id === -4) {
+                                showToast("Hoá đơn đã quá 7 ngày kể từ ngày hoàn tất không thể trả hàng !", "warning");
+                            } else {
+                                sessionStorage.setItem("bill", JSON.stringify(data));
+                                window.location.href = "http://localhost:8080/returnProduct/billReturn";
+                            }
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error)
+                    }
+                })
+            }
+        }
+
+        function searchQR() {
+            const key = document.getElementById("idBill").value;
+            if (key.trim() === "") {
+                console.log("ngu")
+            } else {
+                $.ajax({
+                    url: "/api/returnProduct/bill/" + key,
+                    method: "GET",
+                    success: function (data) {
+                        if (data !== "") {
+                            sessionStorage.setItem("bill", JSON.stringify(data));
+                            window.location.href = `http://localhost:8080/returnProduct/returnProductDetail`;
+                        } else {
+                            showToast("Không thể trả hàng cho đơn hàng này");
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error)
+                    }
+                })
+            }
+        }
+
+        function showToast(message, status) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: status,
+                title: message
+            });
+        }
+    </script>
+</head>
+<body>
+<div class="container-fluid" layout:fragment="content">
+    <div class="mt-5">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="card border-0 shadow" style="min-height: 600px">
+                    <div class="card-body">
+                        <h5><i class="fa-solid fa-file-invoice"></i> Tìm kiếm thông tin hoá đơn</h5>
+                        <div class="d-flex justify-content-center align-items-center mt-5">
+                            <input type="text" class="form-control w-auto me-2" id="idBill">
+                            <button class="btn btn-primary me-2" onclick="search()">Search</button>
+                            <button class="btn btn-primary" onclick="searchQR()">QR</button>
+                        </div>
+                        <div class="">
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>

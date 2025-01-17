@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Thống kê</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        body.show {
+            opacity: 1;
+        }
+
+        .container {
+            display: flex;
+            gap: 15px;
+            margin: 15px;
+        }
+
+        .card {
+            flex: 1;
+            color: black;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+
+        }
+
+        .card-white {
+            background-color: #fafafa;
+        }
+
+        .card .number {
+            font-size: 1.2em;
+            margin: 5px 0;
+        }
+
+        .card .description {
+            font-size: 1em;
+        }
+
+        /*.filter-container {*/
+        /*    display: flex;*/
+        /*    flex-wrap: wrap;*/
+        /*    gap: 16px;*/
+        /*    align-items: center;*/
+        /*    margin-bottom: 16px;*/
+        /*}*/
+
+        .filter-container label {
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .filter-container input,
+        .filter-container select,
+        .filter-container button {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        .filter-container button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px; /* Khoảng cách giữa các card */
+            margin-bottom: 16px;
+        }
+
+        .filter-card {
+            padding: 16px;
+            border: 1px solid #ccc; /* Viền cho từng card */
+            border-radius: 8px;
+            width: 180px; /* Chiều rộng của mỗi card */
+            height: 90px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bóng đổ nhẹ */
+            background-color: #fff;
+        }
+
+        .filter-card-day {
+            padding: 16px;
+            border: 1px solid #ccc; /* Viền cho từng card */
+            border-radius: 8px;
+            width: 380px; /* Chiều rộng của mỗi card */
+            height: 90px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bóng đổ nhẹ */
+            background-color: #fff;
+        }
+
+        .filter-card-day label {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .date-range {
+            display: flex;
+            gap: 8px; /* Khoảng cách giữa hai ô input */
+        }
+
+        .date-range input {
+            flex: 1; /* Chia đều không gian cho các ô input */
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        .filter-card input,
+        .filter-card select,
+        .filter-card button {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-bottom: 8px;
+        }
+
+
+        .filter-card button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border: none;
+            margin-top: 8px;
+        }
+
+        .chart-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px; /* Khoảng cách giữa hai biểu đồ */
+        }
+
+        /* Giới hạn kích thước biểu đồ */
+        .chart-container canvas {
+            max-width: 300px; /* Giảm kích thước */
+            max-height: 300px; /* Giảm kích thước */
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .chart-row {
+            display: flex;
+            align-items: flex-start; /* Căn chỉnh các biểu đồ theo chiều dọc */
+            gap: 10px; /* Khoảng cách chung giữa các container */
+        }
+
+        .order-status, .purchase-type {
+            flex: 1; /* Hai biểu đồ đầu tiên chia đều không gian */
+            max-width: calc(50% - 10px); /* Chiều rộng mỗi biểu đồ đầu tiên (trừ khoảng cách 10px) */
+        }
+
+        .top-products {
+            flex: 0 0 auto; /* Không để biểu đồ "Top 5" chia đều không gian */
+            width: 40%; /* Đặt chiều rộng cụ thể cho biểu đồ Top 5 */
+            margin-left: auto; /* Đẩy biểu đồ "Top 5" về phía bên phải */
+        }
+
+        .chart-container {
+            display: flex;
+            flex-direction: column; /* Xếp tiêu đề và biểu đồ theo chiều dọc */
+            align-items: center; /* Căn giữa nội dung bên trong */
+        }
+
+        .chart-container h3 {
+            margin: 0 0 10px 0; /* Cách tiêu đề với biểu đồ bên dưới */
+            text-align: center; /* Căn giữa tiêu đề */
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /*canvas {*/
+        /*    max-width: 100%;               !* Biểu đồ co giãn theo container *!*/
+        /*    max-height: 300px;             !* Giới hạn chiều cao biểu đồ *!*/
+        /*}*/
+
+    </style>
+
+</head>
+<body onload="loading()">
+<div layout:fragment="content">
+    <!--    <div class="container">-->
+    <!--        <div class="card card-white">-->
+    <!--            <div class="description">Tổng doanh thu</div>-->
+    <!--            <div class="number" id="tongdoanhthu"></div>-->
+    <!--        </div>-->
+    <!--        <div class="card card-white">-->
+    <!--            <div class="description">Tổng doanh thu tại quầy</div>-->
+    <!--            <div class="number" id="tongdoanhthutaiquay"></div>-->
+    <!--        </div>-->
+    <!--        <div class="card card-white">-->
+    <!--            <div class="description">Tổng doanh thu online</div>-->
+    <!--            <div class="number" id="tongdoanhthuonline"></div>-->
+    <!--        </div>-->
+    <!--        <div class="card card-white">-->
+    <!--            <div class="description">Tổng tiền trả hàng</div>-->
+    <!--            <div class="number" id="tongtientrahang"></div>-->
+    <!--        </div>-->
+    <!--&lt;!&ndash;        <div class="card card-white">&ndash;&gt;-->
+    <!--&lt;!&ndash;            <div class="description">Tổng tiền voucher</div>&ndash;&gt;-->
+    <!--&lt;!&ndash;            <div class="number" id="tongtienvoucher"></div>&ndash;&gt;-->
+    <!--&lt;!&ndash;        </div>&ndash;&gt;-->
+    <!--        <div class="card card-white">-->
+    <!--            <div class="description">Tổng hóa đơn thành công</div>-->
+    <!--            <div class="number" id="tongslhoadontc"></div>-->
+    <!--        </div>-->
+    <!--        <div class="card card-white">-->
+    <!--            <div class="description">Tổng hóa đơn bị hủy</div>-->
+    <!--            <div class="number" id="tongslhoadonbihuy"></div>-->
+    <!--        </div>-->
+    <!--    </div>-->
+    <div class="filter-container">
+        <div class="filter-card">
+            <label for="filter-date">Theo ngày:</label>
+            <input type="date" id="filter-date" onchange="inputForFilter()" name="filter-date">
+        </div>
+
+        <div class="filter-card-day">
+            <label for="filter-date-range">Khoảng ngày:</label>
+            <div class="date-range">
+                <input type="date" id="filter-start-date" onchange="inputForFilter()" name="filter-start-date"
+                       placeholder="Từ ngày">
+                <input type="date" id="filter-end-date" onchange="inputForFilter()" name="filter-end-date"
+                       placeholder="Đến ngày">
+            </div>
+        </div>
+
+        <div class="filter-card">
+            <label for="filter-month">Theo tháng:</label>
+            <select id="filter-month" onchange="inputForFilter()" name="filter-month">
+                <option value="">Chọn tháng</option>
+                <option value="1">Tháng 1</option>
+                <option value="2">Tháng 2</option>
+                <option value="3">Tháng 3</option>
+                <option value="4">Tháng 4</option>
+                <option value="5">Tháng 5</option>
+                <option value="6">Tháng 6</option>
+                <option value="7">Tháng 7</option>
+                <option value="8">Tháng 8</option>
+                <option value="9">Tháng 9</option>
+                <option value="10">Tháng 10</option>
+                <option value="11">Tháng 11</option>
+                <option value="12">Tháng 12</option>
+            </select>
+        </div>
+
+        <div class="filter-card">
+            <label for="filter-quarter">Theo quý:</label>
+            <select id="filter-quarter" onchange="inputForFilter()" name="filter-quarter">
+                <option value="">Chọn quý</option>
+                <option value="1">Quý 1</option>
+                <option value="2">Quý 2</option>
+                <option value="3">Quý 3</option>
+                <option value="4">Quý 4</option>
+            </select>
+        </div>
+
+        <div class="filter-card">
+            <label for="filter-year">Theo năm:</label>
+            <input type="number" id="filter-year" onchange="inputForFilter()" name="filter-year" min="2000" max="2100"
+                   placeholder="Nhập năm">
+        </div>
+
+        <div class="filter-card">
+            <button type="button" onclick="applyFilters()">Lọc</button>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <div class="card card-white">
+            <div class="description">Doanh thu</div>
+            <div class="number" id="total"></div>
+        </div>
+        <div class="card card-white">
+            <div class="description">Doanh thu tại quầy</div>
+            <div class="number" id="doanhthutaiquay_loc"></div>
+        </div>
+        <div class="card card-white">
+            <div class="description">Doanh thu online</div>
+            <div class="number" id="doanhthuonline_loc"></div>
+        </div>
+        <div class="card card-white">
+            <div class="description">Trả hàng</div>
+            <div class="number" id="tientrahang_loc"></div>
+        </div>
+        <!--        <div class="card card-white">-->
+        <!--            <div class="description">Tiền voucher</div>-->
+        <!--            <div class="number" id="tienvoucher_loc"></div>-->
+        <!--        </div>-->
+        <div class="card card-white">
+            <div class="description">Hóa đơn thành công</div>
+            <div class="number" id="slhoadonthanhcong"></div>
+        </div>
+        <div class="card card-white">
+            <div class="description">Hóa đơn bị hủy</div>
+            <div class="number" id="slhoadonbihuy_loc"></div>
+        </div>
+    </div>
+    <!--    <h2 class="text-center">Biểu đồ so sánh năm</h2>-->
+    <!--    <div class="filter-container">-->
+    <!--        <label for="year-select">Chọn năm thứ nhất:</label>-->
+    <!--        <select id="year1-select" onchange="updateChart()">-->
+    <!--            <option value="2023">2023</option>-->
+    <!--            <option value="2024">2024</option>-->
+    <!--            <option value="2025">2025</option>-->
+    <!--        </select>-->
+
+    <!--        <label for="year-select">Chọn năm thứ hai:</label>-->
+    <!--        <select id="year2-select" onchange="updateChart()">-->
+    <!--            <option value="2023">2023</option>-->
+    <!--            <option value="2024">2024</option>-->
+    <!--            <option value="2025">2025</option>-->
+    <!--        </select>-->
+    <!--    </div>-->
+    <!--    <canvas id="myChart" width="50" height="10"></canvas>-->
+
+
+    <!--    <h2>Biểu đồ Đường</h2>-->
+    <!--    <canvas id="lineChart" width="50" height="10"></canvas>-->
+
+    <h2 class="text-center">Biểu đồ so sánh doanh thu giữa 2 năm</h2>
+    <div class="text-center">
+        <!--        <label for="year1-select">Chọn năm 1:</label>-->
+        <!--        <select id="year1-select" onchange="updateChart()">-->
+        <!--            <option value="2020">2020</option>-->
+        <!--            <option value="2021">2021</option>-->
+        <!--            <option value="2022">2022</option>-->
+        <!--            <option value="2023">2023</option>-->
+        <!--            <option value="2024">2024</option>-->
+        <!--            <option value="2025">2025</option>-->
+        <!--        </select>-->
+        <label for="year1-select">Chọn năm 1:</label>
+        <select id="year1-select" onchange="updateChart()"></select>
+
+
+        <label for="year2-select">Chọn năm 2:</label>
+        <select id="year2-select" onchange="updateChart()"></select>
+
+        <script>
+            // Lấy năm hiện tại
+            const currentYear = new Date().getFullYear();
+
+            // Hàm tự động thêm năm vào select
+            function populateYearSelect(selectId) {
+                const selectElement = document.getElementById(selectId);
+                for (let i = 0; i < 5; i++) {
+                    const year = currentYear - i;
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    selectElement.appendChild(option);
+                }
+            }
+
+            // Gọi hàm cho cả hai select
+            populateYearSelect('year1-select');
+            populateYearSelect('year2-select');
+
+            // Hàm xử lý khi chọn năm (ví dụ)
+            function updateChart() {
+                const year1 = document.getElementById('year1-select').value;
+                const year2 = document.getElementById('year2-select').value;
+                console.log(`Năm đã chọn: Năm 1 - ${year1}, Năm 2 - ${year2}`);
+                // Thêm logic cập nhật biểu đồ hoặc xử lý dữ liệu tại đây
+            }
+        </script>
+        <!--        <label for="year2-select">Chọn năm 2:</label>-->
+        <!--        <select id="year2-select" onchange="updateChart()">-->
+        <!--            <option value="2020">2020</option>-->
+        <!--            <option value="2021">2021</option>-->
+        <!--            <option value="2022">2022</option>-->
+        <!--            <option value="2023">2023</option>-->
+        <!--            <option value="2024">2024</option>-->
+        <!--            <option value="2025">2025</option>-->
+        <!--        </select>-->
+    </div>
+    <canvas id="lineChart" width="800" height="350"></canvas>
+
+    <div style="width: 80%; margin: auto; padding: 20px;">
+        <h2 style="text-align: center;">Biểu đồ thống kê doanh thu tất cả các ngày trong tháng</h2>
+        <div class="text-center">
+            <label for="monthPicker2">Chọn tháng/năm:</label>
+            <input onchange="hehe()" type="month" id="monthPicker2">
+        </div>
+        <canvas id="revenueChart"></canvas>
+    </div>
+
+    <!--    <h2>Biểu đồ Tỷ lệ hoàn thành và phương thức mua hàng</h2>-->
+    <!--    <div class="chart-container">-->
+    <!--        <canvas id="orderStatusChart"></canvas>-->
+    <!--        <canvas id="purchaseTypeChart"></canvas>-->
+    <!--    </div>-->
+
+    <!--    <h2 style="text-align: center;">Top 5 Sản Phẩm Bán Chạy Nhất</h2>-->
+    <!--    <canvas id="topProductsChart" style="max-width: 600px ; max-height: 250px"></canvas>-->
+    <!--    <h2>Biểu đồ Tỷ lệ hoàn thành và phương thức mua hàng</h2>-->
+    <div class="chart-row">
+        <div class="chart-container order-status">
+            <h3>Tỷ lệ hoàn thành</h3>
+            <canvas id="orderStatusChart"></canvas>
+        </div>
+        <div class="chart-container purchase-type">
+            <h3>Phương thức mua hàng</h3>
+            <canvas id="purchaseTypeChart"></canvas>
+        </div>
+        <div class="chart-container top-products">
+            <h3>Top 5 Sản Phẩm Bán Nhiều Nhất</h3>
+            <canvas style="max-width: 500px" id="topProductsChart"></canvas>
+        </div>
+    </div>
+
+
+    <script>
+        const total = document.getElementById("total");
+        const slhoadonthanhcong = document.getElementById("slhoadonthanhcong")
+        const doanhthutaiquay_loc = document.getElementById("doanhthutaiquay_loc")
+        const doanhthuonline_loc = document.getElementById("doanhthuonline_loc")
+        const slhoadonbihuy_loc = document.getElementById("slhoadonbihuy_loc")
+        const tientrahang_loc = document.getElementById("tientrahang_loc");
+
+        function inputForFilter() {
+            const date = document.getElementById('filter-date');
+            const startDate = document.getElementById('filter-start-date');
+            const endDate = document.getElementById('filter-end-date');
+            const month = document.getElementById('filter-month');
+            const quarter = document.getElementById('filter-quarter');
+            const year = document.getElementById('filter-year');
+        }
+
+        function applyFilters() {
+            const date = document.getElementById('filter-date').value;
+            const startDate = document.getElementById('filter-start-date').value;
+            const endDate = document.getElementById('filter-end-date').value;
+            const month = document.getElementById('filter-month').value;
+            const quarter = document.getElementById('filter-quarter').value;
+            const year = document.getElementById('filter-year').value;
+            $.ajax({
+                url: `http://localhost:8080/api/statistical?date=${date}&startDate=${startDate}&endDate=${endDate}&month=${month}&quarter=${quarter}&year=${year}`,
+                method: "GET",
+                success: function (data) {
+                    total.innerText = data[0]
+                    slhoadonthanhcong.innerText = data[1]
+                    doanhthutaiquay_loc.innerText = data[2]
+                    doanhthuonline_loc.innerText = data[3]
+                    slhoadonbihuy_loc.innerText = data[4]
+                    tientrahang_loc.innerText = data[5]
+                    console.log("day la data doanh thu", data[0])
+                    console.log("day la data sl hoa don thanh cong", data[1])
+                    console.log("day la data doanh thu tai quay", data[2])
+                    console.log("day la data doanh thu online", data[3])
+                    console.log("day la data sl hoa don bi huy", data[4])
+                    console.log("day la data tien tra hang", data[5])
+                }
+            })
+            // Thực hiện lọc dựa trên các giá trị đã nhập
+            console.log('Ngày:', date);
+            console.log('Khoảng ngày:', startDate, 'đến', endDate);
+            console.log('Tháng:', month);
+            console.log('Quý:', quarter);
+            console.log('Năm:', year);
+            // Thêm logic lọc dữ liệu ở đây
+        }
+
+        function loading() {
+            setTimeout(() => {
+                $.ajax({
+                    url: "/api/vouchers/userData",
+                    method: "GET",
+                    success: function (data) {
+                        console.log(data)
+                        if (data !== "") {
+                            document.body.classList.add('show');
+                        } else {
+                            sessionStorage.setItem("notificationForMap", "Bạn không phải là Admin");
+                            window.location.href = "/";
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error)
+                    }
+                })
+            }, 300);
+            $.ajax({
+                url: `http://localhost:8080/api/statistical`,
+                method: "GET",
+                success: function (data) {
+                    console.log("xxxxx" + data)
+                    // theo thu tu qery
+                    total.innerText = data[0]
+                    slhoadonthanhcong.innerText = data[1]
+                    doanhthutaiquay_loc.innerText = data[2]
+                    doanhthuonline_loc.innerText = data[3]
+                    slhoadonbihuy_loc.innerText = data[4]
+                    tientrahang_loc.innerText = data[5]
+                }
+            })
+        }
+
+        //
+        // const data = {
+        //     2023: [120, 130, 90, 100, 150, 80, 200, 130, 100, 90, 120, 150],
+        //     2024: [100, 110, 70, 80, 130, 100, 180, 120, 90, 100, 110, 500],
+        //     2025: [200, 70, 488, 643, 130, 100, 180, 120, 90, 100, 110, 500],
+        // };
+        //
+        // // Tạo biểu đồ với Chart.js
+        // const ctx = document.getElementById('myChart').getContext('2d');
+        // let myChart = new Chart(ctx, {
+        //     type: 'bar',
+        //     data: {
+        //         labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+        //         datasets: [{
+        //             label: 'Năm 2023',
+        //             data: data[2023],
+        //             backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        //             borderColor: 'rgba(54, 162, 235, 1)',
+        //             borderWidth: 1
+        //         }, {
+        //             label: 'Năm 2024',
+        //             data: data[2024],
+        //             backgroundColor: 'rgba(255, 99, 132, 0.6)',
+        //             borderColor: 'rgba(255, 99, 132, 1)',
+        //             borderWidth: 1
+        //         }]
+        //     },
+        //     options: {
+        //         responsive: true,
+        //         scales: {
+        //             y: {
+        //                 beginAtZero: true
+        //             }
+        //         }
+        //     }
+        // });
+        //
+        // function updateChart() {
+        //     const year1 = document.getElementById('year1-select').value;
+        //     const year2 = document.getElementById('year2-select').value;
+        //
+        //     const year1Data = data[year1];
+        //     const year2Data = data[year2];
+        //
+        //     // Cập nhật dữ liệu của hai năm được chọn
+        //     myChart.data.datasets[0].data = year1Data;
+        //     myChart.data.datasets[0].label = `Năm ${year1}`;
+        //     myChart.data.datasets[1].data = year2Data;
+        //     myChart.data.datasets[1].label = `Năm ${year2}`;
+        //
+        //     myChart.update();
+        // }
+        //
+        // // Biểu đồ đường
+        // const lineCtx = document.getElementById('lineChart').getContext('2d');
+        // const lineChart = new Chart(lineCtx, {
+        //     type: 'line',
+        //     data: {
+        //         labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+        //         datasets: [{
+        //             label: 'Lượt khách',
+        //             data: [150, 200, 180, 220, 240, 260, 300, 320, 280, 310, 330, 350],
+        //             backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        //             borderColor: 'rgba(255, 99, 132, 1)',
+        //             borderWidth: 2,
+        //             fill: false
+        //         }]
+        //     },
+        //     options: {
+        //         responsive: true,
+        //         scales: {
+        //             y: {
+        //                 beginAtZero: true
+        //             }
+        //         }
+        //     }
+        // });
+
+        // js bieu do s nam
+        // Hàm tính toán chênh lệch và % thay đổi
+        const calculateChanges = (value1, value2) => {
+            const diff = value2 - value1;
+            const percentChange = value1 !== 0 ? (diff / value1) * 100 : 0;
+
+            const diffSign = diff > 0 ? '+' : ''; // Dấu "+" cho giá trị dương
+            const percentSign = diff > 0 ? '+' : '-'; // Chọn "tăng" hoặc "giảm"
+
+            return {
+                diff: `${diffSign}${diff}`, // Sự chênh lệch
+                percent: `${percentSign} ${Math.abs(percentChange).toFixed(2)}%` // % thay đổi
+            };
+        };
+
+        // Lấy ngữ cảnh canvas
+        const ctx = document.getElementById('lineChart').getContext('2d');
+
+        // Tạo biểu đồ
+        const lineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                datasets: [],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (tooltipItem) => {
+                                const index = tooltipItem.dataIndex;
+
+                                const datasetIndex = tooltipItem.datasetIndex;
+                                const otherDatasetIndex = datasetIndex === 0 ? 1 : 0;
+
+                                const currentValue = lineChart.data.datasets[datasetIndex].data[index];
+                                const otherValue = lineChart.data.datasets[otherDatasetIndex].data[index];
+
+                                const {diff, percent} = calculateChanges(otherValue, currentValue);
+                                const formatter = new Intl.NumberFormat('vi-VN'); // Định dạng theo chuẩn Việt Nam
+                                return [
+                                    `${lineChart.data.datasets[datasetIndex].label}: ${formatter.format(currentValue)} VND`,
+                                    `${lineChart.data.datasets[otherDatasetIndex].label}: ${formatter.format(otherValue)} VND`,
+                                    `Chênh lệch: ${formatter.format(diff)} VND`,
+                                    `Tỷ lệ: ${percent}`,
+                                ];
+                            },
+                        },
+                    },
+                    title: {
+                        display: true,
+                        text: 'So sánh dữ liệu giữa hai năm',
+                    },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Doanh thu (VND)', // Nhãn cho trục Y
+                        },
+                    },
+                },
+            },
+        });
+
+        function updateChart() {
+            const year1 = document.getElementById('year1-select').value;
+            const year2 = document.getElementById('year2-select').value;
+
+            const request1 = $.ajax({
+                url: `/api/statistical/getDT?year=${year1}`,
+                method: "GET",
+            });
+
+            const request2 = $.ajax({
+                url: `/api/statistical/getDT?year=${year2}`,
+                method: "GET",
+            });
+
+            // Đợi cả hai request hoàn tất
+            Promise.all([request1, request2])
+                .then(([data1, data2]) => {
+                    // Gán dữ liệu và cập nhật biểu đồ
+                    lineChart.data.datasets = [
+                        {
+                            label: `Năm ${year1}`,
+                            data: data1,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            fill: false,
+                            tension: 0.1,
+                        },
+                        {
+                            label: `Năm ${year2}`,
+                            data: data2,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            fill: false,
+                            tension: 0.1,
+                        },
+                    ];
+
+                    lineChart.update(); // Cập nhật biểu đồ
+                })
+                .catch((error) => {
+                    console.error("Lỗi khi lấy dữ liệu:", error);
+                });
+        }
+
+        // Khởi tạo dữ liệu mặc định
+        // document.getElementById('year1-select').value = 2020;
+        document.getElementById('year1-select').value = 2024;
+        document.getElementById('year2-select').value = 2025;
+        updateChart();
+
+        // bieu do theo thang theo ngay
+        let revenueChart; // Khai báo biến toàn cục để lưu trữ biểu đồ
+
+        function bieuDoMoi(month, year) {
+            console.log(month, year);
+
+            // // Tạo mảng nhãn 'Ngày 1', 'Ngày 2', ..., 'Ngày 31'
+            // let days = Array.from({ length: 31 }, (_, i) => `Ngày ${i + 1}`);
+            // let revenues = []; // Mảng doanh thu sẽ được cập nhật từ API
+            const daysInMonth = new Date(year, month, 0).getDate(); // Lấy số ngày của tháng
+
+            // Tạo mảng nhãn dạng 'Ngày DD-MM-YYYY'
+            let days = Array.from({length: daysInMonth}, (_, i) => `Ngày ${i + 1}-${month}-${year}`);
+            let revenues = []; // Mảng doanh thu sẽ được cập nhật từ API
+            // Gọi API để lấy dữ liệu doanh thu
+            $.ajax({
+                url: "/api/statistical/getDtForMonth" + "?month=" + month + "&year=" + year,
+                method: "GET",
+                success: function (data) {
+                    // Giả định `data` trả về mảng doanh thu tương ứng với các ngày trong tháng
+                    revenues = data;
+
+                    const ctx2 = document.getElementById('revenueChart').getContext('2d');
+
+                    // Hủy biểu đồ cũ nếu tồn tại
+                    if (revenueChart) {
+                        revenueChart.destroy();
+                    }
+
+                    // Tạo biểu đồ mới
+                    revenueChart = new Chart(ctx2, {
+                        type: 'bar', // Loại biểu đồ
+                        data: {
+                            labels: days, // Ngày trong tháng
+                            datasets: [{
+                                label: 'Doanh thu (VND)',
+                                data: revenues, // Doanh thu theo từng ngày
+                                backgroundColor: 'rgba(75, 192, 192, 0.5)', // Màu cột
+                                borderColor: 'rgba(75, 192, 192, 1)', // Màu viền
+                                borderWidth: 1 // Độ dày viền
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: true, // Hiển thị chú thích
+                                    position: 'top'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function (context) {
+                                            // Định dạng doanh thu: Thêm dấu ',' và 'VND'
+                                            return context.raw.toLocaleString() + ' VND';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Ngày'
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Doanh thu (VND)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                },
+                error: function (error) {
+                    console.error("Lỗi khi gọi API: ", error);
+                }
+            });
+        }
+
+        bieuDoMoi(1, 2025);
+
+        function hehe() {
+            const hehe = document.getElementById("monthPicker2").value
+            const dateStr = hehe; // Chuỗi ngày tháng
+            const [year, month] = dateStr.split('-');
+            console.log(dateStr[month]); // Output: Năm: 2023
+            console.log(`${month}`); // Output: Tháng: 12
+            bieuDoMoi(month, year);
+            console.log(hehe)
+        }
+
+
+        $.ajax({
+            url: `http://localhost:8080/api/statistical/tiletrangthaidonhang`,
+            method: "GET",
+            success: function (data) {
+                const orderStatusData = {
+                    labels: ['Hoàn thành đơn', 'Hủy đơn'],
+                    datasets: [{
+                        label: 'Tỷ lệ hoàn thành và hủy đơn',
+                        data: [data[0], data[1]], // Tỷ lệ % (thay số liệu thực tế ở đây)
+                        backgroundColor: ['#4caf50', '#f44336'], // Màu sắc
+                        hoverOffset: 4
+                    }]
+                };
+
+                // Cấu hình biểu đồ 1
+                const orderStatusConfig = {
+                    type: 'pie',
+                    data: orderStatusData,
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (tooltipItem) => {
+                                        const data = tooltipItem.raw;
+                                        const total = tooltipItem.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((data / total) * 100).toFixed(2);
+                                        return `${tooltipItem.label}: ${percentage}%`;
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                color: '#fff', // Màu chữ hiển thị
+                                formatter: (value, context) => {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(2);
+                                    return `${percentage}%`; // Hiển thị tỷ lệ phần trăm
+                                },
+                                font: {
+                                    weight: 'bold',
+                                    size: 12, // Kích thước chữ
+                                }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels] // Kích hoạt plugin DataLabels
+                };
+
+                // Tạo biểu đồ 1
+                const orderStatusChart = new Chart(
+                    document.getElementById('orderStatusChart'),
+                    orderStatusConfig
+                );
+            }
+        });
+
+        // Dữ liệu cho biểu đồ 2: Các phương thức mua hàng
+        $.ajax({
+            url: `http://localhost:8080/api/statistical/tiledonhang`,
+            method: "GET",
+            success: function (data) {
+                // Dữ liệu cho biểu đồ 2: Các phương thức mua hàng
+                const purchaseTypeData = {
+                    labels: ['Mua hàng online', 'Mua hàng offline', 'Mua offline giao hàng'],
+                    datasets: [{
+                        label: 'Tỷ lệ các phương thức mua hàng',
+                        data: [data[0], data[1], data[2]], // Tỷ lệ % (thay số liệu thực tế ở đây)
+                        backgroundColor: ['#2196f3', '#ffc107', '#9c27b0'], // Màu sắc
+                        hoverOffset: 4
+                    }]
+                };
+
+                // Cấu hình biểu đồ 2
+                const purchaseTypeConfig = {
+                    type: 'pie',
+                    data: purchaseTypeData,
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (tooltipItem) => {
+                                        const data = tooltipItem.raw;
+                                        const total = tooltipItem.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((data / total) * 100).toFixed(2);
+                                        return `${tooltipItem.label}: ${percentage}%`;
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                color: '#fff', // Màu chữ hiển thị trên biểu đồ
+                                formatter: (value, context) => {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(2);
+                                    return `${percentage}%`; // Hiển thị tỷ lệ phần trăm
+                                },
+                                font: {
+                                    weight: 'bold',
+                                    size: 12, // Kích thước chữ
+                                }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels] // Kích hoạt plugin DataLabels
+                };
+
+                // Tạo biểu đồ 2
+                const purchaseTypeChart = new Chart(
+                    document.getElementById('purchaseTypeChart'),
+                    purchaseTypeConfig
+                );
+            }
+        });
+
+        // bieu do top 5
+        function bieuDOTop5() {
+            let label = [];
+            let dt = [];
+            $.ajax({
+                url: `http://localhost:8080/api/statistical/top5SP`,
+                method: "GET",
+                success: function (data) {
+                    console.log(data)
+                    data.forEach(item => {
+                        label.push(item.productDetailName);
+                        dt.push(item.totalQuantity);
+                    })
+                    console.log(label, dt)
+                    const ctx = document.getElementById('topProductsChart').getContext('2d');
+                    const topProductsChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: label, // Tên sản phẩm
+                            datasets: [{
+                                label: 'Số lượng bán ra',
+                                data: dt, // Số lượng bán ra
+                                backgroundColor: [
+                                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'
+                                ],
+                                borderColor: [
+                                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y', // Biểu đồ cột nằm ngang
+                            responsive: true,
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Số lượng sản phẩm bán ra'
+                                    }
+                                },
+                                y: {
+                                    title: {
+                                        display: true,
+                                        text: 'Tên sản phẩm'
+                                    },
+                                    ticks: {
+                                        callback: function (value, index) {
+                                            return label[index]; // Hiển thị tên sản phẩm
+                                        }
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function (context) {
+                                            return `${context.dataset.label}: ${context.raw}`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            })
+        }
+
+        bieuDOTop5();
+    </script>
+
+</div>
+</body>
+</html>

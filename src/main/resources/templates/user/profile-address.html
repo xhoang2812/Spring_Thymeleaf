@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{user/index}" xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Địa Chỉ Của Tôi</title>
+    <style>
+        .address-container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        .address-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .address-header h2 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .btn-add-address {
+            background-color: #ff4d4f;
+            color: #fff;
+            padding: 8px 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .address-list {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+
+        .address-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .address-item:last-child {
+            border-bottom: none;
+        }
+
+        .address-item h4 {
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .address-item p {
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .default-badge {
+            display: inline-block;
+            padding: 3px 6px;
+            font-size: 12px;
+            color: #ff4d4f;
+            border: 1px solid #ff4d4f;
+            border-radius: 3px;
+            margin-top: 5px;
+        }
+
+        .address-actions {
+            margin-top: 10px;
+        }
+
+        .address-actions a {
+            color: #007bff;
+            margin-right: 15px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .btn-set-default {
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* Nền mờ tối */
+            justify-content: center;
+            align-items: center;
+            z-index: 1050; /* Thấp hơn Swal */
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.3s ease; /* Hiệu ứng mờ */
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            font-size: 22px;
+            color: #333;
+            text-align: center;
+        }
+
+        .modal-content label {
+            display: block;
+            margin: 10px 0 5px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .modal-content input[type="text"], .modal-content input[type="tel"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        .modal-actions {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .modal-actions button {
+            padding: 8px 15px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .btn-close {
+            background-color: #6c757d;
+            color: #fff;
+        }
+
+        .btn-save {
+            background-color: #ff4d4f;
+            color: #fff;
+        }
+
+        .btn-close:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-save:hover {
+            background-color: #e8434e;
+        }
+
+        .btn-back {
+            background-color: #6c757d;
+            color: #fff;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            float: left; /* Căn sang trái */
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+
+        .modal-content select {
+            width: 100%; /* Đặt chiều rộng 100% */
+            padding: 10px; /* Padding giống như ô input */
+            margin-bottom: 15px; /* Khoảng cách bên dưới */
+            border: 1px solid #ddd; /* Đường viền giống như ô input */
+            border-radius: 5px; /* Bo tròn góc giống như ô input */
+            font-size: 15px; /* Kích thước chữ giống như ô input */
+            box-sizing: border-box; /* Bao gồm padding và border trong kích thước tổng thể */
+        }
+    </style>
+</head>
+<body layout:fragment="content">
+<section class="address-container">
+    <div class="address-header">
+        <h2>Địa chỉ của tôi</h2>
+        <button class="btn-add-address" onclick="openModal()">+ Thêm địa chỉ mới</button>
+    </div>
+
+    <div class="address-list">
+        <div th:each="address : ${addresses}" class="address-item">
+            <h4 th:text="${address.nameRecipient}"></h4>
+            <p th:text="${address.phone}"></p>
+            <p th:text="${address.addreseDetail} + ' ' + ${address.ward} + ', ' + ${address.district} + ', ' + ${address.province}"></p>
+            <div th:if="${address.isDefault}" class="default-badge">Mặc định</div>
+            <div class="address-actions">
+                <a href="#"
+                   th:href="@{/home/{customerId}/addresses/{addressId}(customerId=${customerId}, addressId=${address.id})}">Cập
+                    nhật</a>
+                <a href="#"
+                   th:href="@{/home/delete-address/{customerId}/{id}(customerId=${customerId}, id=${address.id})}"
+                   onclick="return confirm('Bạn có chắc chắn muốn xóa?')">Xóa</a>
+                <form th:action="@{/home/set-default-address}" method="post"
+                      onclick="return confirm('Bạn có chắc muốn đặt địa chỉ này là địa chỉ mặc định?')">
+                    <input type="hidden" name="addressId" th:value="${address.id}"/>
+                    <input type="hidden" name="customerId" th:value="${customerId}"/>
+                    <button th:if="!${address.isDefault}" type="submit" class="btn-set-default">Thiết lập mặc định
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div style="text-align: left; margin-top: 20px;">
+        <a th:href="@{/home/profile}" class="btn-back">Quay lại</a>
+    </div>
+
+    <form class="modal" id="form" style="display: none;"
+          th:action="@{/home/{customerId}/save-profile(customerId=${customer.id})}" method="post"
+          onsubmit="return vali(event)">
+        <input type="hidden" name="customerId" th:value="${customer.id}">
+        <div class="modal-content">
+            <h3>Thêm địa chỉ mới</h3>
+            <label for="nameRecipient">Tên người nhận</label>
+            <input type="text" id="nameRecipient" name="nameRecipient">
+            <label for="phone">Số điện thoại người nhận</label>
+            <input type="text" id="phone" name="phone"
+                   placeholder="Để trống nếu muốn nhận hàng bằng sđt khi đăng kí tài khoản">
+            <label for="province">Tỉnh/ Thành phố</label>
+            <select id="province" name="province">
+                <option value="">Chọn tỉnh</option>
+            </select>
+            <label for="district">Quận/ Huyện</label>
+            <select id="district" name="district">
+                <option value="">Chọn huyện</option>
+            </select>
+            <label for="ward">Phường/ Xã</label>
+            <select id="ward" name="ward">
+                <option value="">Chọn xã</option>
+            </select>
+
+            <input type="hidden" id="provinceName" name="provinceName">
+            <input type="hidden" id="districtName" name="districtName">
+            <input type="hidden" id="wardName" name="wardName">
+
+            <label for="addreseDetail">Địa chỉ chi tiết</label>
+            <input type="text" id="addreseDetail" name="addreseDetail">
+            <div class="modal-actions">
+                <button type="button" class="btn-close" onclick="closeModal()">Đóng</button>
+                <button type="submit" class="btn-save">Lưu</button>
+            </div>
+        </div>
+    </form>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    function showErrors(messages) {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+            }
+        });
+        Toast.fire({
+            icon: "error",
+            title: messages
+        });
+    }
+
+    function collectAddressNames() {
+        const provinceSelect = document.querySelector("#province");
+        const districtSelect = document.querySelector("#district");
+        const wardSelect = document.querySelector("#ward");
+
+        const provinceName = provinceSelect.options[provinceSelect.selectedIndex].text;
+        const districtName = districtSelect.options[districtSelect.selectedIndex].text;
+        const wardName = wardSelect.options[wardSelect.selectedIndex].text;
+
+        document.querySelector("#provinceName").value = provinceName;
+        document.querySelector("#districtName").value = districtName;
+        document.querySelector("#wardName").value = wardName;
+
+        return true; // Cho phép gửi form
+    }
+
+    // Hàm kiểm tra và gửi form
+    function vali(e) {
+        e.preventDefault(); // Ngăn chặn gửi form ngay lập tức
+        collectAddressNames(); // Gọi hàm để thu thập tên tỉnh, huyện, xã
+
+        // Lấy giá trị từ các trường trong form
+        let name_recipient = document.getElementById('nameRecipient').value;
+        let provinceElement = document.getElementById('province');
+        let districtElement = document.getElementById('district');
+        let wardElement = document.getElementById('ward');
+        let phone = document.getElementById('phone').value;
+        let addreseDetail = document.getElementById('addreseDetail').value;
+
+        // Kiểm tra null
+        if (!provinceElement || !districtElement || !wardElement) {
+            showErrors("Không tìm thấy thông tin địa chỉ.");
+            return;
+        }
+
+        let province = provinceElement.value;
+        let district = districtElement.value;
+        let ward = wardElement.value;
+
+        // Kiểm tra các trường bắt buộc
+        if (name_recipient === "") {
+            showErrors("Tên người nhận không được để trống");
+            return;
+        }
+        if (province === "") {
+            showErrors("Tỉnh/Thành phố không được để trống");
+            return;
+        }
+        if (district === "") {
+            showErrors("Quận/Huyện không được để trống");
+            return;
+        }
+        if (ward === "") {
+            showErrors("Phường/Xã không được để trống");
+            return;
+        }
+        if (addreseDetail === "") {
+            showErrors("Địa chỉ chi tiết không được để trống");
+            return;
+        }
+        if (phone !== "" && !/^\d{10}$/.test(phone)) {
+            showErrors("Số điện thoại phải có đúng 10 chữ số");
+            return;
+        }
+
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Thêm địa chỉ thành công!',
+            text: 'Địa chỉ mới đã được thêm.',
+            timer: 2500,
+            showConfirmButton: false
+        }).then(() => {
+            document.getElementById('form').submit(); // Gửi form ở đây
+        });
+    }
+
+    function openModal() {
+        document.getElementById('form').style.display = 'flex';
+        loadProvinces();
+    }
+
+    // Hàm tải danh sách tỉnh
+    function loadProvinces() {
+        if (document.getElementById('province').options.length === 1) {
+            return fetch('https://online-gateway.ghn.vn/shiip/public-api/master-data/province', {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Token': 'e72e960b-9e77-11ef-a35f-3e447ea83dcd'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    let provinceSelect = document.getElementById('province');
+                    provinceSelect.innerHTML = '<option value="">Chọn tỉnh</option>';
+                    data.data.forEach(province => {
+                        let option = document.createElement('option');
+                        option.value = province.ProvinceID;
+                        option.text = province.ProvinceName;
+                        provinceSelect.add(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching provinces:', error));
+        }
+    }
+
+
+    // Hàm tải danh sách huyện
+    function loadDistricts() {
+        let provinceId = document.getElementById('province').value;
+        let districtSelect = document.getElementById('district');
+        districtSelect.innerHTML = '<option value="">Chọn huyện</option>';
+        document.getElementById('ward').innerHTML = '<option value="">Chọn xã</option>';
+
+        if (provinceId) {
+            return fetch('https://online-gateway.ghn.vn/shiip/public-api/master-data/district', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Token': 'e72e960b-9e77-11ef-a35f-3e447ea83dcd'
+                },
+                body: JSON.stringify({"province_id": parseInt(provinceId)})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    data.data.forEach(district => {
+                        let option = document.createElement('option');
+                        option.value = district.DistrictID;
+                        option.text = district.DistrictName;
+                        districtSelect.add(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching districts:', error));
+        } else {
+            return Promise.resolve();
+        }
+    }
+
+    // Hàm tải danh sách xã
+    function loadWards() {
+        let districtId = document.getElementById('district').value;
+        let wardSelect = document.getElementById('ward');
+        wardSelect.innerHTML = '<option value="">Chọn xã</option>';
+
+        if (districtId) {
+            return fetch('https://online-gateway.ghn.vn/shiip/public-api/master-data/ward', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Token': 'e72e960b-9e77-11ef-a35f-3e447ea83dcd'
+                },
+                body: JSON.stringify({"district_id": parseInt(districtId)})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    data.data.forEach(ward => {
+                        let option = document.createElement('option');
+                        option.value = ward.WardCode;
+                        option.text = ward.WardName;
+                        wardSelect.add(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching wards:', error));
+        } else {
+            return Promise.resolve();
+        }
+    }
+
+    // Thêm sự kiện cho các dropdown
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('province').addEventListener('change', loadDistricts);
+        document.getElementById('district').addEventListener('change', loadWards);
+        loadProvinces()
+    });
+
+    function closeModal() {
+        document.getElementById('form').style.display = 'none';
+        // document.getElementById('form').reset();
+    }
+</script>
+</body>
+</html>

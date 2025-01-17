@@ -1,0 +1,172 @@
+/* Toàn bộ kiểu chữ là 'Segoe UI' */
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* Phần chung cho danh sách hóa đơn */
+.order-item {
+    background-color: #e9ecef; /* Màu nền nhạt */
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    overflow: hidden; /* Để tránh lỗi khi nội dung dài */
+    position: relative; /* Hỗ trợ căn chỉnh vị trí các phần tử */
+}
+
+/* Hiệu ứng khi rê chuột */
+.order-item:hover {
+    background-color: #dee2e6;
+}
+
+/* Tên hóa đơn (góc trên phải) */
+.idBill {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 5px;
+    display: inline-block;
+    text-align: right;
+}
+
+/* Trạng thái có border */
+.statusBill .status-label {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: bold;
+    color: #fff;
+    /*border: 1px ;*/
+    /*border-radius: 10px;*/
+    background-color: #17a2b8; /* Màu xanh dương nhạt */
+    border: 1px solid;
+    border-radius: 3px;
+    padding: 2px 6px;
+}
+
+/* Thời gian và khách hàng */
+.timePuy {
+    font-size: 12px;
+    color: #6c757d; /* Màu chữ xám nhạt */
+}
+
+/* Phần khách hàng: chữ bình thường, tên khách hàng to hơn và đậm nhẹ */
+.nameCustomer {
+    font-size: 14px; /* Kích thước chữ bình thường */
+    color: #333; /* Màu chữ tối */
+    margin-top: 5px;
+}
+
+.nameCustomer .customer-name {
+    font-size: 16px; /* Tên khách hàng lớn hơn */
+    font-weight: 600; /* Đậm nhẹ */
+    color: #000; /* Màu đen */
+}
+
+
+/* Thanh toán (góc dưới phải) */
+.payPrice {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: right;
+    color: #d63e10; /* Màu xanh lá cây */
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+
+.order-details {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.order-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.order-status,
+.order-date,
+.order-customer {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.table th,
+.table td {
+    font-size: 14px;
+}
+
+.order-totals p {
+    font-size: 14px;
+    margin: 5px 0;
+    bottom: 0;
+}
+
+.order-totals .total-amount,
+.order-totals .discount,
+.order-totals .shipping-fee,
+.order-totals .final-amount {
+    font-weight: bold;
+    color: #d63e10;
+}
+
+.confirm-btn {
+    margin-top: 15px;
+    height: 80px;
+    width: 30%;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+
+.employeeName {
+    margin-top: 35px;
+    text-align: right;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.order-summary-details {
+    height: 620px;
+    position: relative;
+}
+
+.table th, .table td {
+    height: 40px; /* Thiết lập chiều cao cố định cho các ô */
+    overflow: hidden; /* Ẩn nội dung tràn */
+    text-overflow: ellipsis; /* Thêm dấu "..." khi nội dung quá dài */
+    word-wrap: break-word; /* Ngắt từ nếu cần thiết */
+    padding: 10px; /* Khoảng cách trong các ô */
+    vertical-align: middle; /* Căn chỉnh theo chiều dọc */
+}
+
+textarea {
+    display: block; /* Đảm bảo ô textarea có thể hiển thị */
+    width: 100%;
+    margin-top: 10px;
+}
+
+.cannel-bill {
+    bottom: 0;
+    right: 100px;
+}
+
+[aria-label="Basic radio toggle button group"] {
+    display: flex;
+    justify-content: space-between;
+    width: 100%; /* Đảm bảo chiều rộng của container là 100% */
+}
+
+[aria-label="Basic radio toggle button group1"] {
+    display: flex;
+    justify-content: space-between;
+    width: 50%; /* Đảm bảo chiều rộng của container là 100% */
+}
+.btn-check + .btn {
+    flex: 1; /* Đảm bảo mỗi nút sẽ chiếm đều một không gian */
+    margin: 0 5px; /* Thêm khoảng cách giữa các nút */
+}

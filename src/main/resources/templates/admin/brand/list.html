@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{admin/index}"
+      xmlns:layout="http://www.utralq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Quản lý thương hiệu</title>
+    <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet"/>
+</head>
+
+<body onload="checkUser()">
+<div layout:fragment="content">
+    <main class="content px-3 py-4">
+        <div class="container-fluid">
+            <div class="mb-3">
+                <h3 class="fw-bold fs-4 mb-3">Danh sách thương hiệu</h3>
+                <div class="row">
+                    <div style="text-align:end">
+                        <a id="i-2">
+                            <i class="fa-solid fa-circle-plus  fa-lg fa-2xl" data-bs-target="#exampleModal" data-bs-toggle="modal"></i>
+                        </a>
+                    </div>
+                    <div class="col-12">
+                        <table class="table table-striped table-hover" id="example">
+                            <thead class="table-dark">
+                            <tr>
+                                <th scope="col">Tên thương hiệu</th>
+                                <th scope="col">Trạng thái</th>
+                                <th scope="col">Ngày tạo</th>
+                                <th scope="col">Ngày sửa</th>
+                                <th scope="col">Chức Năng</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="list : ${listBrand}">
+                                <td th:utext="${list.name}"></td>
+                                <td>
+                                    <span
+                                            class="badge bg-success"
+                                            th:id="'trangThaiUpdate_'+${list.id}"
+                                            th:if="${list.status == 1}">Hoạt Động
+                                    </span>
+                                    <span
+                                            class="badge bg-danger"
+                                            th:id="'trangThaiUpdate_'+${list.id}"
+                                            th:if="${list.status == 0}">Ngừng Hoạt Động
+                                    </span>
+                                </td>
+                                <td th:utext="${#dates.format(list.dateCreate,'dd/MM/yyyy')}"></td>
+                                <td th:id="'dateUpdate_'+${list.id}"
+                                    th:utext="${#dates.format(list.dateUpdate,'dd/MM/yyyy')}"></td>
+                                <td style="display: flex; align-items: center;">
+                                    <a id="i-3" th:href="@{/thuong-hieu/update/{id}(id=${list.id})}">
+                                        <i class="fa-solid fa-wrench -pulse"></i>
+                                    </a>
+                                    <a class="form-check form-switch ms-2">
+                                        <input id="i-1" class="form-check-input" onchange="capNhatLaiDuLieu(this)"
+                                               onclick="capNhatTrangThai(this.getAttribute('data-ma'))"
+                                               role="switch"
+                                               th:checked="${list.status == 1}"
+                                               th:data-ma="${list.id}"
+                                               type="checkbox">
+                                        <input style="display: none" th:id="'btnDoiTrangThai_' + ${list.id}"
+                                               th:value="${list.status}">
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade modal-lg" id="exampleModal"
+         tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Thêm mới thương hiệu</h5>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <div class="modal-body" id="modal">
+                    <div class="card-body">
+                        <form onsubmit="return valid()" th:action="@{/thuong-hieu/store}" th:method="POST"
+                              th:object="${data}">
+                            <div class="mb-3">
+                                <label class="form-label">Tên thương hiệu</label>
+                                <input class="form-control" th:field="*{name}" type="text">
+                            </div>
+                            <div class="mb-3">
+                                <label class="label-control">Trạng thái</label>
+                                <select class="form-select" th:field="*{status}">
+                                    <option th:value="1">Hoạt động</option>
+                                    <option th:value="0">Ngừng hoạt động</option>
+                                </select>
+                            </div>
+                            <div style="text-align: center">
+                                <button class="btn btn-dark" type="submit" id="btn-add">Thêm</button>
+                                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $('#example').DataTable({
+            fixedColumns: true,
+            order: [],
+            layout: {
+                topStart: {
+                    buttons: ['copy', 'excel', 'pdf', 'colvis']
+                }
+            }
+        });
+    </script>
+
+    <script>
+        function valid() {
+            const nameField = document.querySelector('input[name="name"]');
+            const nameValue = nameField.value.trim();
+            let isValid = true;
+
+            if (!nameValue) {
+                showErrors("Tên thương hiệu không được để trống!");
+                isValid = false;
+            }
+            return isValid;
+        }
+    </script>
+    <script>
+        function showErrors(messsages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messsages
+            });
+        }
+
+        function showSuccesss(messages){
+            Swal.fire({
+                title: messages,
+                icon: "success"
+            });
+        }
+        [[${tenTonTai} == true]] ? showErrors('Tên thương hiệu đã tồn tại!') : '';
+        [[${createSuccess} == true]] ? showSuccesss('Thêm thành công') : '';
+        [[${updateSuccess} == true]] ? showSuccesss('Sửa thành công ') : '';
+    </script>
+    <script>
+        function capNhatTrangThai(id) {
+            idMau = id;
+            let trangThai = document.getElementById("btnDoiTrangThai_" + id).value;
+            var formData = new FormData();
+            formData.append("trangThai", trangThai);
+            $.ajax({
+                type: "PUT",
+                url: "/thuong-hieu/change-status/" + id,
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    console.log("Success: " + response);
+                    showSuccesss('Trạng thái đã được cập nhật!')
+                },
+                error: function (error) {
+                    console.log("Error1: " + JSON.stringify(error));
+                }
+            });
+        }
+
+        function capNhatLaiDuLieu(checkbox) {
+            let trangThai = checkbox.checked;
+            let tThai = document.getElementById("trangThaiUpdate_" + idMau);
+            let dateUpdate = document.getElementById("dateUpdate_" + idMau);
+            let date = new Date();
+            let dateString = date.toLocaleDateString('vi-VN');
+            if (trangThai) {
+                tThai.innerText = "Hoạt Động";
+                tThai.style.color = "white";
+                tThai.classList.remove("badge", "bg-danger");
+                tThai.classList.add("badge", "bg-success");
+            } else {
+                tThai.innerText = "Không Hoạt Động";
+                tThai.style.color = "white";
+                tThai.classList.remove("badge", "bg-success");
+                tThai.classList.add("badge", "bg-danger");
+            }
+            dateUpdate.innerText = dateString;
+        }
+
+        function checkUser(){
+                $.ajax({
+                    url: "/api/vouchers/userData",
+                    method: "GET",
+                    success: function (data) {
+                        console.log(data)
+                        if (data === "") {
+                            document.querySelectorAll("#i-1").forEach(i => i.remove());
+                            document.querySelectorAll("#i-2").forEach(i => i.remove());
+                            document.querySelectorAll("#i-3").forEach(i => i.remove());
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error)
+                    }
+                })
+        }
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="/admin/index">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý kiểu dáng</title>
+</head>
+<body>
+<div layout:fragment="content" class="card container" style=" box-shadow: 0px 0px 3px gray;">
+    <div class="card-header">
+        <div style="text-align: center">
+            <h3>Sửa kiêu dáng</h3>
+        </div>
+    </div>
+    <div class="card-body">
+        <form class="row" th:action="@{/kieu-dang/edit/{id}(id=${data.id})}" th:method="POST" th:object="${data}"
+              onsubmit="return valid()">
+            <div class="col-6 mb-3">
+                <label class="form-label">Tên màu</label>
+                <input type="text" class="form-control" th:field="*{name}" >
+            </div>
+            <div class="col-6 mb-3">
+                <label class="form-label">Trạng thái</label>
+                <select class="form-select" th:field="*{status}">
+                    <option th:value="1">Hoạt động</option>
+                    <option th:value="0">Ngừng hoạt động</option>
+                </select>
+            </div>
+            <div class="col-6 mb-3">
+                <label class="form-label">Ngày tạo</label>
+                <input class="form-control"  th:value="*{dateCreate}" th:readonly="true">
+            </div>
+            <div class="col-6 mb-3">
+                <label class="form-label">Ngày sửa</label>
+                <input class="form-control"  th:value="*{dateUpdate}" th:readonly="true">
+            </div>
+            <div style="text-align: center" class="mt-3">
+                <button type="submit" class="btn btn-dark">Sửa</button>
+                <a class="btn btn-dark" th:href="@{/kieu-dang/hien-thi}">Quay lại</a>
+            </div>
+        </form>
+    </div>
+    <script>
+        function showErrors(messsages) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                title: messsages
+            });
+        }
+
+        function showSuccesss(messages){
+            Swal.fire({
+                title: messages,
+                icon: "success"
+            });
+        }
+
+        [[${tenTonTai} == true]] ? showErrors('Tên kiểu dáng  đã tồn tại!') : '';
+    </script>
+    <script>
+        function valid() {
+            const nameField = document.querySelector('input[name="name"]');
+            const nameValue = nameField.value.trim();
+            let isValid = true;
+            if (!nameValue) {
+                showErrors("Tên kiểu dáng không được để trống!");
+                isValid = false;
+            }
+            return isValid;
+        }
+    </script>
+</div>
+</body>
+</html>
